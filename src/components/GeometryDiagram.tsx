@@ -5,6 +5,7 @@ interface GeometryDiagramProps {
 }
 
 const GeometryDiagram = ({ diagram }: GeometryDiagramProps) => {
+  if (!diagram) return null;
   const { type, params } = diagram;
 
   return (
