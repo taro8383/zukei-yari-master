@@ -1,10 +1,26 @@
 export type Topic = 'angles' | 'area' | 'lines';
 
+export type DiagramType =
+  | 'straight-line-angle'
+  | 'triangle-angle'
+  | 'circle-angle'
+  | 'rectangle-area'
+  | 'square-area'
+  | 'perpendicular'
+  | 'parallel-corresponding'
+  | 'parallel-supplementary';
+
+export interface DiagramData {
+  type: DiagramType;
+  params: Record<string, number>;
+}
+
 export interface Question {
   id: number;
   text: string;
   answer: number;
   unit: string;
+  diagram: DiagramData;
 }
 
 export interface TopicInfo {
@@ -45,38 +61,41 @@ export const TOPICS: Record<Topic, TopicInfo> = {
 
 export function generateQuestions(topic: Topic): Question[] {
   const questions: Question[] = [];
-  
+
   for (let i = 0; i < 5; i++) {
     switch (topic) {
       case 'angles': {
         const type = Math.floor(Math.random() * 3);
         if (type === 0) {
-          const angle = Math.floor(Math.random() * 150) + 10;
+          const angle = Math.floor(Math.random() * 130) + 20;
           const answer = 180 - angle;
           questions.push({
             id: i,
-            text: `一直線の上に角度があります。一つの角が ${angle}° のとき、もう一つの角は何度ですか？`,
+            text: `下の図で、アの角度をもとめましょう。（一直線＝180°）`,
             answer,
             unit: '°',
+            diagram: { type: 'straight-line-angle', params: { givenAngle: angle } },
           });
         } else if (type === 1) {
-          const a1 = Math.floor(Math.random() * 80) + 20;
-          const a2 = Math.floor(Math.random() * (170 - a1 - 10)) + 10;
+          const a1 = Math.floor(Math.random() * 60) + 30;
+          const a2 = Math.floor(Math.random() * (140 - a1 - 20)) + 20;
           const answer = 180 - a1 - a2;
           questions.push({
             id: i,
-            text: `三角形の2つの角が ${a1}° と ${a2}° です。のこりの角は何度ですか？`,
+            text: `下の三角形で、アの角度をもとめましょう。（三角形の内角の和＝180°）`,
             answer,
             unit: '°',
+            diagram: { type: 'triangle-angle', params: { angle1: a1, angle2: a2 } },
           });
         } else {
-          const angle = Math.floor(Math.random() * 340) + 10;
+          const angle = Math.floor(Math.random() * 300) + 30;
           const answer = 360 - angle;
           questions.push({
             id: i,
-            text: `円の中心の角度が ${angle}° のとき、のこりの角度は何度ですか？`,
+            text: `下の図で、アの角度をもとめましょう。（一回転＝360°）`,
             answer,
             unit: '°',
+            diagram: { type: 'circle-angle', params: { givenAngle: angle } },
           });
         }
         break;
@@ -84,21 +103,23 @@ export function generateQuestions(topic: Topic): Question[] {
       case 'area': {
         const isSquare = Math.random() > 0.5;
         if (isSquare) {
-          const side = Math.floor(Math.random() * 12) + 2;
+          const side = Math.floor(Math.random() * 10) + 2;
           questions.push({
             id: i,
-            text: `一辺が ${side}cm の正方形の面積をもとめましょう。`,
+            text: `下の正方形の面積をもとめましょう。`,
             answer: side * side,
             unit: 'cm²',
+            diagram: { type: 'square-area', params: { side } },
           });
         } else {
-          const w = Math.floor(Math.random() * 12) + 2;
-          const h = Math.floor(Math.random() * 12) + 2;
+          const w = Math.floor(Math.random() * 10) + 3;
+          const h = Math.floor(Math.random() * 8) + 2;
           questions.push({
             id: i,
-            text: `たてが ${h}cm、よこが ${w}cm の長方形の面積をもとめましょう。`,
+            text: `下の長方形の面積をもとめましょう。`,
             answer: w * h,
             unit: 'cm²',
+            diagram: { type: 'rectangle-area', params: { width: w, height: h } },
           });
         }
         break;
@@ -106,35 +127,37 @@ export function generateQuestions(topic: Topic): Question[] {
       case 'lines': {
         const type = Math.floor(Math.random() * 3);
         if (type === 0) {
-          const angle = 90;
           questions.push({
             id: i,
-            text: `2つの直線が垂直にまじわっています。その角度は何度ですか？`,
-            answer: angle,
+            text: `下の図で、2つの直線が垂直にまじわっています。アの角度は何度ですか？`,
+            answer: 90,
             unit: '°',
+            diagram: { type: 'perpendicular', params: {} },
           });
         } else if (type === 1) {
-          const givenAngle = Math.floor(Math.random() * 80) + 10;
+          const givenAngle = Math.floor(Math.random() * 60) + 30;
           questions.push({
             id: i,
-            text: `平行な2本の直線に別の線がまじわっています。一つの角が ${givenAngle}° のとき、同位角は何度ですか？`,
+            text: `下の図で、直線あと直線いは平行です。アの角度（同位角）は何度ですか？`,
             answer: givenAngle,
             unit: '°',
+            diagram: { type: 'parallel-corresponding', params: { givenAngle } },
           });
         } else {
-          const givenAngle = Math.floor(Math.random() * 80) + 10;
+          const givenAngle = Math.floor(Math.random() * 60) + 30;
           const answer = 180 - givenAngle;
           questions.push({
             id: i,
-            text: `平行な2本の直線に別の線がまじわっています。一つの角が ${givenAngle}° のとき、となりの角は何度ですか？`,
+            text: `下の図で、直線あと直線いは平行です。アの角度は何度ですか？`,
             answer,
             unit: '°',
+            diagram: { type: 'parallel-supplementary', params: { givenAngle } },
           });
         }
         break;
       }
     }
   }
-  
+
   return questions;
 }

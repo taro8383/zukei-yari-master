@@ -1,4 +1,5 @@
 import { Question } from '@/lib/geometry';
+import GeometryDiagram from '@/components/GeometryDiagram';
 
 interface QuestionItemProps {
   question: Question;
@@ -23,7 +24,11 @@ const QuestionItem = ({ question, index, userAnswer, onAnswerChange, graded, isC
           {index + 1}
         </span>
         <div className="flex-1">
-          <p className="text-lg font-medium mb-3 leading-relaxed">{question.text}</p>
+          <p className="text-lg font-medium leading-relaxed">{question.text}</p>
+          
+          {/* Diagram */}
+          <GeometryDiagram diagram={question.diagram} />
+          
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-muted-foreground font-medium">こたえ：</span>
             <input
