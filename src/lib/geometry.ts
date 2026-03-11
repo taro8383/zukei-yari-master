@@ -14,10 +14,10 @@ export type DiagramType =
   | 'trapezoid-angle'
   | 'rhombus-perimeter'
   | 'polygon-diagonals'
+  | 'count-right-angles'
   // Interactive SVG exercise types
   | 'intersecting-lines-interactive'
   | 'dotted-paper-quadrilateral'
-  | 'parallel-lines-drawing'
   | 'diagonals-drawing';
 
 export interface DiagramData {
@@ -187,18 +187,13 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
     case 'lines': {
       const type = Math.floor(Math.random() * 4);
       if (type === 0) {
-        // Interactive parallel lines drawing
-        const exerciseType = Math.random() > 0.5 ? 1 : 2;
+        // Simple right angle counting exercise
+        const rightAngleCount = Math.floor(Math.random() * 3) + 2; // 2 to 4 right angles
         return {
-          id, answer: 1, unit: '',
-          text: exerciseType === 1
-            ? '点Aをとおって、直線あに平行な線をひこう！'
-            : '直線あから2cmはなれた平行線を2本ひこう！',
-          textEn: exerciseType === 1
-            ? 'Draw a line through point A parallel to line あ!'
-            : 'Draw 2 parallel lines 2cm away from line あ!',
-          diagram: { type: 'parallel-lines-drawing', params: { exerciseType } },
-          isInteractive: true,
+          id, answer: rightAngleCount, unit: '個',
+          text: '下の図の直角（90°の角）は全部でいくつありますか？',
+          textEn: 'How many right angles (90° angles) are in the figure below?',
+          diagram: { type: 'count-right-angles', params: { count: rightAngleCount } },
         };
       } else if (type === 1) {
         return {

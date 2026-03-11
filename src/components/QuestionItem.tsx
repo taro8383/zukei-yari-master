@@ -3,13 +3,11 @@ import GeometryDiagram from '@/components/GeometryDiagram';
 import {
   IntersectingLinesExercise,
   DottedPaperQuadrilateral,
-  ParallelLinesDrawing,
   DiagonalsDrawing,
 } from '@/components/exercises';
 import {
   DiagonalsExplanation,
   IntersectingLinesExplanation,
-  ParallelLinesExplanation,
   QuadrilateralExplanation,
   DiagonalsDrawingExplanation,
 } from '@/components/explanations';
@@ -75,16 +73,6 @@ const QuestionItem = ({
         );
       }
 
-      case 'parallel-lines-drawing':
-        return (
-          <ParallelLinesDrawing
-            exerciseType={diagram.params.exerciseType}
-            onAnswerSubmit={(correct) => onAnswerChange(correct ? '1' : '0')}
-            graded={graded}
-            isCorrect={isCorrect}
-          />
-        );
-
       case 'diagonals-drawing':
         return (
           <DiagonalsDrawing
@@ -136,7 +124,7 @@ const QuestionItem = ({
               <ConceptExplanation concept="vertical-angle" />
             </div>
           )}
-          {(diagram.type === 'parallel-corresponding' || diagram.type === 'parallel-supplementary' || diagram.type === 'parallel-lines-drawing') && (
+          {(diagram.type === 'parallel-corresponding' || diagram.type === 'parallel-supplementary') && (
             <div className="mt-3">
               <ConceptExplanation concept="parallel-lines" />
             </div>
@@ -233,11 +221,6 @@ const QuestionItem = ({
               )}
               {diagram.type === 'dotted-paper-quadrilateral' && (
                 <QuadrilateralExplanation />
-              )}
-              {diagram.type === 'parallel-lines-drawing' && (
-                <ParallelLinesExplanation
-                  exerciseType={diagram.params.exerciseType}
-                />
               )}
               {diagram.type === 'diagonals-drawing' && (
                 <DiagonalsDrawingExplanation

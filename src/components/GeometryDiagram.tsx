@@ -49,6 +49,8 @@ function renderDiagram(type: string, params: Record<string, number>) {
       return <RhombusPerimeter side={params.side} />;
     case 'polygon-diagonals':
       return <PolygonDiagonals sides={params.sides} />;
+    case 'count-right-angles':
+      return <CountRightAngles count={params.count} />;
     default:
       return null;
   }
@@ -411,6 +413,66 @@ function PolygonDiagonals({ sides }: { sides: number }) {
       <text x={cx} y={cy + 5} textAnchor="middle" fontSize={16} fontWeight="bold" fill={BLUE}>?本</text>
     </g>
   );
+}
+
+/* ===== COUNT RIGHT ANGLES ===== */
+
+function CountRightAngles({ count }: { count: number }) {
+  // Create a shape with the specified number of right angles
+  // We'll use combinations of rectangles and L-shapes
+  const cx = 140, cy = 100;
+
+  if (count === 2) {
+    // Two right angles: An L-shape
+    const pts = [
+      [cx - 60, cy - 60],
+      [cx + 20, cy - 60],
+      [cx + 20, cy + 20],
+      [cx + 60, cy + 20],
+      [cx + 60, cy + 60],
+      [cx - 60, cy + 60],
+    ];
+    return (
+      <g>
+        <polygon points={pts.map(p => p.join(',')).join(' ')} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
+        {/* Right angle markers */}
+        <RightAngleMarker cx={cx - 60} cy={cy - 60} size={14} rotation={0} />
+        <RightAngleMarker cx={cx + 60} cy={cy + 60} size={14} rotation={180} />
+      </g>
+    );
+  } else if (count === 3) {
+    // Three right angles: A rectangle with one corner extended
+    const pts = [
+      [cx - 50, cy - 50],
+      [cx + 50, cy - 50],
+      [cx + 50, cy],
+      [cx + 80, cy],
+      [cx + 80, cy + 50],
+      [cx - 50, cy + 50],
+    ];
+    return (
+      <g>
+        <polygon points={pts.map(p => p.join(',')).join(' ')} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
+        {/* Right angle markers */}
+        <RightAngleMarker cx={cx - 50} cy={cy - 50} size={14} rotation={0} />
+        <RightAngleMarker cx={cx + 50} cy={cy - 50} size={14} rotation={90} />
+        <RightAngleMarker cx={cx - 50} cy={cy + 50} size={14} rotation={270} />
+      </g>
+    );
+  } else {
+    // Four right angles: A rectangle
+    const w = 100, h = 70;
+    return (
+      <g>
+        <rect x={cx - w/2} y={cy - h/2} width={w} height={h} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} />
+        {/* Right angle markers at all corners */}
+        <RightAngleMarker cx={cx - w/2} cy={cy - h/2} size={14} rotation={0} />
+        <RightAngleMarker cx={cx + w/2} cy={cy - h/2} size={14} rotation={90} />
+        <RightAngleMarker cx={cx + w/2} cy={cy + h/2} size={14} rotation={180} />
+        <RightAngleMarker cx={cx - w/2} cy={cy + h/2} size={14} rotation={270} />
+      </g>
+    );
+  }
 }
 
 export default GeometryDiagram;
