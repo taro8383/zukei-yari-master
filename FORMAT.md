@@ -94,6 +94,47 @@ interface TopicInfo {
 - Use positive, encouraging language
 - Connect to real-world capabilities
 
+### Critical: Make "How it Works" Actually Helpful
+
+**❌ BAD - Generic formula only:**
+```
+method: 'くらべる数 ÷ もとにする数 = 倍'
+```
+This tells kids WHAT to calculate but not HOW to do it.
+
+**✅ GOOD - Step-by-step with example:**
+```
+method: '① もとにする数（ベース）を探す ② くらべる数を探す ③ くらべる数 ÷ もとにする数 で計算！ 例：12L ÷ 8L = 1.5倍'
+```
+
+**Requirements for "How it Works" (やりかた):**
+- Numbered steps (①, ②, ③) showing the exact process
+- Concrete example with actual numbers
+- Tell kids WHERE to find each number in the problem
+- Explain the logic (e.g., "足りなくなると困るから切り上げ")
+
+**Requirements for Question Hints:**
+- Show the specific numbers for THIS problem
+- Explain which digit to look at (e.g., "千の位の右隣の数字")
+- Show intermediate calculation steps
+- Never give generic advice like "Try dividing"
+
+**Example - Large Numbers Reading:**
+```typescript
+// Show the actual number with slashes
+hint: `💡 右から4けたごとに区切ってみよう：
+${numericValue.toLocaleString()} → 4 / 5000 / 0000
+右から順に：一の位 → 万の位 → 億の位`
+```
+
+**Example - Rounding:**
+```typescript
+// Tell exactly which digit to check
+hint: `💡 ${targetPlace}を探す：
+${originalNumber} の「${targetPlace}」の右隣の数字をチェック！
+0-4なら切り捨て、5-9なら切り上げ`
+```
+
 ---
 
 ## Explanation Card Format
@@ -386,6 +427,8 @@ export { default as BatteryBar } from './BatteryBar';
 - [ ] Add tab button to `TabsList`
 - [ ] Add `TabsContent` with topic selection
 - [ ] Implement question generation function
+- [ ] **Verify "How it Works" explains step-by-step HOW to solve**
+- [ ] **Verify hints are specific to each problem (not generic)**
 - [ ] Test bilingual text displays correctly
 - [ ] Verify grading shows green 〇 / red ×
 - [ ] Verify formula shows for incorrect answers
@@ -397,10 +440,11 @@ export { default as BatteryBar } from './BatteryBar';
 - [ ] Add topic to topic keys array
 - [ ] Add topic data to `TOPICS` record
 - [ ] Write めあて (goal) with action verb
-- [ ] Write やりかた (method) as formula
+- [ ] Write やりかた (method) with **numbered steps** and **concrete example**
 - [ ] Write 生活の中でのつかいみち (real-life) with kid-friendly example
 - [ ] Write できるようになると... (benefit) explaining skill gained
 - [ ] Create question generation function with 5+ problem sets
+- [ ] **Verify hints show specific steps for each problem (not generic advice)**
 - [ ] Ensure clean numbers (no repeating decimals for percentages)
 - [ ] Test question generation produces variety
 - [ ] Verify explanation card displays correctly
