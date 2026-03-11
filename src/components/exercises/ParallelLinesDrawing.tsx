@@ -30,16 +30,18 @@ const ParallelLinesDrawing = ({
   const padding = 30;
   const svgSize = gridSize * dotSpacing + padding * 2;
 
-  // Reference line (line a) - fixed at an angle
+  // Reference line (line a) - slope of 1/2 for grid alignment
+  // Goes from (col 3, row 5) to (col 11, row 9): delta x=8, delta y=4, slope=0.5
   const refLine = useMemo(
     () => ({
-      p1: { x: padding + 3 * dotSpacing, y: padding + 4 * dotSpacing },
-      p2: { x: padding + 10 * dotSpacing, y: padding + 8 * dotSpacing },
+      p1: { x: padding + 3 * dotSpacing, y: padding + 5 * dotSpacing },
+      p2: { x: padding + 11 * dotSpacing, y: padding + 9 * dotSpacing },
     }),
     []
   );
 
-  // Reference point A (for exercise type 1)
+  // Reference point A (for exercise type 1) - positioned so a parallel line is drawable
+  // Point A at (col 7, row 3) - a parallel line through A goes to (col 11, row 5)
   const pointA = useMemo(
     () => ({ x: padding + 7 * dotSpacing, y: padding + 3 * dotSpacing }),
     []
@@ -330,10 +332,10 @@ const ParallelLinesDrawing = ({
         )}
         <div className="bg-kid-yellow/20 rounded-lg p-2 border border-kid-yellow/40">
           <p className="text-sm font-bold text-center text-foreground">
-            ✏️ まず、点Aをクリック！→ 次に、点Aと同じ高さの右側をクリック！
+            ✏️ まず、点A（オレンジ色）をクリック！→ 次に、右に4マス、下に2マスの点をクリック！
           </p>
           <p className="text-xs text-muted-foreground text-center">
-            First, click on point A! → Then, click to the right at the same height!
+            First, click point A (orange)! → Then, click 4 dots right and 2 dots down!
           </p>
         </div>
         <p className="text-xs text-muted-foreground text-center">
