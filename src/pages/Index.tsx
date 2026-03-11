@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, RotateCcw, CheckCircle2, Trophy, Compass } from 'lucide-react';
+import { Sparkles, RotateCcw, CheckCircle2, Trophy, Compass, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ExplanationCard from '@/components/ExplanationCard';
 import QuestionItem from '@/components/QuestionItem';
@@ -8,13 +8,15 @@ import { Topic, TOPICS, Question, generateQuestions } from '@/lib/geometry';
 
 const topicKeys: Topic[] = ['angles', 'area', 'lines', 'intersecting', 'quadrilaterals', 'diagonals'];
 
+type ProtractorType = '180' | '360' | null;
+
 const Index = () => {
   const [selectedTopic, setSelectedTopic] = useState<Topic>('angles');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
   const [graded, setGraded] = useState(false);
   const [score, setScore] = useState(0);
-  const [showProtractor, setShowProtractor] = useState(false);
+  const [activeProtractor, setActiveProtractor] = useState<ProtractorType>(null);
 
   const handleGenerate = () => {
     const newQuestions = generateQuestions(selectedTopic);
@@ -58,21 +60,63 @@ const Index = () => {
                 <p className="text-muted-foreground text-sm">Kei-kun's Geometry App</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowProtractor(!showProtractor)}
-              title="分度器 / Protractor"
-              className={showProtractor ? 'border-primary text-primary' : ''}
-            >
-              <Compass className="w-5 h-5" />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setActiveProtractor(activeProtractor === '180' ? null : '180')}
+                title="分度器 (180°) / Protractor"
+                className={activeProtractor === '180' ? 'border-primary text-primary' : ''}
+              >
+                <Compass className="w-5 h-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setActiveProtractor(activeProtractor === '360' ? null : '360')}
+                title="分度器 (360°) / Full Protractor"
+                className={activeProtractor === '360' ? 'border-primary text-primary' : ''}
+              >
+                <Circle className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Protractor overlay */}
-      <Protractor visible={showProtractor} onClose={() => setShowProtractor(false)} />
+      {/* Protractor overlays */}
+      <Protractor
+        type="180"
+        visible={activeProtractor === '180'}
+        onClose={() => setActiveProtractor(null)}
+      />
+      <Protractor
+        type="360"
+        visible={activeProtractor === '360'}
+        onClose={() => setActiveProtractor(null)}
+      />
+
+      {/* Floating Protractor Toolbar */}
+      <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 bg-card/95 backdrop-blur-sm border border-border rounded-2xl px-2 py-3 shadow-kid-lg">
+        <Button
+          variant={activeProtractor === '180' ? 'default' : 'ghost'}
+          size="icon"
+          onClick={() => setActiveProtractor(activeProtractor === '180' ? null : '180')}
+          className="rounded-full w-10 h-10"
+          title="分度器 (180°)"
+        >
+          <Compass className="w-5 h-5" />
+        </Button>
+        <Button
+          variant={activeProtractor === '360' ? 'default' : 'ghost'}
+          size="icon"
+          onClick={() => setActiveProtractor(activeProtractor === '360' ? null : '360')}
+          className="rounded-full w-10 h-10"
+          title="分度器 (360°)"
+        >
+          <Circle className="w-5 h-5" />
+        </Button>
+      </div>
 
       <main className="container max-w-3xl mx-auto px-4 py-8">
         {/* Topic Selection */}

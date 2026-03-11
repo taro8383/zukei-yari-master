@@ -13,7 +13,12 @@ export type DiagramType =
   | 'parallelogram-angle'
   | 'trapezoid-angle'
   | 'rhombus-perimeter'
-  | 'polygon-diagonals';
+  | 'polygon-diagonals'
+  // Interactive SVG exercise types
+  | 'intersecting-lines-interactive'
+  | 'dotted-paper-quadrilateral'
+  | 'parallel-lines-drawing'
+  | 'diagonals-drawing';
 
 export interface DiagramData {
   type: DiagramType;
@@ -27,6 +32,7 @@ export interface Question {
   answer: number;
   unit: string;
   diagram: DiagramData;
+  isInteractive?: boolean; // Flag for SVG drawing exercises
 }
 
 export interface TopicInfo {
@@ -100,10 +106,10 @@ export const TOPICS: Record<Topic, TopicInfo> = {
     label: '四角形のなかま分け',
     labelEn: 'Classifying Quadrilaterals',
     icon: '🔷',
-    goal: '台形・平行四辺形・ひし形を見分けよう！',
-    goalEn: 'Identify trapezoids, parallelograms, and rhombuses!',
-    method: '台形＝1組の辺が平行。平行四辺形＝2組の辺が平行で、向かい合う角が同じ。ひし形＝4つの辺が全部同じ長さ。',
-    methodEn: 'Trapezoid = 1 pair of parallel sides. Parallelogram = 2 pairs of parallel sides, opposite angles equal. Rhombus = all 4 sides equal.',
+    goal: '台形・平行四辺形・ひし形・凧形を見分けよう！',
+    goalEn: 'Identify trapezoids, parallelograms, rhombuses, and kites!',
+    method: '台形＝1組の辺が平行。平行四辺形＝2組の辺が平行で、向かい合う角が同じ。ひし形＝4つの辺が全部同じ長さ。凧形＝隣り合う2組の辺が同じ長さ。',
+    methodEn: 'Trapezoid = 1 pair of parallel sides. Parallelogram = 2 pairs of parallel sides, opposite angles equal. Rhombus = all 4 sides equal. Kite = 2 pairs of adjacent equal sides.',
     realLife: '野球のダイヤモンドはひし形だよ！テーブルや窓は平行四辺形や長方形。身の回りの四角形を探してみよう！',
     realLifeEn: 'A baseball diamond is a rhombus! Tables and windows are parallelograms or rectangles. Look for quadrilaterals around you!',
     benefit: '四角形のとくちょうがわかると、面積をもとめたり、ものづくりに役立つよ！',
@@ -179,15 +185,29 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
       }
     }
     case 'lines': {
-      const type = Math.floor(Math.random() * 3);
+      const type = Math.floor(Math.random() * 4);
       if (type === 0) {
+        // Interactive parallel lines drawing
+        const exerciseType = Math.random() > 0.5 ? 1 : 2;
+        return {
+          id, answer: 1, unit: '',
+          text: exerciseType === 1
+            ? '点Aをとおって、直線あに平行な線をひこう！'
+            : '直線あから2cmはなれた平行線を2本ひこう！',
+          textEn: exerciseType === 1
+            ? 'Draw a line through point A parallel to line あ!'
+            : 'Draw 2 parallel lines 2cm away from line あ!',
+          diagram: { type: 'parallel-lines-drawing', params: { exerciseType } },
+          isInteractive: true,
+        };
+      } else if (type === 1) {
         return {
           id, answer: 90, unit: '°',
           text: '下の図で、2つの直線が垂直にまじわっています。アの角度は何度ですか？',
           textEn: 'Two lines meet perpendicularly. What is angle ア?',
           diagram: { type: 'perpendicular', params: {} },
         };
-      } else if (type === 1) {
+      } else if (type === 2) {
         const givenAngle = Math.floor(Math.random() * 60) + 30;
         return {
           id, answer: givenAngle, unit: '°',
@@ -208,6 +228,18 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
     case 'intersecting': {
       const givenAngle = Math.floor(Math.random() * 120) + 20;
       const rotation = Math.floor(Math.random() * 90);
+      const useInteractive = Math.random() > 0.3; // 70% chance for interactive exercise
+
+      if (useInteractive) {
+        return {
+          id, answer: 1, unit: '',
+          text: '交わる直線の角度を調べよう！',
+          textEn: 'Explore the angles of intersecting lines!',
+          diagram: { type: 'intersecting-lines-interactive', params: { givenAngle, rotation } },
+          isInteractive: true,
+        };
+      }
+
       const askVertical = Math.random() > 0.5;
       if (askVertical) {
         return {
@@ -226,8 +258,62 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
       }
     }
     case 'quadrilaterals': {
-      const type = Math.floor(Math.random() * 3);
+      const type = Math.floor(Math.random() * 8);
       if (type === 0) {
+        // Interactive dotted paper quadrilateral drawing - Rectangle
+        return {
+          id, answer: 1, unit: '',
+          text: '点字ペーパーで長方形をかこう！',
+          textEn: 'Draw a rectangle on dotted paper!',
+          diagram: { type: 'dotted-paper-quadrilateral', params: { requiredType: 0 } }, // 0 = rectangle
+          isInteractive: true,
+        };
+      } else if (type === 1) {
+        // Interactive dotted paper quadrilateral drawing - Square
+        return {
+          id, answer: 1, unit: '',
+          text: '点字ペーパーで正方形をかこう！',
+          textEn: 'Draw a square on dotted paper!',
+          diagram: { type: 'dotted-paper-quadrilateral', params: { requiredType: 1 } }, // 1 = square
+          isInteractive: true,
+        };
+      } else if (type === 2) {
+        // Interactive dotted paper quadrilateral drawing - Trapezoid
+        return {
+          id, answer: 1, unit: '',
+          text: '点字ペーパーで台形をかこう！',
+          textEn: 'Draw a trapezoid on dotted paper!',
+          diagram: { type: 'dotted-paper-quadrilateral', params: { requiredType: 2 } }, // 2 = trapezoid
+          isInteractive: true,
+        };
+      } else if (type === 3) {
+        // Interactive dotted paper quadrilateral drawing - Parallelogram
+        return {
+          id, answer: 1, unit: '',
+          text: '点字ペーパーで平行四辺形をかこう！',
+          textEn: 'Draw a parallelogram on dotted paper!',
+          diagram: { type: 'dotted-paper-quadrilateral', params: { requiredType: 3 } }, // 3 = parallelogram
+          isInteractive: true,
+        };
+      } else if (type === 4) {
+        // Interactive dotted paper quadrilateral drawing - Rhombus
+        return {
+          id, answer: 1, unit: '',
+          text: '点字ペーパーでひし形をかこう！',
+          textEn: 'Draw a rhombus on dotted paper!',
+          diagram: { type: 'dotted-paper-quadrilateral', params: { requiredType: 4 } }, // 4 = rhombus
+          isInteractive: true,
+        };
+      } else if (type === 5) {
+        // Interactive dotted paper quadrilateral drawing - Kite
+        return {
+          id, answer: 1, unit: '',
+          text: '点字ペーパーで凧形をかこう！',
+          textEn: 'Draw a kite on dotted paper!',
+          diagram: { type: 'dotted-paper-quadrilateral', params: { requiredType: 5 } }, // 5 = kite
+          isInteractive: true,
+        };
+      } else if (type === 6) {
         // Parallelogram: given one angle, find adjacent
         const angle = Math.floor(Math.random() * 80) + 50;
         return {
@@ -235,16 +321,6 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
           text: `下の平行四辺形で、1つの角が${angle}°です。となりの角は何度ですか？`,
           textEn: `One angle of this parallelogram is ${angle}°. What is the adjacent angle?`,
           diagram: { type: 'parallelogram-angle', params: { givenAngle: angle } },
-        };
-      } else if (type === 1) {
-        // Trapezoid: given 2 angles on one parallel side, find a third
-        const a1 = Math.floor(Math.random() * 60) + 50;
-        const a2 = 180 - a1;
-        return {
-          id, answer: a2, unit: '°',
-          text: `下の台形で、角Aは${a1}°です。角Bは何度ですか？（直線あと直線いは平行）`,
-          textEn: `In this trapezoid, angle A is ${a1}°. What is angle B? (Lines あ and い are parallel)`,
-          diagram: { type: 'trapezoid-angle', params: { angle1: a1 } },
         };
       } else {
         // Rhombus: given one side, find perimeter
@@ -258,6 +334,27 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
       }
     }
     case 'diagonals': {
+      const useInteractive = Math.random() > 0.3; // 70% chance for interactive
+
+      if (useInteractive) {
+        // Interactive diagonals drawing
+        const shapes: ('parallelogram' | 'trapezoid' | 'kite')[] = ['parallelogram', 'trapezoid', 'kite'];
+        const shapeType = shapes[Math.floor(Math.random() * shapes.length)];
+        const shapeNames: Record<string, [string, string]> = {
+          parallelogram: ['平行四辺形', 'parallelogram'],
+          trapezoid: ['台形', 'trapezoid'],
+          kite: ['ひし形', 'rhombus'],
+        };
+        const [nameJa, nameEn] = shapeNames[shapeType];
+        return {
+          id, answer: 1, unit: '',
+          text: `${nameJa}の対角線をひこう！`,
+          textEn: `Draw the diagonals of the ${nameEn}!`,
+          diagram: { type: 'diagonals-drawing', params: { shapeType } },
+          isInteractive: true,
+        };
+      }
+
       // Polygon diagonals: n(n-3)/2
       const sides = Math.floor(Math.random() * 5) + 4; // 4 to 8 sides
       const names: Record<number, [string, string]> = {
