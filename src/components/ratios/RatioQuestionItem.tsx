@@ -1,4 +1,3 @@
-// RatioQuestionItem - Displays a ratio question with tape diagram
 import { RatioQuestion, formatRatio } from '@/lib/ratios';
 import TapeDiagram from './TapeDiagram';
 
@@ -19,8 +18,6 @@ const RatioQuestionItem = ({
   graded,
   isCorrect,
 }: RatioQuestionItemProps) => {
-  const [showHint, setShowHint] = useState(false);
-
   return (
     <div
       className={`bg-card rounded-2xl shadow-kid p-5 border-2 transition-all ${
