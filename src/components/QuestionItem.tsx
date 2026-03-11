@@ -25,12 +25,16 @@ const QuestionItem = ({ question, index, userAnswer, onAnswerChange, graded, isC
         </span>
         <div className="flex-1">
           <p className="text-lg font-medium leading-relaxed">{question.text}</p>
+          <p className="text-sm text-muted-foreground mb-1">{question.textEn}</p>
           
           {/* Diagram */}
           <GeometryDiagram diagram={question.diagram} />
           
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-muted-foreground font-medium">こたえ：</span>
+            <div className="flex flex-col">
+              <span className="text-muted-foreground font-medium">こたえ：</span>
+              <span className="text-xs text-muted-foreground">Answer:</span>
+            </div>
             <input
               type="number"
               value={userAnswer}
@@ -49,7 +53,7 @@ const QuestionItem = ({ question, index, userAnswer, onAnswerChange, graded, isC
                   <>
                     <span className="text-3xl font-black text-incorrect">×</span>
                     <span className="text-sm text-muted-foreground">
-                      正しいこたえ：<strong className="text-foreground">{question.answer}{question.unit}</strong>
+                      正しいこたえ / Correct answer：<strong className="text-foreground">{question.answer}{question.unit}</strong>
                     </span>
                   </>
                 )}
