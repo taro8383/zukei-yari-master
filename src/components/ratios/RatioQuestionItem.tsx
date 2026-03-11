@@ -60,11 +60,25 @@ const RatioQuestionItem = ({
             </button>
           )}
 
-          {/* Hint - shows formula explanation */}
+          {/* Hint - helps identify numbers without giving answer */}
           {(showHint || graded) && (
             <div className="bg-kid-yellow/10 rounded-lg p-3 mb-4 text-sm">
-              <p className="font-medium text-foreground">{question.explanation}</p>
-              <p className="text-muted-foreground">{question.explanationEn}</p>
+              {graded ? (
+                <>
+                  <p className="font-medium text-foreground">{question.explanation}</p>
+                  <p className="text-muted-foreground">{question.explanationEn}</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-medium text-foreground">
+                    💡 くらべる数は <strong>{question.comparedAmount}</strong>、もとにする数は <strong>{question.baseAmount}</strong> だよ
+                  </p>
+                  <p className="text-muted-foreground">
+                    The compared amount is <strong>{question.comparedAmount}</strong>, the base amount is <strong>{question.baseAmount}</strong>.<br/>
+                    Remember: くらべる数 ÷ もとにする数 = 倍
+                  </p>
+                </>
+              )}
             </div>
           )}
 
