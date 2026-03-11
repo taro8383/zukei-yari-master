@@ -5,6 +5,7 @@ interface TapeDiagramProps {
   comparedAmount: number;
   ratio: number;
   showLabels?: boolean;
+  showAnswer?: boolean;
 }
 
 const TapeDiagram = ({
@@ -12,6 +13,7 @@ const TapeDiagram = ({
   comparedAmount,
   ratio,
   showLabels = true,
+  showAnswer = false,
 }: TapeDiagramProps) => {
   const svgConfig = useMemo(() => {
     const width = 400;
@@ -247,53 +249,61 @@ const TapeDiagram = ({
           {comparedAmount}
         </text>
 
-        {/* Ratio indicator */}
-        <text
-          x={startX + comparedWidth + 8}
-          y={comparedY}
-          dominantBaseline="middle"
-          className="fill-accent font-bold text-xs"
-        >
-          ({ratio}倍 / {ratio}×)
-        </text>
+        {/* Ratio indicator - only shown when graded */}
+        {showAnswer && (
+          <text
+            x={startX + comparedWidth + 8}
+            y={comparedY}
+            dominantBaseline="middle"
+            className="fill-accent font-bold text-xs"
+          >
+            ({ratio}倍 / {ratio}×)
+          </text>
+        )}
       </g>
 
-      {/* Arc showing the ratio relationship */}
-      <path
-        d={arcPath}
-        fill="none"
-        className="stroke-kid-yellow"
-        strokeWidth={3}
-        strokeLinecap="round"
-        markerEnd="url(#arrowhead)"
-      />
+      {/* Arc showing the ratio relationship - only shown when graded */}
+      {showAnswer && (
+        <>
+          <path
+            d={arcPath}
+            fill="none"
+            className="stroke-kid-yellow"
+            strokeWidth={3}
+            strokeLinecap="round"
+            markerEnd="url(#arrowhead)"
+          />
 
-      {/* Arrow marker definition */}
-      <defs>
-        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-          <polygon points="0 0, 10 3.5, 0 7" className="fill-kid-yellow" />
-        </marker>
-      </defs>
+          {/* Arrow marker definition */}
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" className="fill-kid-yellow" />
+            </marker>
+          </defs>
 
-      {/* Ratio label above arc */}
-      <text
-        x={ratioTextX}
-        y={baseY - 45}
-        textAnchor="middle"
-        className="fill-kid-yellow font-black text-lg"
-      >
-        {ratio}倍
-      </text>
+          {/* Ratio label above arc */}
+          <text
+            x={ratioTextX}
+            y={baseY - 45}
+            textAnchor="middle"
+            className="fill-kid-yellow font-black text-lg"
+          >
+            {ratio}倍
+          </text>
+        </>
+      )}
 
-      {/* Formula at bottom */}
-      <text
-        x={width / 2}
-        y={height - 10}
-        textAnchor="middle"
-        className="fill-muted-foreground text-xs"
-      >
-        くらべる数 ÷ もとにする数 = {comparedAmount} ÷ {baseAmount} = {ratio}
-      </text>
+      {/* Formula at bottom - only shown when graded */}
+      {showAnswer && (
+        <text
+          x={width / 2}
+          y={height - 10}
+          textAnchor="middle"
+          className="fill-muted-foreground text-xs"
+        >
+          くらべる数 ÷ もとにする数 = {comparedAmount} ÷ {baseAmount} = {ratio}
+        </text>
+      )}
     </svg>
   );
 };
