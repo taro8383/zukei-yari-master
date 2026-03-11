@@ -99,34 +99,62 @@ const LargeNumbersQuestionItem = ({
       {/* Hint Content */}
       {showHint && (
         <div className="bg-kid-yellow/20 rounded-lg p-3 mb-4 border border-kid-yellow/40">
-          {question.topic === 'reading-oku-cho' && (
+          {question.topic === 'reading-oku-cho' && question.numericValue && (
             <>
               <p className="font-medium text-foreground">
-                💡 4けたごとに「万」「億」「兆」と名前が変わるよ
+                💡 右から4けたごとに区切ってみよう：
               </p>
-              <p className="text-gray-500 text-sm">
-                Remember: Numbers are grouped by 4 digits (万=10,000, 億=100,000,000, 兆=1,000,000,000,000)
+              <p className="text-foreground text-sm mt-1">
+                {question.numericValue.toLocaleString()} → {' '}
+                {question.numericValue.toLocaleString().split(',').map((group, i, arr) => (
+                  <span key={i}>
+                    <strong className="text-primary">{group}</strong>
+                    {i < arr.length - 1 && <span className="text-muted-foreground"> / </span>}
+                  </span>
+                ))}
+              </p>
+              <p className="text-gray-500 text-sm mt-2">
+                右から順に：一の位 → 万の位 → 億の位 → 兆の位
               </p>
             </>
           )}
-          {question.topic === 'rounding-off' && (
+          {question.topic === 'rounding-off' && question.originalNumber && (
             <>
               <p className="font-medium text-foreground">
-                💡 0-4は切り捨て、5-9は切り上げ
+                💡 {question.targetPlace}を探すコツ：
               </p>
-              <p className="text-gray-500 text-sm">
-                0-4 round down, 5-9 round up
+              <p className="text-foreground text-sm mt-1">
+                {question.originalNumber.toLocaleString()} の<strong className="text-primary">「{question.targetPlace}」</strong>の右隣の数字をチェック！
+              </p>
+              <p className="text-gray-500 text-sm mt-2">
+                0-4なら切り捨て、5-9なら切り上げ
               </p>
             </>
           )}
           {question.topic === 'rounding-up-down' && (
             <>
               <p className="font-medium text-foreground">
-                💡 お金を準備するときは切り上げ、何個買えるかは切り捨て
+                💡 この問題の解き方：
               </p>
-              <p className="text-gray-500 text-sm">
-                Round up for money needed, round down for items you can buy
-              </p>
+              {question.roundUp ? (
+                <>
+                  <p className="text-foreground text-sm mt-1">
+                    ① まず合計金額を計算しよう
+                  </p>
+                  <p className="text-foreground text-sm">
+                    ② 1000円で割って、小数点は<strong className="text-primary">切り上げ</strong>（足りなくなると困るから）
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-foreground text-sm mt-1">
+                    ① 合計金額 ÷ 1個の値段 を計算しよう
+                  </p>
+                  <p className="text-foreground text-sm">
+                    ② 小数点は<strong className="text-primary">切り捨て</strong>（お金が足りないと買えないから）
+                  </p>
+                </>
+              )}
             </>
           )}
         </div>

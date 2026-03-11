@@ -37,23 +37,57 @@ const AccuracyRateQuestionItem = ({
 
   const suffix = getInputSuffix();
 
-  // Get hint text based on topic
+  // Get hint text based on topic - provides step-by-step guidance
   const getHintText = () => {
     switch (question.topic) {
       case 'decimal-ratio':
         return {
-          ja: `💡 正解の数は ${question.correctAnswers}、全部の数は ${question.totalQuestions} だよ`,
-          en: `The correct count is ${question.correctAnswers}, total is ${question.totalQuestions}.`,
+          ja: (
+            <>
+              💡 <strong>ステップ1:</strong> 正解の数は {question.correctAnswers}、全部の数は {question.totalQuestions}<br/>
+              <strong>ステップ2:</strong> {question.correctAnswers} ÷ {question.totalQuestions} を計算しよう！
+            </>
+          ),
+          en: (
+            <>
+              <strong>Step 1:</strong> Correct: {question.correctAnswers}, Total: {question.totalQuestions}<br/>
+              <strong>Step 2:</strong> Calculate {question.correctAnswers} ÷ {question.totalQuestions}!
+            </>
+          ),
         };
       case 'convert-percent':
         return {
-          ja: `💡 小数の割合は ${question.decimalRatio} だよ`,
-          en: `The decimal ratio is ${question.decimalRatio}.`,
+          ja: (
+            <>
+              💡 <strong>ステップ1:</strong> 小数の割合は {question.decimalRatio}<br/>
+              <strong>ステップ2:</strong> {question.decimalRatio} × 100 = ?<br/>
+              <strong>ステップ3:</strong> 答えの後に「%」をつけよう！
+            </>
+          ),
+          en: (
+            <>
+              <strong>Step 1:</strong> Decimal ratio: {question.decimalRatio}<br/>
+              <strong>Step 2:</strong> {question.decimalRatio} × 100 = ?<br/>
+              <strong>Step 3:</strong> Add "%" to your answer!
+            </>
+          ),
         };
       case 'calculate-accuracy':
         return {
-          ja: `💡 正解の数は ${question.correctAnswers}、全部の数は ${question.totalQuestions} だよ`,
-          en: `The correct count is ${question.correctAnswers}, total is ${question.totalQuestions}.`,
+          ja: (
+            <>
+              💡 <strong>ステップ1:</strong> {question.correctAnswers} ÷ {question.totalQuestions} を計算<br/>
+              <strong>ステップ2:</strong> その結果 × 100 をする<br/>
+              <strong>ステップ3:</strong> 「%」をつけたら完成！
+            </>
+          ),
+          en: (
+            <>
+              <strong>Step 1:</strong> Calculate {question.correctAnswers} ÷ {question.totalQuestions}<br/>
+              <strong>Step 2:</strong> Multiply result × 100<br/>
+              <strong>Step 3:</strong> Add "%" and you're done!
+            </>
+          ),
         };
       default:
         return { ja: '', en: '' };
@@ -112,8 +146,8 @@ const AccuracyRateQuestionItem = ({
                 </>
               ) : (
                 <>
-                  <p className="font-medium text-foreground">{hintText.ja}</p>
-                  <p className="text-gray-500">{hintText.en}</p>
+                  <div className="font-medium text-foreground">{hintText.ja}</div>
+                  <div className="text-gray-500">{hintText.en}</div>
                 </>
               )}
             </div>
