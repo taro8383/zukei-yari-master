@@ -1,7 +1,7 @@
 // Ratios and Proportions (割合と倍) - 4th Grade MEXT Curriculum
 // Focus: Finding the Ratio (何倍ですか / Finding the Multiple)
 
-export type RatioTopic = 'finding-ratio' | 'finding-compared';
+export type RatioTopic = 'finding-ratio' | 'finding-compared' | 'finding-base';
 
 export interface RatioTopicInfo {
   id: RatioTopic;
@@ -53,6 +53,18 @@ export const RATIO_TOPICS: Record<RatioTopic, RatioTopicInfo> = {
     methodEn: 'Base Amount × Ratio = Compared Amount',
     realLife: '料理で「お米の2倍の水を入れる」と計算しておいしく作るとき。',
     realLifeEn: 'When a recipe says "use 2 times the amount of water as rice" to make a bigger meal.',
+  },
+  'finding-base': {
+    id: 'finding-base',
+    icon: '🚗',
+    label: 'もとにする数を求める',
+    labelEn: 'Finding the Base Amount',
+    goal: 'くらべる数と倍がわかっているとき、もとの数を求めよう。',
+    goalEn: 'Find the original amount when you know the final amount and the multiplier.',
+    method: 'くらべる数 ÷ 倍 = もとにする数',
+    methodEn: 'Compared Amount ÷ Ratio = Base Amount',
+    realLife: 'けいくんのミニカーは15cm進みました。これは妹のミニカーの3倍のきょりです。',
+    realLifeEn: 'Kei\'s toy car traveled 15cm. This is 3 times further than his sister\'s car. How far did his sister\'s car travel?',
   },
 };
 
@@ -246,10 +258,117 @@ export function generateFindingComparedQuestions(): RatioQuestion[] {
   return questions;
 }
 
+// Generate questions for "Finding the Base Amount" (もとにする数を求める)
+export function generateFindingBaseQuestions(): RatioQuestion[] {
+  const questions: RatioQuestion[] = [];
+
+  // [comparedAmount, ratio, baseAmount]
+  const problemSets: Array<[number, number, number]> = [
+    // Whole number results
+    [15, 3, 5],
+    [12, 2, 6],
+    [18, 3, 6],
+    [20, 2, 10],
+    [30, 3, 10],
+    [24, 2, 12],
+    [36, 3, 12],
+    [40, 2, 20],
+    [60, 3, 20],
+    [16, 2, 8],
+    [24, 3, 8],
+    [32, 2, 16],
+    [48, 3, 16],
+    [14, 2, 7],
+    [21, 3, 7],
+    [28, 2, 14],
+    [42, 3, 14],
+    [10, 2, 5],
+    [15, 3, 5],
+    [20, 4, 5],
+    [25, 5, 5],
+    // Decimal ratios with whole number results
+    [12, 1.5, 8],
+    [18, 1.5, 12],
+    [24, 1.5, 16],
+    [30, 1.5, 20],
+    [9, 1.5, 6],
+    [15, 2.5, 6],
+    [25, 2.5, 10],
+    [20, 2.5, 8],
+    [30, 2.5, 12],
+    [35, 2.5, 14],
+    [40, 2.5, 16],
+    [16, 1.6, 10],
+    [24, 1.6, 15],
+    [32, 1.6, 20],
+    [14, 1.4, 10],
+    [21, 1.4, 15],
+    [28, 1.4, 20],
+    [18, 1.2, 15],
+    [24, 1.2, 20],
+    [30, 1.2, 25],
+    [36, 1.2, 30],
+    [12, 1.2, 10],
+    // Decimal results
+    [7, 2, 3.5],
+    [11, 2, 5.5],
+    [13, 2, 6.5],
+    [17, 2, 8.5],
+    [9, 2, 4.5],
+    [6, 1.5, 4],
+    [10, 2.5, 4],
+    [8, 2.5, 3.2],
+    [13, 2.5, 5.2],
+    [17, 2.5, 6.8],
+    [19, 2.5, 7.6],
+    [11, 2.5, 4.4],
+    [7, 1.4, 5],
+    [14, 1.4, 10],
+    [21, 1.4, 15],
+    [28, 1.4, 20],
+    [11, 1.1, 10],
+    [22, 1.1, 20],
+    [33, 1.1, 30],
+    [12, 1.2, 10],
+    [18, 1.2, 15],
+    [24, 1.2, 20],
+    [15, 1.5, 10],
+    [22.5, 1.5, 15],
+    [30, 1.5, 20],
+    [9, 1.5, 6],
+    [13.5, 1.5, 9],
+    [18, 1.5, 12],
+  ];
+
+  // Shuffle and pick 5 unique questions
+  const shuffled = [...problemSets].sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, 5);
+
+  selected.forEach(([comparedAmount, ratio, baseAmount], index) => {
+    questions.push({
+      id: index + 1,
+      type: 'finding-base',
+      baseAmount,
+      comparedAmount,
+      ratio,
+      answer: baseAmount,
+      text: `けいくんのミニカーは ${comparedAmount}cm 進みました。これは妹のミニカーの ${ratio} 倍のきょりです。妹のミニカーは何cm進みましたか？`,
+      textEn: `Kei's toy car traveled ${comparedAmount}cm. This is ${ratio} times further than his sister's car. How many centimeters did his sister's car travel?`,
+      explanation: `${comparedAmount} ÷ ${ratio} = ${baseAmount}`,
+      explanationEn: `${comparedAmount} ÷ ${ratio} = ${baseAmount}`,
+    });
+  });
+
+  return questions;
+}
+
 // Main function to generate ratio questions based on topic
 export function generateRatioQuestions(topic: RatioTopic): RatioQuestion[] {
   if (topic === 'finding-compared') {
     return generateFindingComparedQuestions();
+  }
+  if (topic === 'finding-base') {
+    return generateFindingBaseQuestions();
   }
   return generateFindingRatioQuestions();
 }

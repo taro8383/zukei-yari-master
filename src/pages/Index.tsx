@@ -10,7 +10,7 @@ import { RatioQuestion, RatioTopic, RATIO_TOPICS, generateRatioQuestions } from 
 import { RatioExplanationCard, RatioQuestionItem } from '@/components/ratios';
 
 const topicKeys: Topic[] = ['angles', 'area', 'lines', 'intersecting', 'quadrilaterals', 'diagonals'];
-const ratioTopicKeys: RatioTopic[] = ['finding-ratio', 'finding-compared'];
+const ratioTopicKeys: RatioTopic[] = ['finding-ratio', 'finding-compared', 'finding-base'];
 
 type ProtractorType = '180' | '360' | null;
 type AppTab = 'geometry' | 'ratios';

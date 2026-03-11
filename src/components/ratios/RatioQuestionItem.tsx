@@ -47,6 +47,7 @@ const RatioQuestionItem = ({
               ratio={question.ratio}
               showAnswer={graded}
               hideComparedValue={question.type === 'finding-compared'}
+              hideBaseValue={question.type === 'finding-base'}
             />
           </div>
 
@@ -77,6 +78,16 @@ const RatioQuestionItem = ({
                   <p className="text-muted-foreground">
                     The base amount is <strong>{question.baseAmount}</strong>, the ratio is <strong>{question.ratio}</strong>.<br/>
                     Remember: もとにする数 × 倍 = くらべる数
+                  </p>
+                </>
+              ) : question.type === 'finding-base' ? (
+                <>
+                  <p className="font-medium text-foreground">
+                    💡 くらべる数は <strong>{question.comparedAmount}</strong>、倍は <strong>{question.ratio}</strong> だよ
+                  </p>
+                  <p className="text-muted-foreground">
+                    The compared amount is <strong>{question.comparedAmount}</strong>, the ratio is <strong>{question.ratio}</strong>.<br/>
+                    Remember: くらべる数 ÷ 倍 = もとにする数
                   </p>
                 </>
               ) : (
@@ -112,7 +123,11 @@ const RatioQuestionItem = ({
                   placeholder="？"
                 />
                 <span className="font-medium text-muted-foreground">
-                  {question.type === 'finding-compared' ? 'L / liters' : '倍 / times'}
+                  {question.type === 'finding-compared'
+                    ? 'L / liters'
+                    : question.type === 'finding-base'
+                    ? 'cm'
+                    : '倍 / times'}
                 </span>
               </>
             ) : (
@@ -124,7 +139,11 @@ const RatioQuestionItem = ({
                   className="w-28 h-12 text-center text-xl font-bold rounded-xl border-2 border-input bg-background opacity-60"
                 />
                 <span className="font-medium text-muted-foreground">
-                  {question.type === 'finding-compared' ? 'L / liters' : '倍 / times'}
+                  {question.type === 'finding-compared'
+                    ? 'L / liters'
+                    : question.type === 'finding-base'
+                    ? 'cm'
+                    : '倍 / times'}
                 </span>
                 <div className="flex items-center gap-2 animate-bounce-in">
                   {isCorrect ? (
@@ -137,6 +156,8 @@ const RatioQuestionItem = ({
                         <strong className="text-foreground">
                           {question.type === 'finding-compared'
                             ? `${formatRatio(question.answer)}L`
+                            : question.type === 'finding-base'
+                            ? `${formatRatio(question.answer)}cm`
                             : `${formatRatio(question.answer)}倍`}
                         </strong>
                       </span>

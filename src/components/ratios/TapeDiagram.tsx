@@ -7,6 +7,7 @@ interface TapeDiagramProps {
   showLabels?: boolean;
   showAnswer?: boolean;
   hideComparedValue?: boolean; // For "finding-compared" type - hide the compared amount
+  hideBaseValue?: boolean; // For "finding-base" type - hide the base amount
 }
 
 const TapeDiagram = ({
@@ -16,6 +17,7 @@ const TapeDiagram = ({
   showLabels = true,
   showAnswer = false,
   hideComparedValue = false,
+  hideBaseValue = false,
 }: TapeDiagramProps) => {
   const svgConfig = useMemo(() => {
     const width = 400;
@@ -158,15 +160,15 @@ const TapeDiagram = ({
           </>
         )}
 
-        {/* Value label on bar */}
+        {/* Value label on bar - show ? when finding-base and not graded */}
         <text
           x={startX + baseWidth / 2}
           y={baseY}
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-foreground font-bold text-base"
+          className={`font-bold text-base ${hideBaseValue && !showAnswer ? 'fill-primary' : 'fill-foreground'}`}
         >
-          {baseAmount}
+          {hideBaseValue && !showAnswer ? '?' : baseAmount}
         </text>
 
         {/* Unit indicator (1x marker) */}
