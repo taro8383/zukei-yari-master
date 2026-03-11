@@ -192,17 +192,42 @@ export function generateRoundingUpDownQuestions(): LargeNumberQuestion[] {
       'You have 8000 yen. A game costs 1500 yen. How many can you buy?'],
   ];
 
-  // Mix 3 round up and 2 round down problems
-  const mixedProblems = [
-    ...roundUpProblems.slice(0, 3).map(p => ({ ...p, roundUp: true })),
-    ...roundDownProblems.slice(0, 2).map(p => ({ ...p, roundUp: false })),
+  // Mix 3 round up and 2 round down problems with proper typing
+  type RoundUpProblem = [number, number, number, string, string];
+  type RoundDownProblem = [number, number, number, string, string];
+  type MixedProblem = {
+    unitPrice: number;
+    quantity: number;
+    answer: number;
+    textJa: string;
+    textEn: string;
+    roundUp: boolean;
+  };
+
+  const mixedProblems: MixedProblem[] = [
+    ...roundUpProblems.slice(0, 3).map((p: RoundUpProblem) => ({
+      unitPrice: p[0],
+      quantity: p[1],
+      answer: p[2],
+      textJa: p[3],
+      textEn: p[4],
+      roundUp: true,
+    })),
+    ...roundDownProblems.slice(0, 2).map((p: RoundDownProblem) => ({
+      unitPrice: p[0],
+      quantity: p[1],
+      answer: p[2],
+      textJa: p[3],
+      textEn: p[4],
+      roundUp: false,
+    })),
   ];
 
   // Shuffle
   mixedProblems.sort(() => Math.random() - 0.5);
 
   mixedProblems.forEach((problem, index) => {
-    const [unitPrice, quantity, answer, textJa, textEn] = problem;
+    const { unitPrice, quantity, answer, textJa, textEn, roundUp } = problem;
     const total = unitPrice * quantity;
 
     questions.push({
@@ -212,11 +237,11 @@ export function generateRoundingUpDownQuestions(): LargeNumberQuestion[] {
       questionTextEn: textEn,
       answer: answer,
       isWordProblem: true,
-      roundUp: problem.roundUp,
-      formula: problem.roundUp
+      roundUp: roundUp,
+      formula: roundUp
         ? `計算: ${unitPrice} × ${quantity} = ${total}円 → 1000円札は${answer}枚必要`
         : `計算: ${total} ÷ ${unitPrice} = ${quantity}回 → ${answer}回まわせます`,
-      formulaEn: problem.roundUp
+      formulaEn: roundUp
         ? `Calculation: ${unitPrice} × ${quantity} = ${total} yen → Need ${answer} bills`
         : `Calculation: ${total} ÷ ${unitPrice} = ${quantity} → Can buy ${answer}`,
     });
