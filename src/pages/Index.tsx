@@ -6,14 +6,15 @@ import ExplanationCard from '@/components/ExplanationCard';
 import QuestionItem from '@/components/QuestionItem';
 import Protractor from '@/components/Protractor';
 import { Topic, TOPICS, Question, generateQuestions } from '@/lib/geometry';
-import { RatioQuestion, RatioTopic, RATIO_TOPICS, generateRatioQuestions } from '@/lib/ratios';
-import { RatioExplanationCard, RatioQuestionItem } from '@/components/ratios';
+import { RatioQuestion, RatioTopic, RATIO_TOPICS, generateRatioQuestions, AccuracyRateQuestion, AccuracyRateTopic, ACCURACY_RATE_TOPICS, generateAccuracyRateQuestions } from '@/lib/ratios';
+import { RatioExplanationCard, RatioQuestionItem, AccuracyRateQuestionItem, AccuracyRateExplanationCard } from '@/components/ratios';
 
 const topicKeys: Topic[] = ['angles', 'area', 'lines', 'intersecting', 'quadrilaterals', 'diagonals'];
 const ratioTopicKeys: RatioTopic[] = ['finding-ratio', 'finding-compared', 'finding-base'];
+const accuracyRateTopicKeys: AccuracyRateTopic[] = ['decimal-ratio', 'convert-percent', 'calculate-accuracy'];
 
 type ProtractorType = '180' | '360' | null;
-type AppTab = 'geometry' | 'ratios';
+type AppTab = 'geometry' | 'ratios' | 'accuracy-rate';
 
 const Index = () => {
   // Active tab state
@@ -33,6 +34,13 @@ const Index = () => {
   const [ratioGraded, setRatioGraded] = useState(false);
   const [ratioScore, setRatioScore] = useState(0);
 
+  // Accuracy Rate state
+  const [selectedAccuracyRateTopic, setSelectedAccuracyRateTopic] = useState<AccuracyRateTopic>('decimal-ratio');
+  const [accuracyRateQuestions, setAccuracyRateQuestions] = useState<AccuracyRateQuestion[]>([]);
+  const [accuracyRateAnswers, setAccuracyRateAnswers] = useState<string[]>([]);
+  const [accuracyRateGraded, setAccuracyRateGraded] = useState(false);
+  const [accuracyRateScore, setAccuracyRateScore] = useState(0);
+
   // Protractor state (shared across tabs)
   const [activeProtractor, setActiveProtractor] = useState<ProtractorType>(null);
 
@@ -48,6 +56,10 @@ const Index = () => {
     setRatioAnswers([]);
     setRatioGraded(false);
     setRatioScore(0);
+    setAccuracyRateQuestions([]);
+    setAccuracyRateAnswers([]);
+    setAccuracyRateGraded(false);
+    setAccuracyRateScore(0);
   };
 
   // Geometry handlers
@@ -104,8 +116,43 @@ const Index = () => {
     setRatioGraded(true);
   };
 
+  // Accuracy Rate handlers
+  const handleGenerateAccuracyRate = () => {
+    const newQuestions = generateAccuracyRateQuestions(selectedAccuracyRateTopic);
+    setAccuracyRateQuestions(newQuestions);
+    setAccuracyRateAnswers(new Array(5).fill(''));
+    setAccuracyRateGraded(false);
+    setAccuracyRateScore(0);
+  };
+
+  const handleAccuracyRateAnswerChange = (index: number, value: string) => {
+    const newAnswers = [...accuracyRateAnswers];
+    newAnswers[index] = value;
+    setAccuracyRateAnswers(newAnswers);
+  };
+
+  const allAccuracyRateAnswered = accuracyRateAnswers.length === 5 && accuracyRateAnswers.every((a) => a.trim() !== '');
+
+  const handleAccuracyRateCheck = () => {
+    let correct = 0;
+    accuracyRateQuestions.forEach((q, i) => {
+      // Compare based on topic type
+      const userNum = parseFloat(accuracyRateAnswers[i]);
+      if (q.topic === 'decimal-ratio') {
+        // For decimal ratio, compare with tolerance for floating point
+        if (Math.abs(userNum - q.answer) < 0.01) correct++;
+      } else {
+        // For percentage topics, exact match
+        if (userNum === q.answer) correct++;
+      }
+    });
+    setAccuracyRateScore(correct);
+    setAccuracyRateGraded(true);
+  };
+
   const geometryScorePercent = geometryScore * 20;
   const ratioScorePercent = ratioScore * 20;
+  const accuracyRateScorePercent = accuracyRateScore * 20;
 
   return (
     <div className="min-h-screen bg-background">
@@ -183,7 +230,7 @@ const Index = () => {
       {/* Main Content with Tabs */}
       <main className="container max-w-3xl mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="w-full grid grid-cols-2 mb-8 h-auto p-1.5 bg-muted rounded-2xl">
+          <TabsList className="w-full grid grid-cols-3 mb-8 h-auto p-1.5 bg-muted rounded-2xl">
             <TabsTrigger
               value="geometry"
               className="flex items-center gap-2 py-4 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
@@ -202,6 +249,16 @@ const Index = () => {
               <div className="flex flex-col items-center">
                 <span>割合</span>
                 <span className="text-xs font-normal opacity-60">Ratios</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="accuracy-rate"
+              className="flex items-center gap-2 py-4 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
+            >
+              <span className="text-xl">🔋</span>
+              <div className="flex flex-col items-center">
+                <span>正答率</span>
+                <span className="text-xs font-normal opacity-60">Accuracy</span>
               </div>
             </TabsTrigger>
           </TabsList>
@@ -230,6 +287,11 @@ const Index = () => {
               </div>
             </div>
 
+            {/* Topic Info - Always visible like Accuracy Rate tab */}
+            <div className="mb-6">
+              <ExplanationCard info={TOPICS[selectedTopic]} />
+            </div>
+
             {/* Generate Button */}
             <Button variant="generate" size="lg" onClick={handleGenerateGeometry} className="mb-8 w-full sm:w-auto">
               <Sparkles className="w-5 h-5" />
@@ -239,12 +301,9 @@ const Index = () => {
               </div>
             </Button>
 
-            {/* Content */}
+            {/* Questions */}
             {geometryQuestions.length > 0 && (
               <div className="animate-bounce-in">
-                {/* Explanation */}
-                <ExplanationCard info={TOPICS[selectedTopic]} />
-
                 {/* Questions */}
                 <div className="space-y-4 mb-8">
                   {geometryQuestions.map((q, i) => (
@@ -315,7 +374,7 @@ const Index = () => {
               <p className="font-bold mb-1 text-lg">ばあいのもんだいをえらぼう：</p>
               <p className="text-sm text-muted-foreground mb-3">Choose a topic:</p>
               <div className="flex flex-wrap gap-3">
-                {ratioTopicKeys.map((t) => (
+                {ratioTopicKeys.filter(t => t !== 'accuracy-rate').map((t) => (
                   <button
                     key={t}
                     onClick={() => setSelectedRatioTopic(t)}
@@ -332,6 +391,11 @@ const Index = () => {
               </div>
             </div>
 
+            {/* Topic Info - Always visible like Accuracy Rate tab */}
+            <div className="mb-6">
+              <RatioExplanationCard info={RATIO_TOPICS[selectedRatioTopic]} />
+            </div>
+
             {/* Generate Button */}
             <Button variant="generate" size="lg" onClick={handleGenerateRatios} className="mb-8 w-full sm:w-auto">
               <Sparkles className="w-5 h-5" />
@@ -341,12 +405,9 @@ const Index = () => {
               </div>
             </Button>
 
-            {/* Content */}
+            {/* Questions */}
             {ratioQuestions.length > 0 && (
               <div className="animate-bounce-in">
-                {/* Explanation */}
-                <RatioExplanationCard info={RATIO_TOPICS[selectedRatioTopic]} />
-
                 {/* Questions */}
                 <div className="space-y-4 mb-8">
                   {ratioQuestions.map((q, i) => (
@@ -398,6 +459,110 @@ const Index = () => {
                         : 'もういちどチャレンジしてみよう！🔥 / Try again!'}
                     </p>
                     <Button variant="generate" size="lg" onClick={handleGenerateRatios}>
+                      <RotateCcw className="w-5 h-5" />
+                      <div className="flex flex-col items-start leading-tight">
+                        <span>もういちど！</span>
+                        <span className="text-xs opacity-80">Try Again</span>
+                      </div>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Accuracy Rate Tab */}
+          <TabsContent value="accuracy-rate" className="mt-0">
+            {/* Topic Selection */}
+            <div className="mb-6">
+              <p className="font-bold mb-1 text-lg">正答率のもんだいをえらぼう：</p>
+              <p className="text-sm text-muted-foreground mb-3">Choose an accuracy rate topic:</p>
+              <div className="flex flex-wrap gap-3">
+                {accuracyRateTopicKeys.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setSelectedAccuracyRateTopic(t)}
+                    className={`px-4 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 flex flex-col items-center ${
+                      selectedAccuracyRateTopic === t
+                        ? 'bg-primary text-primary-foreground shadow-kid-lg scale-105'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    <span>{ACCURACY_RATE_TOPICS[t].icon} {ACCURACY_RATE_TOPICS[t].label}</span>
+                    <span className={`text-xs mt-0.5 ${selectedAccuracyRateTopic === t ? 'text-primary-foreground/80' : 'text-muted-foreground/60'}`}>{ACCURACY_RATE_TOPICS[t].labelEn}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Topic Info - Using same format as Geometry */}
+            <div className="mb-6">
+              <AccuracyRateExplanationCard info={ACCURACY_RATE_TOPICS[selectedAccuracyRateTopic]} />
+            </div>
+
+            {/* Generate Button */}
+            <Button variant="generate" size="lg" onClick={handleGenerateAccuracyRate} className="mb-8 w-full sm:w-auto">
+              <Sparkles className="w-5 h-5" />
+              <div className="flex flex-col items-start leading-tight">
+                <span>もんだいをつくる！</span>
+                <span className="text-xs opacity-80">Generate Exercises</span>
+              </div>
+            </Button>
+
+            {/* Content */}
+            {accuracyRateQuestions.length > 0 && (
+              <div className="animate-bounce-in">
+                {/* Questions */}
+                <div className="space-y-4 mb-8">
+                  {accuracyRateQuestions.map((q, i) => (
+                    <AccuracyRateQuestionItem
+                      key={q.id}
+                      question={q}
+                      index={i}
+                      userAnswer={accuracyRateAnswers[i]}
+                      onAnswerChange={(v) => handleAccuracyRateAnswerChange(i, v)}
+                      graded={accuracyRateGraded}
+                      isCorrect={accuracyRateGraded ? parseFloat(accuracyRateAnswers[i]) === q.answer : undefined}
+                    />
+                  ))}
+                </div>
+
+                {/* Check / Results */}
+                {!accuracyRateGraded ? (
+                  <div className="text-center">
+                    <Button
+                      variant="check"
+                      size="lg"
+                      onClick={handleAccuracyRateCheck}
+                      disabled={!allAccuracyRateAnswered}
+                    >
+                      <CheckCircle2 className="w-5 h-5" />
+                      <div className="flex flex-col items-start leading-tight">
+                        <span>こたえあわせ</span>
+                        <span className="text-xs opacity-80">Check Answers</span>
+                      </div>
+                    </Button>
+                    {!allAccuracyRateAnswered && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        ぜんぶのこたえを入れてね！ / Fill in all answers!
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center bg-card rounded-2xl shadow-kid-lg p-8 border border-border animate-bounce-in">
+                    <Trophy className="w-12 h-12 mx-auto mb-3 text-kid-yellow" />
+                    <p className="text-4xl font-black mb-1">
+                      {accuracyRateScorePercent}点！
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-2">{accuracyRateScorePercent} points!</p>
+                    <p className="text-muted-foreground mb-4">
+                      {accuracyRateScorePercent === 100
+                        ? 'かんぺき！すごいね！🎉 / Perfect! Amazing!'
+                        : accuracyRateScorePercent >= 60
+                        ? 'がんばったね！もう少し！💪 / Great effort! Almost there!'
+                        : 'もういちどチャレンジしてみよう！🔥 / Try again!'}
+                    </p>
+                    <Button variant="generate" size="lg" onClick={handleGenerateAccuracyRate}>
                       <RotateCcw className="w-5 h-5" />
                       <div className="flex flex-col items-start leading-tight">
                         <span>もういちど！</span>

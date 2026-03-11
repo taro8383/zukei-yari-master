@@ -1,11 +1,11 @@
-import { RatioTopicInfo } from '@/lib/ratios';
+import { AccuracyRateTopicInfo } from '@/lib/ratios';
 import { Lightbulb, BookOpen, Rocket, Star } from 'lucide-react';
 
-interface RatioExplanationCardProps {
-  info: RatioTopicInfo;
+interface AccuracyRateExplanationCardProps {
+  info: AccuracyRateTopicInfo;
 }
 
-const RatioExplanationCard = ({ info }: RatioExplanationCardProps) => {
+const AccuracyRateExplanationCard = ({ info }: AccuracyRateExplanationCardProps) => {
   const sections = [
     { icon: <Star className="w-5 h-5" />, title: 'めあて', titleEn: 'Goal', content: info.goal, contentEn: info.goalEn, color: 'bg-kid-yellow/20 border-kid-yellow/40' },
     { icon: <BookOpen className="w-5 h-5" />, title: 'やりかた', titleEn: 'How it Works', content: info.method, contentEn: info.methodEn, color: 'bg-primary/10 border-primary/30' },
@@ -37,4 +37,4 @@ const RatioExplanationCard = ({ info }: RatioExplanationCardProps) => {
   );
 };
 
-export default RatioExplanationCard;
+export default AccuracyRateExplanationCard;
