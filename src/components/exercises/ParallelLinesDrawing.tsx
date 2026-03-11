@@ -186,18 +186,55 @@ const ParallelLinesDrawing = ({
           あ
         </text>
 
-        {/* Point A (for exercise type 1) */}
+        {/* Point A (for exercise type 1) - with pulsing hint when waiting for first click */}
         {exerciseType === 1 && (
           <g>
-            <circle cx={pointA.x} cy={pointA.y} r={6} fill="hsl(var(--kid-orange))" />
+            {/* Pulsing hint ring when no line being drawn */}
+            {!currentLine.p1 && !graded && (
+              <circle
+                cx={pointA.x}
+                cy={pointA.y}
+                r={12}
+                fill="none"
+                stroke="hsl(var(--kid-orange))"
+                strokeWidth={2}
+                opacity={0.5}
+              >
+                <animate
+                  attributeName="r"
+                  values="10;16;10"
+                  dur="1.5s"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="opacity"
+                  values="0.8;0.2;0.8"
+                  dur="1.5s"
+                  repeatCount="indefinite"
+                />
+              </circle>
+            )}
+            <circle cx={pointA.x} cy={pointA.y} r={7} fill="hsl(var(--kid-orange))" stroke="white" strokeWidth={2} />
             <text
-              x={pointA.x + 10}
-              y={pointA.y - 10}
-              className="fill-kid-orange font-bold"
-              fontSize={14}
+              x={pointA.x + 12}
+              y={pointA.y - 12}
+              className="fill-kid-orange font-black"
+              fontSize={16}
             >
               A
             </text>
+            {/* Click here hint */}
+            {!currentLine.p1 && !graded && (
+              <text
+                x={pointA.x}
+                y={pointA.y + 25}
+                textAnchor="middle"
+                className="fill-kid-orange font-bold"
+                fontSize={11}
+              >
+                ここをクリック！
+              </text>
+            )}
           </g>
         )}
 
@@ -274,7 +311,7 @@ const ParallelLinesDrawing = ({
       <div className="bg-muted/30 p-4 rounded-xl space-y-2">
         {exerciseType === 1 ? (
           <>
-            <p className="font-medium text-center">
+            <p className="font-bold text-center text-primary">
               点Aをとおって、直線あに平行な線をひこう！
             </p>
             <p className="text-sm text-muted-foreground text-center">
@@ -283,7 +320,7 @@ const ParallelLinesDrawing = ({
           </>
         ) : (
           <>
-            <p className="font-medium text-center">
+            <p className="font-bold text-center text-primary">
               直線あから2cmはなれた平行線を2本ひこう！
             </p>
             <p className="text-sm text-muted-foreground text-center">
@@ -291,11 +328,16 @@ const ParallelLinesDrawing = ({
             </p>
           </>
         )}
+        <div className="bg-kid-yellow/20 rounded-lg p-2 border border-kid-yellow/40">
+          <p className="text-sm font-bold text-center text-foreground">
+            ✏️ まず、点Aをクリック！→ 次に、点Aと同じ高さの右側をクリック！
+          </p>
+          <p className="text-xs text-muted-foreground text-center">
+            First, click on point A! → Then, click to the right at the same height!
+          </p>
+        </div>
         <p className="text-xs text-muted-foreground text-center">
-          2点をクリックして線をひく / Click 2 points to draw a line
-        </p>
-        <p className="text-xs text-muted-foreground text-center">
-          かくど: {userLines.length} / {exerciseType === 1 ? 1 : 2}本
+          かくど: {userLines.length} / {exerciseType === 1 ? 1 : 2}本 drawn
         </p>
       </div>
 
