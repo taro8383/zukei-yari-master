@@ -74,6 +74,10 @@ const Index = () => {
     setLargeNumberAnswers([]);
     setLargeNumberGraded(false);
     setLargeNumberScore(0);
+    // Hide protractor when leaving geometry tab
+    if (value !== 'geometry') {
+      setActiveProtractor(null);
+    }
   };
 
   // Geometry handlers
@@ -253,27 +257,29 @@ const Index = () => {
         onClose={() => setActiveProtractor(null)}
       />
 
-      {/* Floating Protractor Toolbar */}
-      <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 bg-card/95 backdrop-blur-sm border border-border rounded-2xl px-2 py-3 shadow-kid-lg">
-        <Button
-          variant={activeProtractor === '180' ? 'default' : 'ghost'}
-          size="icon"
-          onClick={() => setActiveProtractor(activeProtractor === '180' ? null : '180')}
-          className="rounded-full w-10 h-10"
-          title="分度器 (180°)"
-        >
-          <Compass className="w-5 h-5" />
-        </Button>
-        <Button
-          variant={activeProtractor === '360' ? 'default' : 'ghost'}
-          size="icon"
-          onClick={() => setActiveProtractor(activeProtractor === '360' ? null : '360')}
-          className="rounded-full w-10 h-10"
-          title="分度器 (360°)"
-        >
-          <Circle className="w-5 h-5" />
-        </Button>
-      </div>
+      {/* Floating Protractor Toolbar - Only show in Geometry tab */}
+      {activeTab === 'geometry' && (
+        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 bg-card/95 backdrop-blur-sm border border-border rounded-2xl px-2 py-3 shadow-kid-lg">
+          <Button
+            variant={activeProtractor === '180' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => setActiveProtractor(activeProtractor === '180' ? null : '180')}
+            className="rounded-full w-10 h-10"
+            title="分度器 (180°)"
+          >
+            <Compass className="w-5 h-5" />
+          </Button>
+          <Button
+            variant={activeProtractor === '360' ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => setActiveProtractor(activeProtractor === '360' ? null : '360')}
+            className="rounded-full w-10 h-10"
+            title="分度器 (360°)"
+          >
+            <Circle className="w-5 h-5" />
+          </Button>
+        </div>
+      )}
 
       {/* Main Content with Tabs */}
       <main className="container max-w-3xl mx-auto px-4 py-8">
