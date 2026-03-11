@@ -6,10 +6,11 @@ import ExplanationCard from '@/components/ExplanationCard';
 import QuestionItem from '@/components/QuestionItem';
 import Protractor from '@/components/Protractor';
 import { Topic, TOPICS, Question, generateQuestions } from '@/lib/geometry';
-import { RatioQuestion, RATIO_TOPICS, generateRatioQuestions } from '@/lib/ratios';
+import { RatioQuestion, RatioTopic, RATIO_TOPICS, generateRatioQuestions } from '@/lib/ratios';
 import { RatioExplanationCard, RatioQuestionItem } from '@/components/ratios';
 
 const topicKeys: Topic[] = ['angles', 'area', 'lines', 'intersecting', 'quadrilaterals', 'diagonals'];
+const ratioTopicKeys: RatioTopic[] = ['finding-ratio', 'finding-compared'];
 
 type ProtractorType = '180' | '360' | null;
 type AppTab = 'geometry' | 'ratios';
@@ -26,6 +27,7 @@ const Index = () => {
   const [geometryScore, setGeometryScore] = useState(0);
 
   // Ratios state
+  const [selectedRatioTopic, setSelectedRatioTopic] = useState<RatioTopic>('finding-ratio');
   const [ratioQuestions, setRatioQuestions] = useState<RatioQuestion[]>([]);
   const [ratioAnswers, setRatioAnswers] = useState<string[]>([]);
   const [ratioGraded, setRatioGraded] = useState(false);
@@ -76,7 +78,7 @@ const Index = () => {
 
   // Ratios handlers
   const handleGenerateRatios = () => {
-    const newQuestions = generateRatioQuestions();
+    const newQuestions = generateRatioQuestions(selectedRatioTopic);
     setRatioQuestions(newQuestions);
     setRatioAnswers(new Array(5).fill(''));
     setRatioGraded(false);
@@ -308,15 +310,25 @@ const Index = () => {
 
           {/* Ratios Tab */}
           <TabsContent value="ratios" className="mt-0">
-            {/* Topic Info */}
+            {/* Topic Selection */}
             <div className="mb-6">
               <p className="font-bold mb-1 text-lg">ばあいのもんだいをえらぼう：</p>
               <p className="text-sm text-muted-foreground mb-3">Choose a topic:</p>
               <div className="flex flex-wrap gap-3">
-                <button className="px-4 py-3 rounded-xl font-bold text-sm transition-all bg-primary text-primary-foreground shadow-kid-lg scale-105 flex flex-col items-center">
-                  <span>📏 何倍ですか</span>
-                  <span className="text-xs mt-0.5 text-primary-foreground/80">Finding the Multiple</span>
-                </button>
+                {ratioTopicKeys.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setSelectedRatioTopic(t)}
+                    className={`px-4 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 flex flex-col items-center ${
+                      selectedRatioTopic === t
+                        ? 'bg-primary text-primary-foreground shadow-kid-lg scale-105'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    <span>{RATIO_TOPICS[t].icon} {RATIO_TOPICS[t].label}</span>
+                    <span className={`text-xs mt-0.5 ${selectedRatioTopic === t ? 'text-primary-foreground/80' : 'text-muted-foreground/60'}`}>{RATIO_TOPICS[t].labelEn}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -333,7 +345,7 @@ const Index = () => {
             {ratioQuestions.length > 0 && (
               <div className="animate-bounce-in">
                 {/* Explanation */}
-                <RatioExplanationCard info={RATIO_TOPICS['finding-ratio']} />
+                <RatioExplanationCard info={RATIO_TOPICS[selectedRatioTopic]} />
 
                 {/* Questions */}
                 <div className="space-y-4 mb-8">

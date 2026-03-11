@@ -6,6 +6,7 @@ interface TapeDiagramProps {
   ratio: number;
   showLabels?: boolean;
   showAnswer?: boolean;
+  hideComparedValue?: boolean; // For "finding-compared" type - hide the compared amount
 }
 
 const TapeDiagram = ({
@@ -14,6 +15,7 @@ const TapeDiagram = ({
   ratio,
   showLabels = true,
   showAnswer = false,
+  hideComparedValue = false,
 }: TapeDiagramProps) => {
   const svgConfig = useMemo(() => {
     const width = 400;
@@ -238,15 +240,15 @@ const TapeDiagram = ({
           </>
         )}
 
-        {/* Value label on bar */}
+        {/* Value label on bar - show ? when finding-compared and not graded */}
         <text
           x={startX + comparedWidth / 2}
           y={comparedY}
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-foreground font-bold text-base"
+          className={`font-bold text-base ${hideComparedValue && !showAnswer ? 'fill-accent' : 'fill-foreground'}`}
         >
-          {comparedAmount}
+          {hideComparedValue && !showAnswer ? '?' : comparedAmount}
         </text>
 
         {/* Ratio indicator - only shown when graded */}

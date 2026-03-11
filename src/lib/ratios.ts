@@ -1,7 +1,7 @@
 // Ratios and Proportions (割合と倍) - 4th Grade MEXT Curriculum
 // Focus: Finding the Ratio (何倍ですか / Finding the Multiple)
 
-export type RatioTopic = 'finding-ratio';
+export type RatioTopic = 'finding-ratio' | 'finding-compared';
 
 export interface RatioTopicInfo {
   id: RatioTopic;
@@ -18,9 +18,11 @@ export interface RatioTopicInfo {
 
 export interface RatioQuestion {
   id: number;
+  type: RatioTopic;
   baseAmount: number; // もとにする数
   comparedAmount: number; // くらべる数
-  answer: number; // The ratio/multiple (rounded to 1 decimal place for simplicity)
+  ratio: number; // The multiplier (倍)
+  answer: number; // The answer (ratio for finding-ratio, comparedAmount for finding-compared)
   text: string;
   textEn: string;
   explanation: string;
@@ -40,11 +42,23 @@ export const RATIO_TOPICS: Record<RatioTopic, RatioTopicInfo> = {
     realLife: 'ゲームで「ぼくのHPは君の1.5倍だ！」',
     realLifeEn: 'When comparing player stats in a video game, like "My character has 1.5 times more HP than yours!"',
   },
+  'finding-compared': {
+    id: 'finding-compared',
+    icon: '🪣',
+    label: 'くらべる数を求める',
+    labelEn: 'Finding the Compared Amount',
+    goal: 'もとにする数と倍がわかっているとき、くらべる数を求めよう。',
+    goalEn: 'Calculate the total amount when you know the base and the multiplier.',
+    method: 'もとにする数 × 倍 = くらべる数',
+    methodEn: 'Base Amount × Ratio = Compared Amount',
+    realLife: '料理で「お米の2倍の水を入れる」と計算しておいしく作るとき。',
+    realLifeEn: 'When a recipe says "use 2 times the amount of water as rice" to make a bigger meal.',
+  },
 };
 
-// Generate random ratio questions
+// Generate questions for "Finding the Ratio" (何倍ですか)
 // Using numbers that produce clean decimal ratios (0.5, 0.25, 0.75, 1.5, 2, 2.5, 3, etc.)
-export function generateRatioQuestions(): RatioQuestion[] {
+export function generateFindingRatioQuestions(): RatioQuestion[] {
   const questions: RatioQuestion[] = [];
 
   // Predefined pairs that give nice decimal results
@@ -94,8 +108,10 @@ export function generateRatioQuestions(): RatioQuestion[] {
       // Standard: Compared ÷ Base
       questions.push({
         id: index + 1,
+        type: 'finding-ratio',
         baseAmount,
         comparedAmount,
+        ratio,
         answer: ratio,
         text: `もとにする数が ${baseAmount}、くらべる数が ${comparedAmount} のとき、くらべる数はもとにする数の何倍ですか？`,
         textEn: `When the base amount is ${baseAmount} and the compared amount is ${comparedAmount}, how many times bigger is the compared amount?`,
@@ -107,8 +123,10 @@ export function generateRatioQuestions(): RatioQuestion[] {
       const reverseRatio = Math.round((baseAmount / comparedAmount) * 100) / 100;
       questions.push({
         id: index + 1,
+        type: 'finding-ratio',
         baseAmount: comparedAmount,
         comparedAmount: baseAmount,
+        ratio: reverseRatio,
         answer: reverseRatio,
         text: `もとにする数が ${comparedAmount}、くらべる数が ${baseAmount} のとき、くらべる数はもとにする数の何倍ですか？`,
         textEn: `When the base amount is ${comparedAmount} and the compared amount is ${baseAmount}, how many times bigger is the compared amount?`,
@@ -119,6 +137,69 @@ export function generateRatioQuestions(): RatioQuestion[] {
   });
 
   return questions;
+}
+
+// Generate questions for "Finding the Compared Amount" (くらべる数を求める)
+export function generateFindingComparedQuestions(): RatioQuestion[] {
+  const questions: RatioQuestion[] = [];
+
+  // [baseAmount, ratio, comparedAmount]
+  const problemSets: Array<[number, number, number]> = [
+    [8, 2, 16],
+    [8, 2.5, 20],
+    [8, 3, 24],
+    [8, 1.5, 12],
+    [10, 2, 20],
+    [10, 2.5, 25],
+    [10, 3, 30],
+    [10, 1.5, 15],
+    [12, 2, 24],
+    [12, 2.5, 30],
+    [12, 3, 36],
+    [12, 1.5, 18],
+    [5, 2, 10],
+    [5, 3, 15],
+    [5, 4, 20],
+    [6, 2, 12],
+    [6, 2.5, 15],
+    [6, 3, 18],
+    [4, 2, 8],
+    [4, 3, 12],
+    [4, 4, 16],
+    [15, 2, 30],
+    [15, 1.5, 22.5],
+    [20, 1.5, 30],
+    [20, 2, 40],
+  ];
+
+  // Shuffle and pick 5 unique questions
+  const shuffled = [...problemSets].sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, 5);
+
+  selected.forEach(([baseAmount, ratio, comparedAmount], index) => {
+    questions.push({
+      id: index + 1,
+      type: 'finding-compared',
+      baseAmount,
+      comparedAmount,
+      ratio,
+      answer: comparedAmount,
+      text: `赤いバケツには ${baseAmount}L 入ります。青いバケツは赤いバケツの ${ratio} 倍の水が入ります。青いバケツには何L入りますか？`,
+      textEn: `The red bucket holds ${baseAmount}L. The blue bucket holds ${ratio} times that amount. How many liters does the blue bucket hold?`,
+      explanation: `${baseAmount} × ${ratio} = ${comparedAmount}`,
+      explanationEn: `${baseAmount} × ${ratio} = ${comparedAmount}`,
+    });
+  });
+
+  return questions;
+}
+
+// Main function to generate ratio questions based on topic
+export function generateRatioQuestions(topic: RatioTopic): RatioQuestion[] {
+  if (topic === 'finding-compared') {
+    return generateFindingComparedQuestions();
+  }
+  return generateFindingRatioQuestions();
 }
 
 // Format ratio for display (handle whole numbers and decimals nicely)

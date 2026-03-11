@@ -44,8 +44,9 @@ const RatioQuestionItem = ({
             <TapeDiagram
               baseAmount={question.baseAmount}
               comparedAmount={question.comparedAmount}
-              ratio={question.answer}
+              ratio={question.ratio}
               showAnswer={graded}
+              hideComparedValue={question.type === 'finding-compared'}
             />
           </div>
 
@@ -67,6 +68,16 @@ const RatioQuestionItem = ({
                 <>
                   <p className="font-medium text-foreground">{question.explanation}</p>
                   <p className="text-muted-foreground">{question.explanationEn}</p>
+                </>
+              ) : question.type === 'finding-compared' ? (
+                <>
+                  <p className="font-medium text-foreground">
+                    💡 もとにする数は <strong>{question.baseAmount}</strong>、倍は <strong>{question.ratio}</strong> だよ
+                  </p>
+                  <p className="text-muted-foreground">
+                    The base amount is <strong>{question.baseAmount}</strong>, the ratio is <strong>{question.ratio}</strong>.<br/>
+                    Remember: もとにする数 × 倍 = くらべる数
+                  </p>
                 </>
               ) : (
                 <>
@@ -100,7 +111,9 @@ const RatioQuestionItem = ({
                   className="w-28 h-12 text-center text-xl font-bold rounded-xl border-2 border-input bg-background focus:border-primary focus:ring-2 focus:ring-ring outline-none transition-all disabled:opacity-60"
                   placeholder="？"
                 />
-                <span className="font-medium text-muted-foreground">倍 / times</span>
+                <span className="font-medium text-muted-foreground">
+                  {question.type === 'finding-compared' ? 'L / liters' : '倍 / times'}
+                </span>
               </>
             ) : (
               <>
@@ -110,7 +123,9 @@ const RatioQuestionItem = ({
                   disabled
                   className="w-28 h-12 text-center text-xl font-bold rounded-xl border-2 border-input bg-background opacity-60"
                 />
-                <span className="font-medium text-muted-foreground">倍 / times</span>
+                <span className="font-medium text-muted-foreground">
+                  {question.type === 'finding-compared' ? 'L / liters' : '倍 / times'}
+                </span>
                 <div className="flex items-center gap-2 animate-bounce-in">
                   {isCorrect ? (
                     <span className="text-3xl font-black text-correct">〇</span>
@@ -119,7 +134,11 @@ const RatioQuestionItem = ({
                       <span className="text-3xl font-black text-incorrect">×</span>
                       <span className="text-sm text-muted-foreground">
                         正しい答え / Correct answer：
-                        <strong className="text-foreground">{formatRatio(question.answer)}倍</strong>
+                        <strong className="text-foreground">
+                          {question.type === 'finding-compared'
+                            ? `${formatRatio(question.answer)}L`
+                            : `${formatRatio(question.answer)}倍`}
+                        </strong>
                       </span>
                     </>
                   )}
