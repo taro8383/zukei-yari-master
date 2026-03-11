@@ -21,15 +21,6 @@ const RatioQuestionItem = ({
 }: RatioQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
-  const handleSubmit = () => {
-    if (userAnswer.trim() !== '') {
-      const userNum = parseFloat(userAnswer);
-      const correct = userNum === question.answer;
-      // Call onAnswerChange with '1' for correct, '0' for incorrect
-      onAnswerChange(correct ? '1' : '0');
-    }
-  };
-
   return (
     <div
       className={`bg-card rounded-2xl shadow-kid p-5 border-2 transition-all ${
@@ -95,13 +86,6 @@ const RatioQuestionItem = ({
                   placeholder="？"
                 />
                 <span className="font-medium text-muted-foreground">倍 / times</span>
-                <button
-                  onClick={handleSubmit}
-                  disabled={userAnswer.trim() === ''}
-                  className="px-4 py-2 bg-primary text-primary-foreground font-bold rounded-lg shadow-kid disabled:opacity-50 disabled:shadow-none hover:scale-[1.02] active:scale-[0.98] transition-transform"
-                >
-                  こたえをかくにん / Check
-                </button>
               </>
             ) : (
               <>

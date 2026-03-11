@@ -94,8 +94,9 @@ const Index = () => {
   const handleRatioCheck = () => {
     let correct = 0;
     ratioQuestions.forEach((q, i) => {
-      // For ratios, we store '1' for correct, '0' for incorrect in the answer array
-      if (ratioAnswers[i] === '1') correct++;
+      // Compare the numeric answer directly
+      const userNum = parseFloat(ratioAnswers[i]);
+      if (userNum === q.answer) correct++;
     });
     setRatioScore(correct);
     setRatioGraded(true);
@@ -344,7 +345,7 @@ const Index = () => {
                       userAnswer={ratioAnswers[i]}
                       onAnswerChange={(v) => handleRatioAnswerChange(i, v)}
                       graded={ratioGraded}
-                      isCorrect={ratioGraded ? ratioAnswers[i] === '1' : undefined}
+                      isCorrect={ratioGraded ? parseFloat(ratioAnswers[i]) === q.answer : undefined}
                     />
                   ))}
                 </div>
