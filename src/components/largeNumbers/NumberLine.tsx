@@ -1,35 +1,37 @@
 interface NumberLineProps {
   originalNumber: number;
-  roundedNumber: number;
   targetPlace?: string;
 }
 
-const NumberLine = ({ originalNumber, roundedNumber, targetPlace }: NumberLineProps) => {
-  // Determine the range based on the numbers
-  const min = Math.min(originalNumber, roundedNumber) * 0.8;
-  const max = Math.max(originalNumber, roundedNumber) * 1.2;
+const NumberLine = ({ originalNumber, targetPlace }: NumberLineProps) => {
+  // Determine the range based on the original number - don't show the answer!
+  // Show a range that includes the number and nearby round numbers
+  const magnitude = Math.pow(10, Math.floor(Math.log10(originalNumber)));
+  const min = Math.floor(originalNumber / (magnitude * 5)) * (magnitude * 5) - magnitude;
+  const max = min + magnitude * 6;
   const range = max - min;
 
   // SVG dimensions
   const width = 600;
-  const height = 150;
+  const height = 120;
   const padding = 50;
-  const lineY = 80;
+  const lineY = 70;
 
   // Scale function
   const scale = (val: number) => padding + ((val - min) / range) * (width - 2 * padding);
 
-  // Generate tick marks
-  const tickCount = 5;
+  // Generate tick marks at regular intervals
+  const tickInterval = magnitude;
   const ticks = [];
-  for (let i = 0; i <= tickCount; i++) {
-    const value = min + (range * i) / tickCount;
-    ticks.push({ value, x: scale(value) });
+  for (let val = Math.ceil(min / tickInterval) * tickInterval; val <= max; val += tickInterval) {
+    ticks.push({ value: val, x: scale(val) });
   }
 
   const originalX = scale(originalNumber);
-  const roundedX = scale(roundedNumber);
-  const isRoundingUp = roundedNumber > originalNumber;
+
+  // Find nearest round numbers for hint arrows (without showing answer)
+  const lowerRound = Math.floor(originalNumber / magnitude) * magnitude;
+  const upperRound = lowerRound + magnitude;
 
   return (
     <div className="w-full overflow-x-auto">
@@ -39,7 +41,7 @@ const NumberLine = ({ originalNumber, roundedNumber, targetPlace }: NumberLinePr
 
         {/* Title */}
         <text x={width / 2} y="25" textAnchor="middle" className="fill-foreground font-bold text-xs">
-          数直線 (Number Line) - {targetPlace || '四捨五入'}
+          数直線 (Number Line) - どっちに近いかな？
         </text>
 
         {/* Main number line */}
@@ -65,7 +67,7 @@ const NumberLine = ({ originalNumber, roundedNumber, targetPlace }: NumberLinePr
             />
             <text
               x={tick.x}
-              y={lineY + 25}
+              y={lineY + 22}
               textAnchor="middle"
               className="fill-muted-foreground text-xs"
             >
@@ -74,7 +76,25 @@ const NumberLine = ({ originalNumber, roundedNumber, targetPlace }: NumberLinePr
           </g>
         ))}
 
-        {/* Original number marker */}
+        {/* Question mark at possible round positions - shows there are options */}
+        <text
+          x={scale(lowerRound)}
+          y={lineY - 25}
+          textAnchor="middle"
+          className="fill-muted-foreground font-bold text-lg"
+        >
+          ?
+        </text>
+        <text
+          x={scale(upperRound)}
+          y={lineY - 25}
+          textAnchor="middle"
+          className="fill-muted-foreground font-bold text-lg"
+        >
+          ?
+        </text>
+
+        {/* Original number marker - this is the only number shown */}
         <circle
           cx={originalX}
           cy={lineY}
@@ -87,66 +107,32 @@ const NumberLine = ({ originalNumber, roundedNumber, targetPlace }: NumberLinePr
           x={originalX}
           y={lineY - 15}
           textAnchor="middle"
-          className="fill-primary font-bold text-sm"
+          className="fill-primary font-black text-sm"
         >
           {originalNumber.toLocaleString()}
         </text>
 
-        {/* Arrow showing rounding direction */}
-        <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill={isRoundingUp ? '#22c55e' : '#ef4444'} />
-          </marker>
-        </defs>
-
-        {/* Curved arrow from original to rounded */}
-        <path
-          d={`M ${originalX} ${lineY - 20} Q ${(originalX + roundedX) / 2} ${lineY - 50} ${roundedX} ${lineY - 20}`}
-          fill="none"
-          stroke={isRoundingUp ? '#22c55e' : '#ef4444'}
-          strokeWidth="3"
-          markerEnd="url(#arrowhead)"
-          strokeDasharray="5,3"
-        />
-
-        {/* Rounded number marker */}
-        <rect
-          x={roundedX - 30}
-          y={lineY - 55}
-          width="60"
-          height="25"
-          rx="6"
-          fill={isRoundingUp ? '#22c55e' : '#ef4444'}
-          opacity="0.9"
-        />
-        <text
-          x={roundedX}
-          y={lineY - 38}
-          textAnchor="middle"
-          className="fill-white font-black text-sm"
-        >
-          {roundedNumber.toLocaleString()}
-        </text>
-
-        {/* Arrow pointing down to the rounded position */}
+        {/* Distance indicators to nearest round numbers (visual hint only) */}
         <line
-          x1={roundedX}
-          y1={lineY - 30}
-          x2={roundedX}
-          y2={lineY - 10}
-          stroke={isRoundingUp ? '#22c55e' : '#ef4444'}
-          strokeWidth="2"
+          x1={originalX}
+          y1={lineY + 5}
+          x2={scale(lowerRound)}
+          y2={lineY + 5}
+          stroke="hsl(var(--muted-foreground))"
+          strokeWidth="1"
+          strokeDasharray="3,3"
+          opacity="0.5"
         />
-
-        {/* Rounding direction label */}
-        <text
-          x={(originalX + roundedX) / 2}
-          y={lineY - 60}
-          textAnchor="middle"
-          className={`font-bold text-xs ${isRoundingUp ? 'fill-green-500' : 'fill-red-500'}`}
-        >
-          {isRoundingUp ? '切り上げ (Round Up)' : '切り捨て (Round Down)'}
-        </text>
+        <line
+          x1={originalX}
+          y1={lineY + 5}
+          x2={scale(upperRound)}
+          y2={lineY + 5}
+          stroke="hsl(var(--muted-foreground))"
+          strokeWidth="1"
+          strokeDasharray="3,3"
+          opacity="0.5"
+        />
       </svg>
     </div>
   );

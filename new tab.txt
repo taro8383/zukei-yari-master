@@ -1,0 +1,63 @@
+CRITICAL ARCHITECTURE UPDATE: NEW TAB FOR 億と兆・がい数 (LARGE NUMBERS & ROUNDING)
+
+Expand the application by adding a fourth tab dedicated to "大きな数とがい数 / Large Numbers & Rounding". This targets the Japanese 4th-grade standard for understanding base-10 place values up to trillions (兆) and the concept of approximate numbers (がい数).
+
+1. Tab Integration
+
+    Add Tab 4: 大きな数とがい数 / Large Numbers & Rounding.
+
+    Ensure state resets when navigating to this tab.
+
+    Maintain the strict bilingual requirement (Japanese primary, English secondary, text-gray-500) and the disabled "Check Answers" logic until all 5 inputs are filled.
+
+2. Visual Aid Requirements
+
+    For Large Numbers: Dynamically render an SVG Place Value Chart (位取り表). The chart must group numbers into sets of four (一, 十, 百, 千) under the major markers for 万 (Ten Thousand), 億 (Hundred Million), and 兆 (Trillion).
+
+    For Rounding (がい数): Dynamically render an SVG Number Line (数直線). Highlight the target number and show arrows pointing to the nearest rounded value (e.g., pointing from 4,300 down to 4,000, or 4,800 up to 5,000).
+
+3. Topic Selection & Pre-Exercise Explanations (大きな数とがい数 Tab)
+
+    Topic 1: 億と兆の読み方 / Reading Oku and Cho (Hundreds of Millions & Trillions)
+
+        Goal / めあて: Read and write super large numbers using 億 and 兆. / 億や兆を使った、すごく大きな数の読み方と書き方をマスターしよう。
+
+        How it Works / やりかた: Japanese numbers are grouped by fours: 万 (10,000), 億 (100,000,000), 兆 (1,000,000,000,000). / 日本の数は4けたごとに「万」「億」「兆」と名前が変わるよ。
+
+        Real-Life / 生活の中でのつかいみち: Counting views on a world-famous YouTube video or the distance between planets in space! / 世界中で人気のYouTubeの再生回数や、宇宙の星と星のきょりを計算するときに使うよ！
+
+        Benefit / できるようになること: You will easily understand the stats of ultimate boss monsters or the population of the whole world. / 最強のボスのHPや、世界中の人口がどれくらいすごいかすぐにわかる！
+
+        Exercise Generation Logic: Generate integers between 100,000,000 and 999,999,999,999,999.
+
+        Prompt format: Display the number as digits (e.g., 4500000000000). "Write this number using Kanji. / この数を漢字を使って書きましょう。" (Expected input: 4兆5000億). Provide a custom input component that allows typing numbers and selecting 万, 億, 兆 buttons.
+
+    Topic 2: 四捨五入（ししゃごにゅう） / Rounding Off (Shishagonyuu)
+
+        Goal / めあて: Find the approximate number by rounding off. / 四捨五入をして、わかりやすい「がい数（およその数）」を作ろう。
+
+        How it Works / やりかた: 0, 1, 2, 3, 4 mean round down (切り捨て). 5, 6, 7, 8, 9 mean round up (切り上げ). / 0, 1, 2, 3, 4 は切り捨て。5, 6, 7, 8, 9 は切り上げるよ。
+
+        Real-Life / 生活の中でのつかいみち: Quickly estimating if you have enough money to buy multiple games. / ゲームをいくつか買うとき、お金が足りるかパッと計算するとき！
+
+        Exercise Generation Logic: Generate 4 to 6 digit numbers. Specify the place value to round to (e.g., 上から2けた / top 2 digits, or 千の位 / thousands place).
+
+        Prompt format: "Round 34,560 to the nearest thousand. / 34560を四捨五入して、千の位までのがい数にしましょう。" (Expected input: 35000).
+
+    Topic 3: 切り捨てと切り上げ / Rounding Down and Rounding Up
+
+        Goal / めあて: Know when to strictly round down or round up in real situations. / どんな時に「切り捨て」や「切り上げ」を使うか考えよう。
+
+        How it Works / やりかた: For shopping budgets, you usually round up to be safe. / お金を準備するときは、足りなくならないように「切り上げ」を使うことが多いよ。
+
+        Exercise Generation Logic: Generate word problems requiring either strict round up or round down based on context.
+
+        Prompt format 1 (Round Up): "Kei wants to buy 3 items that cost 420 yen each. He only has 1000-yen bills. How many 1000-yen bills does he need? / けいくんは420円のアイテムを3つ買います。1000円札だけで払うとき、1000円札は何枚いりますか？" (420 * 3 = 1260. Requires 2 bills. 2枚).
+
+        Prompt format 2 (Round Down): "Kei has 2500 yen. A capsule toy costs 300 yen. How many can he buy? / けいくんは2500円持っています。300円のガチャガチャは何回まわせますか？" (2500 / 300 = 8.33. Round down to 8. 8回).
+
+4. Grading & Feedback Constraints
+
+    Disable the "Check Answers" (こたえあわせ) button until all inputs in the 5 generated questions are filled.
+
+    Next to incorrect answers, explicitly render the rule or formula. Example for Topic 2: "正解: 35000 (百の位の『5』を切り上げるよ / Round up the '5' in the hundreds place)" in red text so he can learn from the mistake.

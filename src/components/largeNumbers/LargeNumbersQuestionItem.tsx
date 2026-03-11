@@ -46,11 +46,11 @@ const LargeNumbersQuestionItem = ({
     if (question.topic === 'reading-oku-cho' && question.numericValue) {
       return <PlaceValueChart number={question.numericValue} />;
     }
+    // For rounding-off, show number line WITHOUT the answer
     if (question.topic === 'rounding-off' && question.originalNumber) {
       return (
         <NumberLine
           originalNumber={question.originalNumber}
-          roundedNumber={question.answer as number}
           targetPlace={question.targetPlace}
         />
       );
