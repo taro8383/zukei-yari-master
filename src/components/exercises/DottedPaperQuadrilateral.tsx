@@ -471,7 +471,7 @@ const DottedPaperQuadrilateral = ({ onComplete, graded, requiredType = 'any' }: 
               {requiredType === 'trapezoid' && '台形をかこう！ / Draw a Trapezoid!'}
               {requiredType === 'parallelogram' && '平行四辺形をかこう！ / Draw a Parallelogram!'}
               {requiredType === 'rhombus' && 'ひし形をかこう！ / Draw a Rhombus!'}
-              {requiredType === 'kite' && '凧形をかこう！ / Draw a Kite!'}
+              {requiredType === 'kite' && 'たこ形をかこう！ / Draw a Kite!'}
             </p>
             <p className="text-xs text-center text-muted-foreground mt-1">
               {requiredType === 'rectangle' && '4つの角が90度、向かい合う辺が同じ長さ / 4 right angles, opposite sides equal'}
@@ -514,7 +514,7 @@ const DottedPaperQuadrilateral = ({ onComplete, graded, requiredType = 'any' }: 
               requiredType === 'trapezoid' ? '台形' :
               requiredType === 'parallelogram' ? '平行四辺形' :
               requiredType === 'rhombus' ? 'ひし形' :
-              requiredType === 'kite' ? '凧形' : '四角形'}完成！
+              requiredType === 'kite' ? 'たこ形' : '四角形'}完成！
             <br />
             <span className="text-sm">
               Complete! {' '}

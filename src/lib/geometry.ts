@@ -106,9 +106,9 @@ export const TOPICS: Record<Topic, TopicInfo> = {
     label: '四角形のなかま分け',
     labelEn: 'Classifying Quadrilaterals',
     icon: '🔷',
-    goal: '台形・平行四辺形・ひし形・凧形を見分けよう！',
+    goal: '台形・平行四辺形・ひし形・たこ形を見分けよう！',
     goalEn: 'Identify trapezoids, parallelograms, rhombuses, and kites!',
-    method: '台形＝1組の辺が平行。平行四辺形＝2組の辺が平行で、向かい合う角が同じ。ひし形＝4つの辺が全部同じ長さ。凧形＝隣り合う2組の辺が同じ長さ。',
+    method: '台形＝1組の辺が平行。平行四辺形＝2組の辺が平行で、向かい合う角が同じ。ひし形＝4つの辺が全部同じ長さ。たこ形＝隣り合う2組の辺が同じ長さ。',
     methodEn: 'Trapezoid = 1 pair of parallel sides. Parallelogram = 2 pairs of parallel sides, opposite angles equal. Rhombus = all 4 sides equal. Kite = 2 pairs of adjacent equal sides.',
     realLife: '野球のダイヤモンドはひし形だよ！テーブルや窓は平行四辺形や長方形。身の回りの四角形を探してみよう！',
     realLifeEn: 'A baseball diamond is a rhombus! Tables and windows are parallelograms or rectangles. Look for quadrilaterals around you!',
@@ -303,7 +303,7 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
         // Interactive dotted paper quadrilateral drawing - Kite
         return {
           id, answer: 1, unit: '',
-          text: '点字ペーパーで凧形をかこう！',
+          text: '点字ペーパーでたこ形をかこう！',
           textEn: 'Draw a kite on dotted paper!',
           diagram: { type: 'dotted-paper-quadrilateral', params: { requiredType: 5 } }, // 5 = kite
           isInteractive: true,
