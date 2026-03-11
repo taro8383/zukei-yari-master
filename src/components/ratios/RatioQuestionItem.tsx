@@ -1,5 +1,6 @@
 import { RatioQuestion, formatRatio } from '@/lib/ratios';
 import TapeDiagram from './TapeDiagram';
+import { useState } from 'react';
 
 interface RatioQuestionItemProps {
   question: RatioQuestion;
@@ -18,6 +19,8 @@ const RatioQuestionItem = ({
   graded,
   isCorrect,
 }: RatioQuestionItemProps) => {
+  const [showHint, setShowHint] = useState(false);
+
   return (
     <div
       className={`bg-card rounded-2xl shadow-kid p-5 border-2 transition-all ${
@@ -46,8 +49,19 @@ const RatioQuestionItem = ({
             />
           </div>
 
-          {/* Hint - only shown after grading */}
-          {graded && (
+          {/* Hint Toggle */}
+          {!graded && (
+            <button
+              onClick={() => setShowHint(!showHint)}
+              className="text-sm text-muted-foreground hover:text-primary transition-colors mb-3 flex items-center gap-1"
+            >
+              <span>{showHint ? '💡 ヒントをかくす' : '💡 ヒントをみる'}</span>
+              <span className="text-xs">({showHint ? 'Hide hint' : 'Show hint'})</span>
+            </button>
+          )}
+
+          {/* Hint - shows formula explanation */}
+          {(showHint || graded) && (
             <div className="bg-kid-yellow/10 rounded-lg p-3 mb-4 text-sm">
               <p className="font-medium text-foreground">{question.explanation}</p>
               <p className="text-muted-foreground">{question.explanationEn}</p>
