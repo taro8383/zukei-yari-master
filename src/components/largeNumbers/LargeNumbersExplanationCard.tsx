@@ -1,0 +1,40 @@
+import { LargeNumberTopicInfo } from '@/lib/largeNumbers';
+import { Lightbulb, BookOpen, Rocket, Star } from 'lucide-react';
+
+interface LargeNumbersExplanationCardProps {
+  info: LargeNumberTopicInfo;
+}
+
+const LargeNumbersExplanationCard = ({ info }: LargeNumbersExplanationCardProps) => {
+  const sections = [
+    { icon: <Star className="w-5 h-5" />, title: 'めあて', titleEn: 'Goal', content: info.goal, contentEn: info.goalEn, color: 'bg-kid-yellow/20 border-kid-yellow/40' },
+    { icon: <BookOpen className="w-5 h-5" />, title: 'やりかた', titleEn: 'How it Works', content: info.method, contentEn: info.methodEn, color: 'bg-primary/10 border-primary/30' },
+    { icon: <Rocket className="w-5 h-5" />, title: '生活の中でのつかいみち', titleEn: 'Real-Life Use', content: info.realLife, contentEn: info.realLifeEn, color: 'bg-kid-green/20 border-kid-green/40' },
+    { icon: <Lightbulb className="w-5 h-5" />, title: 'できるようになると...', titleEn: 'Benefits', content: info.benefit, contentEn: info.benefitEn, color: 'bg-kid-purple/20 border-kid-purple/40' },
+  ];
+
+  return (
+    <div className="bg-card rounded-2xl shadow-kid p-6 mb-8 border border-border">
+      <h2 className="text-2xl font-bold mb-1 flex items-center gap-2">
+        <span className="text-3xl">{info.icon}</span>
+        {info.label}
+      </h2>
+      <p className="text-sm text-muted-foreground mb-4 ml-11">{info.labelEn}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {sections.map((s) => (
+          <div key={s.title} className={`rounded-xl border p-4 ${s.color}`}>
+            <div className="flex items-center gap-2 font-bold mb-1 text-foreground">
+              {s.icon}
+              {s.title}
+            </div>
+            <p className="text-xs text-muted-foreground mb-2">{s.titleEn}</p>
+            <p className="text-sm leading-relaxed text-foreground/80">{s.content}</p>
+            <p className="text-xs leading-relaxed text-muted-foreground mt-1">{s.contentEn}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default LargeNumbersExplanationCard;

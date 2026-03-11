@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, RotateCcw, CheckCircle2, Trophy, Compass, Circle, Shapes, Percent } from 'lucide-react';
+import { Sparkles, RotateCcw, CheckCircle2, Trophy, Compass, Circle, Shapes, Percent, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ExplanationCard from '@/components/ExplanationCard';
@@ -7,14 +7,17 @@ import QuestionItem from '@/components/QuestionItem';
 import Protractor from '@/components/Protractor';
 import { Topic, TOPICS, Question, generateQuestions } from '@/lib/geometry';
 import { RatioQuestion, RatioTopic, RATIO_TOPICS, generateRatioQuestions, AccuracyRateQuestion, AccuracyRateTopic, ACCURACY_RATE_TOPICS, generateAccuracyRateQuestions } from '@/lib/ratios';
+import { LargeNumberQuestion, LargeNumberTopic, LARGE_NUMBER_TOPICS, generateLargeNumberQuestions } from '@/lib/largeNumbers';
 import { RatioExplanationCard, RatioQuestionItem, AccuracyRateQuestionItem, AccuracyRateExplanationCard } from '@/components/ratios';
+import { LargeNumbersExplanationCard, LargeNumbersQuestionItem } from '@/components/largeNumbers';
 
 const topicKeys: Topic[] = ['angles', 'area', 'lines', 'intersecting', 'quadrilaterals', 'diagonals'];
 const ratioTopicKeys: RatioTopic[] = ['finding-ratio', 'finding-compared', 'finding-base'];
 const accuracyRateTopicKeys: AccuracyRateTopic[] = ['decimal-ratio', 'convert-percent', 'calculate-accuracy'];
+const largeNumberTopicKeys: LargeNumberTopic[] = ['reading-oku-cho', 'rounding-off', 'rounding-up-down'];
 
 type ProtractorType = '180' | '360' | null;
-type AppTab = 'geometry' | 'ratios' | 'accuracy-rate';
+type AppTab = 'geometry' | 'ratios' | 'accuracy-rate' | 'large-numbers';
 
 const Index = () => {
   // Active tab state
@@ -41,6 +44,13 @@ const Index = () => {
   const [accuracyRateGraded, setAccuracyRateGraded] = useState(false);
   const [accuracyRateScore, setAccuracyRateScore] = useState(0);
 
+  // Large Numbers state
+  const [selectedLargeNumberTopic, setSelectedLargeNumberTopic] = useState<LargeNumberTopic>('reading-oku-cho');
+  const [largeNumberQuestions, setLargeNumberQuestions] = useState<LargeNumberQuestion[]>([]);
+  const [largeNumberAnswers, setLargeNumberAnswers] = useState<string[]>([]);
+  const [largeNumberGraded, setLargeNumberGraded] = useState(false);
+  const [largeNumberScore, setLargeNumberScore] = useState(0);
+
   // Protractor state (shared across tabs)
   const [activeProtractor, setActiveProtractor] = useState<ProtractorType>(null);
 
@@ -60,6 +70,10 @@ const Index = () => {
     setAccuracyRateAnswers([]);
     setAccuracyRateGraded(false);
     setAccuracyRateScore(0);
+    setLargeNumberQuestions([]);
+    setLargeNumberAnswers([]);
+    setLargeNumberGraded(false);
+    setLargeNumberScore(0);
   };
 
   // Geometry handlers
@@ -150,9 +164,43 @@ const Index = () => {
     setAccuracyRateGraded(true);
   };
 
+  // Large Numbers handlers
+  const handleGenerateLargeNumbers = () => {
+    const newQuestions = generateLargeNumberQuestions(selectedLargeNumberTopic);
+    setLargeNumberQuestions(newQuestions);
+    setLargeNumberAnswers(new Array(5).fill(''));
+    setLargeNumberGraded(false);
+    setLargeNumberScore(0);
+  };
+
+  const handleLargeNumberAnswerChange = (index: number, value: string) => {
+    const newAnswers = [...largeNumberAnswers];
+    newAnswers[index] = value;
+    setLargeNumberAnswers(newAnswers);
+  };
+
+  const allLargeNumbersAnswered = largeNumberAnswers.length === 5 && largeNumberAnswers.every((a) => a.trim() !== '');
+
+  const handleLargeNumberCheck = () => {
+    let correct = 0;
+    largeNumberQuestions.forEach((q, i) => {
+      if (q.topic === 'reading-oku-cho') {
+        // For kanji input, compare strings directly (case insensitive)
+        if (largeNumberAnswers[i].trim() === (q.answer as string)) correct++;
+      } else {
+        // For number answers, parse and compare
+        const userNum = parseInt(largeNumberAnswers[i]);
+        if (userNum === q.answer) correct++;
+      }
+    });
+    setLargeNumberScore(correct);
+    setLargeNumberGraded(true);
+  };
+
   const geometryScorePercent = geometryScore * 20;
   const ratioScorePercent = ratioScore * 20;
   const accuracyRateScorePercent = accuracyRateScore * 20;
+  const largeNumberScorePercent = largeNumberScore * 20;
 
   return (
     <div className="min-h-screen bg-background">
@@ -230,7 +278,7 @@ const Index = () => {
       {/* Main Content with Tabs */}
       <main className="container max-w-3xl mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="w-full grid grid-cols-3 mb-8 h-auto p-1.5 bg-muted rounded-2xl">
+          <TabsList className="w-full grid grid-cols-4 mb-8 h-auto p-1.5 bg-muted rounded-2xl">
             <TabsTrigger
               value="geometry"
               className="flex items-center gap-2 py-4 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
@@ -259,6 +307,16 @@ const Index = () => {
               <div className="flex flex-col items-center">
                 <span>正答率</span>
                 <span className="text-xs font-normal opacity-60">Accuracy</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="large-numbers"
+              className="flex items-center gap-2 py-4 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
+            >
+              <Hash className="w-5 h-5" />
+              <div className="flex flex-col items-center">
+                <span>大きな数</span>
+                <span className="text-xs font-normal opacity-60">Big Numbers</span>
               </div>
             </TabsTrigger>
           </TabsList>
@@ -563,6 +621,114 @@ const Index = () => {
                         : 'もういちどチャレンジしてみよう！🔥 / Try again!'}
                     </p>
                     <Button variant="generate" size="lg" onClick={handleGenerateAccuracyRate}>
+                      <RotateCcw className="w-5 h-5" />
+                      <div className="flex flex-col items-start leading-tight">
+                        <span>もういちど！</span>
+                        <span className="text-xs opacity-80">Try Again</span>
+                      </div>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Large Numbers Tab */}
+          <TabsContent value="large-numbers" className="mt-0">
+            {/* Topic Selection */}
+            <div className="mb-6">
+              <p className="font-bold mb-1 text-lg">大きな数とがい数のもんだいをえらぼう：</p>
+              <p className="text-sm text-muted-foreground mb-3">Choose a large numbers topic:</p>
+              <div className="flex flex-wrap gap-3">
+                {largeNumberTopicKeys.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setSelectedLargeNumberTopic(t)}
+                    className={`px-4 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 flex flex-col items-center ${
+                      selectedLargeNumberTopic === t
+                        ? 'bg-primary text-primary-foreground shadow-kid-lg scale-105'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    <span>{LARGE_NUMBER_TOPICS[t].icon} {LARGE_NUMBER_TOPICS[t].label}</span>
+                    <span className={`text-xs mt-0.5 ${selectedLargeNumberTopic === t ? 'text-primary-foreground/80' : 'text-muted-foreground/60'}`}>{LARGE_NUMBER_TOPICS[t].labelEn}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Topic Info */}
+            <div className="mb-6">
+              <LargeNumbersExplanationCard info={LARGE_NUMBER_TOPICS[selectedLargeNumberTopic]} />
+            </div>
+
+            {/* Generate Button */}
+            <Button variant="generate" size="lg" onClick={handleGenerateLargeNumbers} className="mb-8 w-full sm:w-auto">
+              <Sparkles className="w-5 h-5" />
+              <div className="flex flex-col items-start leading-tight">
+                <span>もんだいをつくる！</span>
+                <span className="text-xs opacity-80">Generate Exercises</span>
+              </div>
+            </Button>
+
+            {/* Questions */}
+            {largeNumberQuestions.length > 0 && (
+              <div className="animate-bounce-in">
+                {/* Questions */}
+                <div className="space-y-4 mb-8">
+                  {largeNumberQuestions.map((q, i) => (
+                    <LargeNumbersQuestionItem
+                      key={q.id}
+                      question={q}
+                      index={i}
+                      userAnswer={largeNumberAnswers[i]}
+                      onAnswerChange={(v) => handleLargeNumberAnswerChange(i, v)}
+                      graded={largeNumberGraded}
+                      isCorrect={largeNumberGraded ?
+                        (q.topic === 'reading-oku-cho'
+                          ? largeNumberAnswers[i].trim() === (q.answer as string)
+                          : parseInt(largeNumberAnswers[i]) === q.answer)
+                        : undefined}
+                    />
+                  ))}
+                </div>
+
+                {/* Check / Results */}
+                {!largeNumberGraded ? (
+                  <div className="text-center">
+                    <Button
+                      variant="check"
+                      size="lg"
+                      onClick={handleLargeNumberCheck}
+                      disabled={!allLargeNumbersAnswered}
+                    >
+                      <CheckCircle2 className="w-5 h-5" />
+                      <div className="flex flex-col items-start leading-tight">
+                        <span>こたえあわせ</span>
+                        <span className="text-xs opacity-80">Check Answers</span>
+                      </div>
+                    </Button>
+                    {!allLargeNumbersAnswered && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        ぜんぶのこたえを入れてね！ / Fill in all answers!
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center bg-card rounded-2xl shadow-kid-lg p-8 border border-border animate-bounce-in">
+                    <Trophy className="w-12 h-12 mx-auto mb-3 text-kid-yellow" />
+                    <p className="text-4xl font-black mb-1">
+                      {largeNumberScorePercent}点！
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-2">{largeNumberScorePercent} points!</p>
+                    <p className="text-muted-foreground mb-4">
+                      {largeNumberScorePercent === 100
+                        ? 'かんぺき！すごいね！🎉 / Perfect! Amazing!'
+                        : largeNumberScorePercent >= 60
+                        ? 'がんばったね！もう少し！💪 / Great effort! Almost there!'
+                        : 'もういちどチャレンジしてみよう！🔥 / Try again!'}
+                    </p>
+                    <Button variant="generate" size="lg" onClick={handleGenerateLargeNumbers}>
                       <RotateCcw className="w-5 h-5" />
                       <div className="flex flex-col items-start leading-tight">
                         <span>もういちど！</span>
