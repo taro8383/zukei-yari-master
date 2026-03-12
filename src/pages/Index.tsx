@@ -412,11 +412,15 @@ const Index = () => {
     let correct = 0;
     const results = largeNumberQuestions.map((q, i) => {
       let isCorrect = false;
-      if (q.topic === 'reading-oku-cho') {
-        // For kanji input, compare strings directly (case insensitive)
+      if (q.topic === 'reading-oku-cho' || q.topic === 'calculating-oku-cho') {
+        // For kanji input (reading and calculating), compare strings directly
         isCorrect = largeNumberAnswers[i].trim() === (q.answer as string);
+      } else if (q.topic === 'rounding-up-down') {
+        // For word problems with numeric answers
+        const userNum = parseInt(largeNumberAnswers[i]);
+        isCorrect = userNum === q.answer;
       } else {
-        // For number answers, parse and compare
+        // For number answers (rounding, estimating), parse and compare
         const userNum = parseInt(largeNumberAnswers[i]);
         isCorrect = userNum === q.answer;
       }
