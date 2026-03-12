@@ -212,13 +212,13 @@ function generateReadingGraphQuestions(): LineGraphQuestion[] {
   return questions;
 }
 
-// Generate slope/change questions
+// Generate slope/change questions with dynamically calculated answers from actual data
 function generateChangeSlopeQuestions(): LineGraphQuestion[] {
   const questions: LineGraphQuestion[] = [];
 
-  // Create scenarios with distinct slope patterns
+  // Create scenarios with distinct slope patterns - only data, answers calculated dynamically
   const scenarios = [
-    // Scenario 1: Steep increase, then flat, then decrease
+    // Scenario 0: Steep increase, then flat, then decrease
     {
       dataPoints: [
         { x: '9:00', y: 20 },
@@ -229,12 +229,8 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         { x: '14:00', y: 24 }, // Decrease
         { x: '15:00', y: 22 },
       ],
-      steepestStart: '10:00',
-      steepestEnd: '11:00',
-      flatStart: '11:00',
-      flatEnd: '13:00',
     },
-    // Scenario 2: Gradual then steep
+    // Scenario 1: Gradual then steep
     {
       dataPoints: [
         { x: '9:00', y: 18 },
@@ -245,12 +241,8 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         { x: '14:00', y: 28 }, // Flat
         { x: '15:00', y: 27 },
       ],
-      steepestStart: '12:00',
-      steepestEnd: '13:00',
-      flatStart: '14:00',
-      flatEnd: '15:00',
     },
-    // Scenario 3: Flat then steep decrease
+    // Scenario 2: Flat then steep decrease
     {
       dataPoints: [
         { x: '9:00', y: 25 },
@@ -261,12 +253,8 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         { x: '14:00', y: 18 },
         { x: '15:00', y: 17 },
       ],
-      steepestStart: '12:00',
-      steepestEnd: '13:00',
-      flatStart: '9:00',
-      flatEnd: '11:00',
     },
-    // Scenario 4: Steep increase throughout
+    // Scenario 3: Steep increase throughout
     {
       dataPoints: [
         { x: '9:00', y: 15 },
@@ -277,12 +265,8 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         { x: '14:00', y: 28 },
         { x: '15:00', y: 28 }, // Flat
       ],
-      steepestStart: '10:00',
-      steepestEnd: '11:00',
-      flatStart: '15:00',
-      flatEnd: '15:00',
     },
-    // Scenario 5: Decrease then flat
+    // Scenario 4: Decrease then flat
     {
       dataPoints: [
         { x: '9:00', y: 30 },
@@ -293,10 +277,6 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         { x: '14:00', y: 24 }, // Flat
         { x: '15:00', y: 23 },
       ],
-      steepestStart: '11:00',
-      steepestEnd: '12:00',
-      flatStart: '13:00',
-      flatEnd: '14:00',
     },
   ];
 
@@ -312,14 +292,78 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
     const range = yAxisMax - yAxisMin;
     const tickInterval = range <= 10 ? 1 : range <= 20 ? 2 : Math.ceil(range / 10);
 
-    // Alternate between "steepest rise" and "no change" questions
-    if (i % 2 === 0) {
+    // Calculate slopes from actual data
+    interface Segment {
+      start: string;
+      end: string;
+      change: number;
+      isRise: boolean;
+      isFall: boolean;
+      isFlat: boolean;
+    }
+
+    const segments: Segment[] = [];
+    for (let j = 0; j < scenario.dataPoints.length - 1; j++) {
+      const current = scenario.dataPoints[j];
+      const next = scenario.dataPoints[j + 1];
+      const change = next.y - current.y;
+      segments.push({
+        start: current.x,
+        end: next.x,
+        change,
+        isRise: change > 0,
+        isFall: change < 0,
+        isFlat: change === 0,
+      });
+    }
+
+    // Find consecutive flat segments for "no change" question
+    let longestFlatStart = '';
+    let longestFlatEnd = '';
+    let currentFlatStart = '';
+    let currentFlatLength = 0;
+    let maxFlatLength = 0;
+
+    for (const segment of segments) {
+      if (segment.isFlat) {
+        if (currentFlatLength === 0) {
+          currentFlatStart = segment.start;
+        }
+        currentFlatLength++;
+        if (currentFlatLength > maxFlatLength) {
+          maxFlatLength = currentFlatLength;
+          longestFlatStart = currentFlatStart;
+          longestFlatEnd = segment.end;
+        }
+      } else {
+        currentFlatLength = 0;
+      }
+    }
+
+    // Find steepest rise and fall from actual data
+    const rises = segments.filter(s => s.isRise);
+    const falls = segments.filter(s => s.isFall);
+
+    const steepestRise = rises.length > 0
+      ? rises.reduce((max, s) => s.change > max.change ? s : max, rises[0])
+      : null;
+
+    const steepestFall = falls.length > 0
+      ? falls.reduce((max, s) => Math.abs(s.change) > Math.abs(max.change) ? s : max, falls[0])
+      : null;
+
+    // Generate question based on what's actually in the data
+    // Alternate question types but only ask valid questions
+    const questionType = i % 3; // 0 = steepest rise, 1 = no change, 2 = steepest fall (if exists) or rise
+
+    if (questionType === 0 && steepestRise) {
+      // Question about steepest rise
       questions.push({
         id: `slope-${i}`,
         topic: 'change-slope',
         text: '気温が一番大きく上がったのは、何時から何時の間ですか？',
         textEn: 'Between which times did the temperature rise the most?',
-        answer: `${scenario.steepestStart}から${scenario.steepestEnd}`,
+        answer: `${steepestRise.start}から${steepestRise.end}`,
         dataPoints: scenario.dataPoints,
         xAxisLabel: '時間',
         xAxisLabelEn: 'Time',
@@ -329,21 +373,22 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         yAxisMax,
         tickInterval: 1,
         hasWavyLine: false,
-        slopeStart: scenario.steepestStart,
-        slopeEnd: scenario.steepestEnd,
+        slopeStart: steepestRise.start,
+        slopeEnd: steepestRise.end,
         options: ['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
-        formula: `正解: ${scenario.steepestStart}から${scenario.steepestEnd}（線が一番急な右上がりになっているところを探すよ）`,
-        formulaEn: `Answer: ${scenario.steepestStart} to ${scenario.steepestEnd} (Look for the steepest upward line)`,
-        explanation: `気温が一番大きく上がったのは${scenario.steepestStart}から${scenario.steepestEnd}の間です`,
-        explanationEn: `The temperature rose the most between ${scenario.steepestStart} and ${scenario.steepestEnd}`,
+        formula: `正解: ${steepestRise.start}から${steepestRise.end}（線が一番急な右上がりになっているところを探すよ。${steepestRise.change}℃上がった！）`,
+        formulaEn: `Answer: ${steepestRise.start} to ${steepestRise.end} (Look for the steepest upward line. Rose by ${steepestRise.change}°C!)`,
+        explanation: `気温が一番大きく上がったのは${steepestRise.start}から${steepestRise.end}の間です（${steepestRise.change}℃上がりました）`,
+        explanationEn: `The temperature rose the most between ${steepestRise.start} and ${steepestRise.end} (rose by ${steepestRise.change}°C)`,
       });
-    } else {
+    } else if (questionType === 1 && longestFlatStart) {
+      // Question about no change
       questions.push({
         id: `slope-${i}`,
         topic: 'change-slope',
         text: '気温が変わらなかったのは、何時から何時の間ですか？',
         textEn: 'Between which times did the temperature not change?',
-        answer: `${scenario.flatStart}から${scenario.flatEnd}`,
+        answer: `${longestFlatStart}から${longestFlatEnd}`,
         dataPoints: scenario.dataPoints,
         xAxisLabel: '時間',
         xAxisLabelEn: 'Time',
@@ -353,13 +398,89 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         yAxisMax,
         tickInterval: 1,
         hasWavyLine: false,
-        slopeStart: scenario.flatStart,
-        slopeEnd: scenario.flatEnd,
+        slopeStart: longestFlatStart,
+        slopeEnd: longestFlatEnd,
         options: ['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
-        formula: `正解: ${scenario.flatStart}から${scenario.flatEnd}（線が平らになっているところを探すよ）`,
-        formulaEn: `Answer: ${scenario.flatStart} to ${scenario.flatEnd} (Look for the flat horizontal line)`,
-        explanation: `気温が変わらなかったのは${scenario.flatStart}から${scenario.flatEnd}の間です`,
-        explanationEn: `The temperature did not change between ${scenario.flatStart} and ${scenario.flatEnd}`,
+        formula: `正解: ${longestFlatStart}から${longestFlatEnd}（線が平らになっているところを探すよ）`,
+        formulaEn: `Answer: ${longestFlatStart} to ${longestFlatEnd} (Look for the flat horizontal line)`,
+        explanation: `気温が変わらなかったのは${longestFlatStart}から${longestFlatEnd}の間です`,
+        explanationEn: `The temperature did not change between ${longestFlatStart} and ${longestFlatEnd}`,
+      });
+    } else if (steepestFall) {
+      // Question about steepest fall
+      const fallAmount = Math.abs(steepestFall.change);
+      questions.push({
+        id: `slope-${i}`,
+        topic: 'change-slope',
+        text: '気温が一番大きく下がったのは、何時から何時の間ですか？',
+        textEn: 'Between which times did the temperature fall the most?',
+        answer: `${steepestFall.start}から${steepestFall.end}`,
+        dataPoints: scenario.dataPoints,
+        xAxisLabel: '時間',
+        xAxisLabelEn: 'Time',
+        yAxisLabel: '気温 (℃)',
+        yAxisLabelEn: 'Temperature (°C)',
+        yAxisMin,
+        yAxisMax,
+        tickInterval: 1,
+        hasWavyLine: false,
+        slopeStart: steepestFall.start,
+        slopeEnd: steepestFall.end,
+        options: ['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+        formula: `正解: ${steepestFall.start}から${steepestFall.end}（線が一番急な右下がりになっているところを探すよ。${fallAmount}℃下がった！）`,
+        formulaEn: `Answer: ${steepestFall.start} to ${steepestFall.end} (Look for the steepest downward line. Fell by ${fallAmount}°C!)`,
+        explanation: `気温が一番大きく下がったのは${steepestFall.start}から${steepestFall.end}の間です（${fallAmount}℃下がりました）`,
+        explanationEn: `The temperature fell the most between ${steepestFall.start} and ${steepestFall.end} (fell by ${fallAmount}°C)`,
+      });
+    } else if (steepestRise) {
+      // Fallback to steepest rise if no fall available
+      questions.push({
+        id: `slope-${i}`,
+        topic: 'change-slope',
+        text: '気温が一番大きく上がったのは、何時から何時の間ですか？',
+        textEn: 'Between which times did the temperature rise the most?',
+        answer: `${steepestRise.start}から${steepestRise.end}`,
+        dataPoints: scenario.dataPoints,
+        xAxisLabel: '時間',
+        xAxisLabelEn: 'Time',
+        yAxisLabel: '気温 (℃)',
+        yAxisLabelEn: 'Temperature (°C)',
+        yAxisMin,
+        yAxisMax,
+        tickInterval: 1,
+        hasWavyLine: false,
+        slopeStart: steepestRise.start,
+        slopeEnd: steepestRise.end,
+        options: ['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+        formula: `正解: ${steepestRise.start}から${steepestRise.end}（線が一番急な右上がりになっているところを探すよ。${steepestRise.change}℃上がった！）`,
+        formulaEn: `Answer: ${steepestRise.start} to ${steepestRise.end} (Look for the steepest upward line. Rose by ${steepestRise.change}°C!)`,
+        explanation: `気温が一番大きく上がったのは${steepestRise.start}から${steepestRise.end}の間です（${steepestRise.change}℃上がりました）`,
+        explanationEn: `The temperature rose the most between ${steepestRise.start} and ${steepestRise.end} (rose by ${steepestRise.change}°C)`,
+      });
+    } else {
+      // Fallback to flat if nothing else available
+      questions.push({
+        id: `slope-${i}`,
+        topic: 'change-slope',
+        text: '気温が変わらなかったのは、何時から何時の間ですか？',
+        textEn: 'Between which times did the temperature not change?',
+        answer: `${longestFlatStart}から${longestFlatEnd}`,
+        dataPoints: scenario.dataPoints,
+        xAxisLabel: '時間',
+        xAxisLabelEn: 'Time',
+        yAxisLabel: '気温 (℃)',
+        yAxisLabelEn: 'Temperature (°C)',
+        yAxisMin,
+        yAxisMax,
+        tickInterval: 1,
+        hasWavyLine: false,
+        slopeStart: longestFlatStart,
+        slopeEnd: longestFlatEnd,
+        options: ['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+        formula: `正解: ${longestFlatStart}から${longestFlatEnd}（線が平らになっているところを探すよ）`,
+        formulaEn: `Answer: ${longestFlatStart} to ${longestFlatEnd} (Look for the flat horizontal line)`,
+        explanation: `気温が変わらなかったのは${longestFlatStart}から${longestFlatEnd}の間です`,
+        explanationEn: `The temperature did not change between ${longestFlatStart} and ${longestFlatEnd}`,
       });
     }
   }
