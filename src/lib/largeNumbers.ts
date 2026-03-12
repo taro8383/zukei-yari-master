@@ -330,8 +330,9 @@ export function generateCalculatingOkuChoQuestions(): LargeNumberQuestion[] {
     const opSymbol = op === 'add' ? '+' : '-';
     const opText = op === 'add' ? 'たし算' : 'ひき算';
     const opTextEn = op === 'add' ? 'Add' : 'Subtract';
-    const num1Formatted = formatJapaneseNumber(num1);
-    const num2Formatted = formatJapaneseNumber(num2);
+    // Use Arabic numerals with commas for clarity (avoids Google's calculator confusion)
+    const num1Formatted = num1.toLocaleString();
+    const num2Formatted = num2.toLocaleString();
     const answerFormatted = formatJapaneseNumber(answer);
 
     questions.push({
