@@ -119,17 +119,17 @@ const LineGraphQuestionItem = ({
           ja: (
             <>
               💡 <strong>グラフの書き方:</strong><br />
-              ① 表の数字を確認する<br />
-              ② 各時間の下に、表の数字を入力する<br />
-              ③ グラフが自動で描かれるよ！
+              ① 表を見て、何日目の値をグラフに書くか選ぶ<br />
+              ② グラフの下の「？」をクリックする<br />
+              ③ 表の数字を思い出して入力する
             </>
           ),
           en: (
             <>
               <strong>How to draw the graph:</strong><br />
-              1. Check the numbers in the table<br />
-              2. Enter the value from the table for each time<br />
-              3. The graph will be drawn automatically!
+              1. Look at the table and decide which day to plot<br />
+              2. Click the "?" below the graph<br />
+              3. Remember and enter the value from the table
             </>
           ),
         };
@@ -194,73 +194,37 @@ const LineGraphQuestionItem = ({
               />
             ) : isDrawingGraph && question.tableData ? (
               <>
-                {/* Table Display with Input Fields */}
+                {/* Table Display - Reference only */}
                 <div className="bg-kid-blue/10 rounded-xl p-4 border border-kid-blue/30 mb-4">
-                  <p className="text-sm font-bold text-foreground mb-3 text-center">
-                    📊 表の数字をグラフに書こう / Plot the Table Data
+                  <p className="text-sm font-bold text-foreground mb-2 text-center">
+                    📊 表 / Table (参考)
                   </p>
-                  <div className="grid gap-3">
-                    {question.tableData.map((row, idx) => {
-                      // Find if there's a plotted point for this x-index
-                      const plottedPoint = plottedPoints?.find(p => p.x === idx);
-                      const isCorrectPoint = graded && plottedPoint && question.correctPoints?.find(cp => cp.x === idx && cp.y === row.y);
-                      const isWrongPoint = graded && plottedPoint && !isCorrectPoint;
-
-                      return (
-                        <div key={idx} className="flex items-center gap-3 bg-white rounded-lg p-3 shadow-sm">
-                          <span className="font-bold text-foreground min-w-[60px]">{row.x}:</span>
-                          <span className="text-lg font-bold text-primary">{row.y}</span>
-                          <span className="text-muted-foreground">→</span>
-                          {!graded ? (
-                            <div className="flex items-center gap-2 flex-1">
-                              <input
-                                type="number"
-                                value={plottedPoint?.y ?? ''}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  if (value === '') {
-                                    // Remove point if cleared
-                                    const newPoints = (plottedPoints || []).filter(p => p.x !== idx);
-                                    // Update parent with removed point
-                                    onPointPlot?.(idx, -1); // Signal to remove
-                                  } else {
-                                    onPointPlot?.(idx, parseInt(value));
-                                  }
-                                }}
-                                className="w-20 h-10 text-center text-lg font-bold rounded-lg border-2 border-input bg-background focus:border-primary focus:ring-2 focus:ring-ring outline-none transition-all"
-                                placeholder="?"
-                              />
-                              <span className="text-sm text-muted-foreground">をグラフに書く</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 flex-1">
-                              <span className={`text-lg font-bold ${isCorrectPoint ? 'text-green-600' : 'text-red-600'}`}>
-                                {plottedPoint?.y ?? '?'}
-                              </span>
-                              {isCorrectPoint && <span className="text-2xl">✅</span>}
-                              {isWrongPoint && <span className="text-2xl">❌</span>}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                  <div className="flex justify-center gap-4 flex-wrap">
+                    {question.tableData.map((row, idx) => (
+                      <div key={idx} className="text-center bg-white rounded-lg px-3 py-2 shadow-sm">
+                        <div className="text-xs text-muted-foreground">{row.x}</div>
+                        <div className="text-lg font-bold text-primary">{row.y}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                {/* Graph Display (read-only preview) */}
-                <LineGraphVisualizer
-                  dataPoints={plottedPoints || []}
-                  tableData={question.tableData}
-                  xAxisLabel={question.xAxisLabel}
-                  xAxisLabelEn={question.xAxisLabelEn}
-                  yAxisLabel={question.yAxisLabel}
-                  yAxisLabelEn={question.yAxisLabelEn}
-                  yAxisMin={question.yAxisMin}
-                  yAxisMax={question.yAxisMax}
-                  tickInterval={question.tickInterval}
-                  hasWavyLine={false}
-                  isDrawing={false}
-                  graded={graded}
-                />
+
+                {/* Interactive Graph with Click-to-Select */}
+                <div className="bg-white rounded-xl p-4 border-2 border-kid-blue/30 mb-4">
+                  <p className="text-sm font-bold text-foreground mb-3 text-center">
+                    ✏️ グラフに点を打とう！/ Click a day below, then enter the value
+                  </p>
+                  <DrawingGraphInteractive
+                    tableData={question.tableData}
+                    plottedPoints={plottedPoints || []}
+                    onPointPlot={onPointPlot}
+                    yAxisMin={question.yAxisMin}
+                    yAxisMax={question.yAxisMax}
+                    yAxisLabel={question.yAxisLabel}
+                    graded={graded}
+                  />
+                </div>
+
                 {/* Clear button */}
                 {!graded && (
                   <div className="flex justify-center mt-3">
