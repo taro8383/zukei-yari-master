@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { LineGraphQuestion } from '@/lib/lineGraphs';
 import LineGraphVisualizer from './LineGraphVisualizer';
+import DrawingGraphInteractive from './DrawingGraphInteractive';
 
 interface LineGraphQuestionItemProps {
   question: LineGraphQuestion;
