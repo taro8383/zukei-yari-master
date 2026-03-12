@@ -1,11 +1,32 @@
 import { AccuracyRateTopicInfo } from '@/lib/ratios';
 import { Lightbulb, BookOpen, Rocket, Star } from 'lucide-react';
+import DecimalRatioVisualizer from './DecimalRatioVisualizer';
+import ConvertPercentVisualizer from './ConvertPercentVisualizer';
+import CalculateAccuracyVisualizer from './CalculateAccuracyVisualizer';
 
 interface AccuracyRateExplanationCardProps {
   info: AccuracyRateTopicInfo;
 }
 
 const AccuracyRateExplanationCard = ({ info }: AccuracyRateExplanationCardProps) => {
+  // Example data for visualizers
+  const decimalRatioExample = {
+    correctAnswers: 4,
+    totalQuestions: 5,
+    decimalResult: 0.8,
+  };
+
+  const convertPercentExample = {
+    decimalValue: 0.75,
+    percentValue: 75,
+  };
+
+  const calculateAccuracyExample = {
+    correctAnswers: 8,
+    totalQuestions: 10,
+    accuracyPercent: 80,
+  };
+
   const sections = [
     { icon: <Star className="w-5 h-5" />, title: 'めあて', titleEn: 'Goal', content: info.goal, contentEn: info.goalEn, color: 'bg-kid-yellow/20 border-kid-yellow/40' },
     { icon: <BookOpen className="w-5 h-5" />, title: 'やりかた', titleEn: 'How it Works', content: info.method, contentEn: info.methodEn, color: 'bg-primary/10 border-primary/30' },
@@ -33,6 +54,36 @@ const AccuracyRateExplanationCard = ({ info }: AccuracyRateExplanationCardProps)
           </div>
         ))}
       </div>
+
+      {/* Decimal Ratio Visualizer */}
+      {info.id === 'decimal-ratio' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 割合を小数で求める例 / Finding ratio as decimal example
+          </p>
+          <DecimalRatioVisualizer {...decimalRatioExample} />
+        </div>
+      )}
+
+      {/* Convert Percent Visualizer */}
+      {info.id === 'convert-percent' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 パーセントになおす例 / Converting to percentage example
+          </p>
+          <ConvertPercentVisualizer {...convertPercentExample} />
+        </div>
+      )}
+
+      {/* Calculate Accuracy Visualizer */}
+      {info.id === 'calculate-accuracy' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 正答率を計算する例 / Calculating accuracy rate example
+          </p>
+          <CalculateAccuracyVisualizer {...calculateAccuracyExample} />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 // Ratios and Proportions (割合と倍) - 4th Grade MEXT Curriculum
 // Focus: Finding the Ratio (何倍ですか / Finding the Multiple)
 
-export type RatioTopic = 'finding-ratio' | 'finding-compared' | 'finding-base';
+export type RatioTopic = 'finding-ratio' | 'finding-compared' | 'finding-base' | 'difference-vs-multiple';
 export type AccuracyRateTopic = 'decimal-ratio' | 'convert-percent' | 'calculate-accuracy';
 
 export interface RatioTopicInfo {
@@ -45,6 +45,11 @@ export interface RatioQuestion {
   textEn: string;
   explanation: string;
   explanationEn: string;
+  // For difference-vs-multiple topic
+  operationType?: 'difference' | 'multiple';
+  correctOperation?: 'difference' | 'multiple';
+  differenceAnswer?: number;
+  multipleAnswer?: number;
 }
 
 export interface AccuracyRateQuestion {
@@ -105,6 +110,20 @@ export const RATIO_TOPICS: Record<RatioTopic, RatioTopicInfo> = {
     realLifeEn: 'Kei\'s toy car traveled 15cm. This is 3 times further than his sister\'s car. How far did his sister\'s car travel?',
     benefit: 'わり算を使ってもとの数を見つけられるようになる！',
     benefitEn: 'You will be able to find the original number using division!',
+  },
+  'difference-vs-multiple': {
+    id: 'difference-vs-multiple',
+    icon: '🤔',
+    label: '差と倍のちがい',
+    labelEn: 'Difference vs. Multiple',
+    goal: '「いくつ多いか（ひき算）」と「何倍か（わり算）」のちがいを見分けよう。',
+    goalEn: 'Know when to use subtraction and when to use division.',
+    method: '「どちらが大きいか・小さいか」だけ知りたい → ひき算（差）を使う。「何倍か」知りたい → わり算（倍）を使う。例：10と2の差は8（10-2）、10は2の5倍（10÷2）',
+    methodEn: 'Want to know "how much bigger/smaller" → Use subtraction (difference). Want to know "how many times" → Use division (multiple). Example: Difference of 10 and 2 is 8 (10-2), 10 is 5 times 2 (10÷2)',
+    realLife: '「お兄ちゃんは5cm背が高い」（差）vs「お兄ちゃんは1.2倍の身長」（倍）を使い分けるとき！',
+    realLifeEn: 'Knowing "my brother is 5cm taller" (difference) vs "my brother is 1.2 times as tall" (multiple)!',
+    benefit: '問題文を読んで、どの計算を使うか選べるようになる！',
+    benefitEn: 'You will be able to read problems and choose the right operation!',
   },
 };
 
@@ -689,6 +708,80 @@ export function generateAccuracyRateQuestions(topic: AccuracyRateTopic): Accurac
   return generateDecimalRatioQuestions();
 }
 
+// Generate questions for "Difference vs Multiple" (差と倍のちがい)
+export function generateDifferenceVsMultipleQuestions(): RatioQuestion[] {
+  const questions: RatioQuestion[] = [];
+
+  // Problem sets with clear difference vs multiple distinction
+  // [smallerNumber, largerNumber, difference, multipleRatio]
+  const problemSets: Array<[number, number, number, number]> = [
+    // Difference focus scenarios (when "how much more/less" is the natural question)
+    [5, 8, 3, 1.6],      // 8-5=3, 8÷5=1.6
+    [10, 15, 5, 1.5],    // 15-10=5, 15÷10=1.5
+    [12, 20, 8, 1.67],   // 20-12=8, 20÷12≈1.67
+    [8, 14, 6, 1.75],    // 14-8=6, 14÷8=1.75
+    [20, 30, 10, 1.5],   // 30-20=10, 30÷20=1.5
+    [25, 40, 15, 1.6],   // 40-25=15, 40÷25=1.6
+    [50, 70, 20, 1.4],   // 70-50=20, 70÷50=1.4
+    [30, 45, 15, 1.5],   // 45-30=15, 45÷30=1.5
+    [18, 24, 6, 1.33],   // 24-18=6, 24÷18≈1.33
+    [16, 28, 12, 1.75],  // 28-16=12, 28÷16=1.75
+  ];
+
+  // Scenarios where difference makes more sense
+  const differenceScenarios = [
+    { ja: (a: number, b: number, diff: number) => `けいくんは${b}枚、妹は${a}枚のシールを持っています。けいくんは妹より何枚多く持っていますか？`, en: (a: number, b: number, diff: number) => `Kei has ${b} stickers, his sister has ${a}. How many more stickers does Kei have?` },
+    { ja: (a: number, b: number, diff: number) => `赤い鉛筆は${b}cm、青い鉛筆は${a}cmです。赤い鉛筆は青い鉛筆より何cm長いですか？`, en: (a: number, b: number, diff: number) => `The red pencil is ${b}cm, the blue pencil is ${a}cm. How much longer is the red pencil?` },
+    { ja: (a: number, b: number, diff: number) => `お兄ちゃんの体重は${b}kg、弟の体重は${a}kgです。お兄ちゃんは弟より何kg重いですか？`, en: (a: number, b: number, diff: number) => `The older brother weighs ${b}kg, the younger brother weighs ${a}kg. How much heavier is the older brother?` },
+    { ja: (a: number, b: number, diff: number) => `Aさんは${b}円、Bさんは${a}円持っています。AさんはBさんより何円多く持っていますか？`, en: (a: number, b: number, diff: number) => `Person A has ${b} yen, Person B has ${a} yen. How much more does Person A have?` },
+    { ja: (a: number, b: number, diff: number) => `大きい箱には${b}個、小さい箱には${a}個のお菓子が入っています。大きい箱には何個多く入っていますか？`, en: (a: number, b: number, diff: number) => `The big box has ${b} candies, the small box has ${a}. How many more candies are in the big box?` },
+  ];
+
+  // Scenarios where multiple makes more sense
+  const multipleScenarios = [
+    { ja: (a: number, b: number, ratio: number) => `けいくんは${b}枚、妹は${a}枚のシールを持っています。けいくんの枚数は妹の何倍ですか？`, en: (a: number, b: number, ratio: number) => `Kei has ${b} stickers, his sister has ${a}. How many times more stickers does Kei have?` },
+    { ja: (a: number, b: number, ratio: number) => `赤いロープは${b}m、青いロープは${a}mです。赤いロープは青いロープの何倍の長さですか？`, en: (a: number, b: number, ratio: number) => `The red rope is ${b}m, the blue rope is ${a}m. How many times longer is the red rope?` },
+    { ja: (a: number, b: number, ratio: number) => `お兄ちゃんの年齢は${b}歳、弟の年齢は${a}歳です。お兄ちゃんの年齢は弟の何倍ですか？`, en: (a: number, b: number, ratio: number) => `The older brother is ${b} years old, the younger is ${a}. How many times older is the older brother?` },
+    { ja: (a: number, b: number, ratio: number) => `Aさんは${b}円、Bさんは${a}円持っています。Aさんのお金はBさんの何倍ですか？`, en: (a: number, b: number, ratio: number) => `Person A has ${b} yen, Person B has ${a} yen. How many times more money does Person A have?` },
+    { ja: (a: number, b: number, ratio: number) => `大きい箱には${b}個、小さい箱には${a}個のお菓子が入っています。大きい箱のお菓子の数は小さい箱の何倍ですか？`, en: (a: number, b: number, ratio: number) => `The big box has ${b} candies, the small box has ${a}. How many times more candies are in the big box?` },
+  ];
+
+  // Shuffle and pick 5 unique questions
+  const shuffled = [...problemSets].sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, 5);
+
+  selected.forEach(([smaller, larger, diff, ratio], index) => {
+    // Randomly choose whether this is a difference or multiple question
+    const isDifference = Math.random() > 0.5;
+
+    const scenario = isDifference
+      ? differenceScenarios[index % differenceScenarios.length]
+      : multipleScenarios[index % multipleScenarios.length];
+
+    questions.push({
+      id: index + 1,
+      type: 'difference-vs-multiple',
+      baseAmount: smaller,
+      comparedAmount: larger,
+      ratio: Math.round(ratio * 100) / 100,
+      answer: isDifference ? diff : Math.round(ratio * 100) / 100,
+      text: scenario.ja(smaller, larger, isDifference ? diff : ratio),
+      textEn: scenario.en(smaller, larger, isDifference ? diff : ratio),
+      explanation: isDifference
+        ? `「どちらが大きいか」を求める → ひき算：${larger} - ${smaller} = ${diff}`
+        : `「何倍か」を求める → わり算：${larger} ÷ ${smaller} = ${Math.round(ratio * 100) / 100}倍`,
+      explanationEn: isDifference
+        ? `Finding "how much bigger" → Subtraction: ${larger} - ${smaller} = ${diff}`
+        : `Finding "how many times" → Division: ${larger} ÷ ${smaller} = ${Math.round(ratio * 100) / 100} times`,
+      correctOperation: isDifference ? 'difference' : 'multiple',
+      differenceAnswer: diff,
+      multipleAnswer: Math.round(ratio * 100) / 100,
+    });
+  });
+
+  return questions;
+}
+
 // Main function to generate ratio questions based on topic
 export function generateRatioQuestions(topic: RatioTopic): RatioQuestion[] {
   if (topic === 'finding-compared') {
@@ -696,6 +789,9 @@ export function generateRatioQuestions(topic: RatioTopic): RatioQuestion[] {
   }
   if (topic === 'finding-base') {
     return generateFindingBaseQuestions();
+  }
+  if (topic === 'difference-vs-multiple') {
+    return generateDifferenceVsMultipleQuestions();
   }
   return generateFindingRatioQuestions();
 }

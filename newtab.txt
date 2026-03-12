@@ -1,0 +1,77 @@
+CRITICAL ARCHITECTURE UPDATE: NEW TAB FOR 折れ線グラフ (LINE GRAPHS)
+
+Expand the application by adding an eighth tab dedicated to "折れ線グラフ / Line Graphs". This targets the Japanese 4th-grade standard for organizing data and reading/drawing line graphs to understand changes over time, including understanding scales and wavy lines (omissions).
+
+1. Tab Integration
+
+    Add Tab 8: 折れ線グラフ / Line Graphs.
+
+    Ensure state resets when navigating to this tab.
+
+    Maintain the strict bilingual requirement (Japanese primary, English secondary, text-gray-500) and the disabled "Check Answers" logic until all inputs in the generated batch are filled.
+
+2. Visual Aid Requirements
+
+    Dynamic SVG Graphs: For every exercise, dynamically render a clean SVG line graph (折れ線グラフ).
+
+    Graph Components: The graph MUST include:
+
+        A grid background.
+
+        X-axis (横じく) representing Time/Months (e.g., 時, 月).
+
+        Y-axis (縦じく) representing Amount/Temperature (e.g., 度, cm, 人).
+
+        Clear data points connected by straight SVG <line> elements.
+
+        Dynamically rendered wavy lines (波線) on the Y-axis for Topic 3 to represent omitted scales.
+
+3. Topic Selection & Pre-Exercise Explanations (折れ線グラフ Tab)
+
+    Topic 1: グラフの読み取り / Reading Line Graphs
+
+        Goal / めあて: Read how things change over time from the graph! / 時間がたつとどう変わるか、グラフから正確に読みとろう！
+
+        How it Works / やりかた: Check the horizontal axis (time) and vertical axis (amount). Always check what one small tick mark (1めもり) represents! / 横じく（時間）と縦じく（数）を確認しよう。1めもりがいくつ分か調べるのがコツ！
+
+        Real-Life / 生活の中でのつかいみち: Checking if your favorite game's player count is going up every month! / 好きなゲームのプレイヤーの数が、毎月どうやって増えているか調べるとき！
+
+        Benefit / できるようになること: You can instantly understand large amounts of data without reading boring tables! / たくさんの数字の表を読まなくても、一目でパッと変化がわかるようになる！
+
+        Exercise Generation Logic: Generate a simple dataset (e.g., temperatures from 9:00 to 15:00). Render the SVG graph.
+
+        Prompt format 1: "What does one small tick mark on the vertical axis represent? / 縦じくの1めもりは何度を表していますか？" (Expected input: Integer or decimal).
+
+        Prompt format 2: "What was the temperature at 1 PM? / 午後1時の気温は何度ですか？" (Expected input: Integer or decimal).
+
+    Topic 2: 変化のようす / How Things Change (Slope)
+
+        Goal / めあて: Look at the slope of the line to see how fast things are changing! / 折れ線の傾き（かたむき）を見て、変化のスピードをつかもう！
+
+        How it Works / やりかた: Steep up = increased a lot. Flat = no change. Going down = decreased. / 急な右上がり ＝ 大きく増えた。平ら ＝ 変わらない。右下がり ＝ 減った。
+
+        Real-Life / 生活の中でのつかいみち: Looking at a character's speed boost graph in a racing game! / レースゲームで、マシンのスピードが急に上がった「ブーストの瞬間」を探すとき！
+
+        Exercise Generation Logic: Generate a graph with distinct variations in slope (one steep increase, one flat section, one decrease).
+
+        Prompt format 1: "Between which times did the temperature rise the most? / 気温が一番大きく上がったのは、何時から何時の間ですか？" Provide two <select> dropdowns for the start and end times.
+
+        Prompt format 2: "Between which times did the temperature not change? / 気温が変わらなかったのは、何時から何時の間ですか？"
+
+    Topic 3: 波線（省略）のあるグラフ / Graphs with Wavy Lines
+
+        Goal / めあて: Read graphs that skip the empty zero-space using a wavy line! / 波線（〜）を使って、いらない部分をはぶいたグラフを読もう！
+
+        How it Works / やりかた: A wavy line (波線) means "we skipped these numbers" so we can zoom in and make the important changes look bigger. / 波線は「ここの数は飛ばすよ」というマーク。変化を大きく見せたいときに使うよ。
+
+        Real-Life / 生活の中でのつかいみち: Tracking your own height! You don't start from 0 cm every year, you only track the part where you grew! / 自分の身長の記録！毎年0cmから書かずに、伸びた分だけを大きく書くよね！
+
+        Exercise Generation Logic: Generate data with a high baseline and small variations (e.g., body temperature: 36.1 to 37.2). Render the SVG graph with a `` at the bottom of the Y-axis, starting the visible scale at 36.0. Set 1 tick mark to 0.1.
+
+        Prompt format: "Look at the graph with the wavy line. What is the highest temperature recorded? / 波線のあるグラフを見て答えましょう。一番高い気温は何度ですか？" (Expected input: Decimal, e.g., 37.2).
+
+4. Grading & Feedback Constraints
+
+    Disable the "Check Answers" (こたえあわせ) button until all inputs and dropdowns in the generated questions are filled.
+
+    Next to incorrect answers, explicitly render the rule. Example for Topic 2: "正解: 10時から11時 (線が一番急な右上がりになっているところを探すよ / Look for the steepest upward line)" in red text so he can learn from the mistake.

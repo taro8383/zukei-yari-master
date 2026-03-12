@@ -1,7 +1,7 @@
 // Large Numbers & Rounding (大きな数とがい数) - 4th Grade MEXT Curriculum
 // Focus: Reading numbers up to trillions (兆) and rounding (がい数)
 
-export type LargeNumberTopic = 'reading-oku-cho' | 'rounding-off' | 'rounding-up-down';
+export type LargeNumberTopic = 'reading-oku-cho' | 'rounding-off' | 'rounding-up-down' | 'calculating-oku-cho' | 'estimating-calculations';
 
 export interface LargeNumberTopicInfo {
   id: LargeNumberTopic;
@@ -35,6 +35,17 @@ export interface LargeNumberQuestion {
   // For word problems
   isWordProblem?: boolean;
   roundUp?: boolean; // true for round up, false for round down
+  // For calculating with large numbers
+  num1?: number;
+  num2?: number;
+  operation?: 'add' | 'subtract';
+  unit?: string;
+  unitEn?: string;
+  // For estimating calculations
+  roundedNum1?: number;
+  roundedNum2?: number;
+  roundPlace?: string;
+  roundPlaceEn?: string;
 }
 
 export const LARGE_NUMBER_TOPICS: Record<LargeNumberTopic, LargeNumberTopicInfo> = {
@@ -79,6 +90,34 @@ export const LARGE_NUMBER_TOPICS: Record<LargeNumberTopic, LargeNumberTopicInfo>
     realLifeEn: 'When preparing money or calculating how many items you can buy!',
     benefit: '現実の問題を解くとき、正しい計算方法が選べるようになる！',
     benefitEn: 'You can choose the correct calculation method for real-world problems!',
+  },
+  'calculating-oku-cho': {
+    id: 'calculating-oku-cho',
+    icon: '🧮',
+    label: '大きな数の計算',
+    labelEn: 'Calculating with Large Numbers',
+    goal: '「億」や「兆」の単位をつけたまま、たし算やひき算をしよう。',
+    goalEn: 'Add and subtract massive numbers while keeping Oku and Cho units.',
+    method: '① 単位（億、兆）をそろえる ② 数字部分をたし算・ひき算する ③ 単位をつけて答えを書く！ 例：3億5000万 + 4億2000万 = 7億7000万',
+    methodEn: 'Step 1: Align units (Oku, Cho). Step 2: Add/subtract the numbers. Step 3: Add units to the answer! Example: 3億5000万 + 4億2000万 = 7億7000万',
+    realLife: '国の人口を比べたり、世界中のお金の流れを計算するとき！',
+    realLifeEn: 'When comparing country populations or calculating global money flows!',
+    benefit: 'すごく大きな数でも、単位を使えばカンタンに計算できるようになる！',
+    benefitEn: 'You can easily calculate huge numbers by using units!',
+  },
+  'estimating-calculations': {
+    id: 'estimating-calculations',
+    icon: '📊',
+    label: 'がい算（見積もり）',
+    labelEn: 'Estimating Calculations',
+    goal: '計算する前に四捨五入して、およその答え（がい算）をパッと出そう。',
+    goalEn: 'Round numbers before calculating to get a quick estimate.',
+    method: '① 各数を四捨五入して、かんたんな数にする ② かんたんな数でたし算・ひき算する ③ およその答えがわかる！ 例：489 + 312 → 500 + 300 = 800（およそ）',
+    methodEn: 'Step 1: Round each number to make them simple. Step 2: Add/subtract the simple numbers. Step 3: Get the approximate answer! Example: 489 + 312 → 500 + 300 = 800 (approximate)',
+    realLife: 'お店で「このお菓子とこのジュース、1000円で買えるかな？」とパッと計算するとき！',
+    realLifeEn: 'At a store quickly estimating "Can I buy this snack and juice with 1000 yen?"',
+    benefit: '大きな数でも頭の中でパッと計算できるようになる！',
+    benefitEn: 'You can quickly calculate large numbers in your head!',
   },
 };
 
@@ -250,6 +289,117 @@ export function generateRoundingUpDownQuestions(): LargeNumberQuestion[] {
   return questions;
 }
 
+// Generate questions for "Calculating with Oku and Cho" (大きな数の計算)
+export function generateCalculatingOkuChoQuestions(): LargeNumberQuestion[] {
+  const questions: LargeNumberQuestion[] = [];
+
+  // Problem sets: [num1, num2, operation, answer, unit]
+  // Addition problems
+  const addProblems: Array<[number, number, string, number, string]> = [
+    [300000000, 400000000, 'add', 700000000, '億'],
+    [350000000, 420000000, 'add', 770000000, '億'],
+    [5000000000, 3000000000, 'add', 8000000000, '億'],
+    [2000000000000, 1500000000000, 'add', 3500000000000, '兆'],
+    [12000000000, 8000000000, 'add', 20000000000, '億'],
+    [6000000000000, 2500000000000, 'add', 8500000000000, '兆'],
+    [45000000000, 38000000000, 'add', 83000000000, '億'],
+    [7000000000000, 1200000000000, 'add', 8200000000000, '兆'],
+  ];
+
+  // Subtraction problems
+  const subProblems: Array<[number, number, string, number, string]> = [
+    [800000000, 350000000, 'subtract', 450000000, '億'],
+    [5000000000, 2000000000, 'subtract', 3000000000, '億'],
+    [1000000000000, 600000000000, 'subtract', 400000000000, '兆'],
+    [75000000000, 42000000000, 'subtract', 33000000000, '億'],
+    [9000000000000, 4500000000000, 'subtract', 4500000000000, '兆'],
+    [6200000000000, 1800000000000, 'subtract', 4400000000000, '兆'],
+    [95000000000, 28000000000, 'subtract', 67000000000, '億'],
+    [3400000000000, 1200000000000, 'subtract', 2200000000000, '兆'],
+  ];
+
+  // Mix 3 addition and 2 subtraction
+  const selectedAdd = [...addProblems].sort(() => Math.random() - 0.5).slice(0, 3);
+  const selectedSub = [...subProblems].sort(() => Math.random() - 0.5).slice(0, 2);
+  const mixedProblems = [...selectedAdd, ...selectedSub];
+  mixedProblems.sort(() => Math.random() - 0.5);
+
+  mixedProblems.forEach(([num1, num2, op, answer, unit], index) => {
+    const opSymbol = op === 'add' ? '+' : '-';
+    const opText = op === 'add' ? 'たし算' : 'ひき算';
+    const opTextEn = op === 'add' ? 'Add' : 'Subtract';
+    const num1Formatted = formatJapaneseNumber(num1);
+    const num2Formatted = formatJapaneseNumber(num2);
+    const answerFormatted = formatJapaneseNumber(answer);
+
+    questions.push({
+      id: index + 1,
+      topic: 'calculating-oku-cho',
+      questionText: `${num1Formatted} ${opSymbol} ${num2Formatted} = ?`,
+      questionTextEn: `${num1Formatted} ${opSymbol} ${num2Formatted} = ?`,
+      answer: answerFormatted,
+      formula: `計算: ${num1Formatted} ${opSymbol} ${num2Formatted} = ${answerFormatted}`,
+      formulaEn: `Calculation: ${num1Formatted} ${opSymbol} ${num2Formatted} = ${answerFormatted}`,
+      num1,
+      num2,
+      operation: op as 'add' | 'subtract',
+      unit,
+    });
+  });
+
+  return questions;
+}
+
+// Generate questions for "Estimating Calculations" (がい算・見積もり)
+export function generateEstimatingQuestions(): LargeNumberQuestion[] {
+  const questions: LargeNumberQuestion[] = [];
+
+  // Problem sets: [num1, num2, roundPlace, rounded1, rounded2, estimatedAnswer]
+  // Round to nearest hundred
+  const toHundred: Array<[number, number, string, string, number, number, number, number]> = [
+    [489, 312, '百', 'hundred', 500, 300, 800, 801],
+    [456, 247, '百', 'hundred', 500, 200, 700, 703],
+    [823, 175, '百', 'hundred', 800, 200, 1000, 998],
+    [637, 289, '百', 'hundred', 600, 300, 900, 926],
+    [154, 438, '百', 'hundred', 200, 400, 600, 592],
+  ];
+
+  // Round to nearest thousand
+  const toThousand: Array<[number, number, string, string, number, number, number, number]> = [
+    [3456, 2789, '千', 'thousand', 3000, 3000, 6000, 6245],
+    [4823, 1500, '千', 'thousand', 5000, 2000, 7000, 6323],
+    [5678, 2345, '千', 'thousand', 6000, 2000, 8000, 8023],
+    [1234, 4890, '千', 'thousand', 1000, 5000, 6000, 6124],
+    [7890, 1050, '千', 'thousand', 8000, 1000, 9000, 8940],
+  ];
+
+  // Mix problems from both sets
+  const selectedHundred = [...toHundred].sort(() => Math.random() - 0.5).slice(0, 3);
+  const selectedThousand = [...toThousand].sort(() => Math.random() - 0.5).slice(0, 2);
+  const mixedProblems = [...selectedHundred, ...selectedThousand];
+  mixedProblems.sort(() => Math.random() - 0.5);
+
+  mixedProblems.forEach(([num1, num2, place, placeEn, rounded1, rounded2, estimated, exact], index) => {
+    questions.push({
+      id: index + 1,
+      topic: 'estimating-calculations',
+      questionText: `${num1} + ${num2} を、${place}の位で四捨五入してがい算しましょう。`,
+      questionTextEn: `Estimate ${num1} + ${num2} by rounding to the nearest ${placeEn}.`,
+      answer: estimated,
+      formula: `がい算: ${num1} → ${rounded1}、${num2} → ${rounded2}、${rounded1} + ${rounded2} = ${estimated}（正確な答えは${exact}）`,
+      formulaEn: `Estimate: ${num1} → ${rounded1}, ${num2} → ${rounded2}, ${rounded1} + ${rounded2} = ${estimated} (Exact answer: ${exact})`,
+      num1,
+      num2,
+      roundedNum1: rounded1,
+      roundedNum2: rounded2,
+      roundPlace: place,
+      roundPlaceEn: placeEn,
+    });
+  });
+
+  return questions;
+}
+
 // Main function to generate questions based on topic
 export function generateLargeNumberQuestions(topic: LargeNumberTopic): LargeNumberQuestion[] {
   if (topic === 'rounding-off') {
@@ -257,6 +407,12 @@ export function generateLargeNumberQuestions(topic: LargeNumberTopic): LargeNumb
   }
   if (topic === 'rounding-up-down') {
     return generateRoundingUpDownQuestions();
+  }
+  if (topic === 'calculating-oku-cho') {
+    return generateCalculatingOkuChoQuestions();
+  }
+  if (topic === 'estimating-calculations') {
+    return generateEstimatingQuestions();
   }
   return generateReadingOkuChoQuestions();
 }

@@ -435,6 +435,111 @@ export { default as BatteryBar } from './BatteryBar';
 
 ---
 
+## Visual Example Component Requirement
+
+**ALL topics MUST include a visual example component** that demonstrates the concept with concrete examples.
+
+### Visual Example Requirements
+
+1. **Component Location**: Create `{Topic}Visualizer.tsx` in `src/components/{category}/`
+2. **Component Name**: Use PascalCase, e.g., `FindingRatioVisualizer.tsx`, `AnglesVisualizer.tsx`
+3. **Integration**: Import and conditionally render in the explanation card based on topic ID
+
+### Visual Component Structure
+
+```typescript
+// Example: FindingRatioVisualizer.tsx
+const FindingRatioVisualizer = () => {
+  return (
+    <div className="bg-kid-blue/10 rounded-xl p-4 border border-kid-blue/30">
+      {/* Bilingual title */}
+      <p className="text-sm font-bold text-foreground mb-3 text-center">
+        📏 トピック名 / Topic Name
+      </p>
+
+      {/* Visual demonstration with SVG/CSS */}
+      <div className="bg-background rounded-lg p-3 mb-4 border border-border">
+        <p className="text-xs text-muted-foreground mb-2 text-center">
+          説明テキスト / Explanation Text
+        </p>
+        {/* Visual content (SVG, bars, shapes, etc.) */}
+      </div>
+
+      {/* Formula section */}
+      <div className="bg-kid-yellow/20 rounded-lg p-3 border border-kid-yellow">
+        <p className="text-xs font-bold text-kid-yellow mb-2 text-center">
+          📐 公式 / Formula
+        </p>
+        {/* Formula content */}
+      </div>
+    </div>
+  );
+};
+```
+
+## Bilingual Text Requirement
+
+**ALL text in visual components MUST be fully bilingual** (Japanese and English).
+
+### Required Bilingual Elements
+
+1. **Section Headers** - Format: `日本語 / English`
+   - Example: `📐 公式 / Formula`
+   - Example: `📖 例 / Example`
+
+2. **Labels and Descriptions** - Format: `日本語 / English`
+   - Example: `一直線の角 / Straight Line Angle`
+   - Example: `1組の辺が平行 / 1 pair of parallel sides`
+
+3. **Formulas with translation** - Show both languages
+   - Example: `たて × よこ = 面積 / length × width = area`
+   - Example: `四角形 / Quadrilateral: 4 × (4 - 3) ÷ 2 = 2本 / 2`
+
+4. **Key points and rules** - Include English translation
+   - Example: `対頂角は等しい / Vertical angles are equal`
+   - Example: `2つの線が90°で交わる / Two lines meet at 90°`
+
+### Bilingual Text Patterns
+
+**Pattern 1 - Inline (same line):**
+```tsx
+<p>日本語テキスト / English Text</p>
+```
+
+**Pattern 2 - Stacked (separate lines):**
+```tsx
+<p className="font-bold">日本語</p>
+<p className="text-muted-foreground">English</p>
+```
+
+**Pattern 3 - Labels with context:**
+```tsx
+<p>8 cm (よこ / width)</p>
+<p>5 cm (たて / height)</p>
+```
+
+**Pattern 4 - Formulas with units:**
+```tsx
+<p>• 長方形 / Rectangle: たて × よこ / length × width</p>
+<p>• 単位 / Unit: cm² (平方センチメートル / sq cm)</p>
+```
+
+### Explanation Card Integration
+
+Add visual component to explanation card with conditional rendering:
+
+```typescript
+// In ExplanationCard.tsx
+{info.id === 'topic-id' && (
+  <div className="mt-6 pt-6 border-t border-border">
+    <p className="text-center font-bold text-foreground mb-4">
+      📖 トピックの例 / Topic examples
+    </p>
+    <TopicVisualizer />
+  </div>
+)}
+```
+
 ## Adding a New Topic - Checklist
 
 - [ ] Add topic to topic keys array
@@ -443,6 +548,10 @@ export { default as BatteryBar } from './BatteryBar';
 - [ ] Write やりかた (method) with **numbered steps** and **concrete example**
 - [ ] Write 生活の中でのつかいみち (real-life) with kid-friendly example
 - [ ] Write できるようになると... (benefit) explaining skill gained
+- [ ] **Create visual example component (`{Topic}Visualizer.tsx`)**
+- [ ] **Ensure ALL text in visual component is bilingual (Japanese/English)**
+- [ ] **Add visual component to explanation card with conditional rendering**
+- [ ] **Export visual component from `index.ts`**
 - [ ] Create question generation function with 5+ problem sets
 - [ ] **Verify hints show specific steps for each problem (not generic advice)**
 - [ ] Ensure clean numbers (no repeating decimals for percentages)

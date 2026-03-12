@@ -1,11 +1,41 @@
 import { RatioTopicInfo } from '@/lib/ratios';
 import { Lightbulb, BookOpen, Rocket, Star } from 'lucide-react';
+import FindingRatioVisualizer from './FindingRatioVisualizer';
+import FindingComparedVisualizer from './FindingComparedVisualizer';
+import FindingBaseVisualizer from './FindingBaseVisualizer';
+import DifferenceVsMultipleVisualizer from './DifferenceVsMultipleVisualizer';
 
 interface RatioExplanationCardProps {
   info: RatioTopicInfo;
 }
 
 const RatioExplanationCard = ({ info }: RatioExplanationCardProps) => {
+  // Example data for visualizers
+  const findingRatioExample = {
+    baseAmount: 8,
+    comparedAmount: 12,
+    ratio: 1.5,
+  };
+
+  const findingComparedExample = {
+    baseAmount: 8,
+    ratio: 2.5,
+    comparedAmount: 20,
+  };
+
+  const findingBaseExample = {
+    comparedAmount: 15,
+    ratio: 3,
+    baseAmount: 5,
+  };
+
+  const differenceVsMultipleExample = {
+    smallerNumber: 5,
+    largerNumber: 8,
+    difference: 3,
+    multiple: 1.6,
+  };
+
   const sections = [
     { icon: <Star className="w-5 h-5" />, title: 'めあて', titleEn: 'Goal', content: info.goal, contentEn: info.goalEn, color: 'bg-kid-yellow/20 border-kid-yellow/40' },
     { icon: <BookOpen className="w-5 h-5" />, title: 'やりかた', titleEn: 'How it Works', content: info.method, contentEn: info.methodEn, color: 'bg-primary/10 border-primary/30' },
@@ -33,6 +63,46 @@ const RatioExplanationCard = ({ info }: RatioExplanationCardProps) => {
           </div>
         ))}
       </div>
+
+      {/* Finding Ratio Visualizer */}
+      {info.id === 'finding-ratio' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 何倍ですかの例 / Finding the multiple example
+          </p>
+          <FindingRatioVisualizer {...findingRatioExample} />
+        </div>
+      )}
+
+      {/* Finding Compared Visualizer */}
+      {info.id === 'finding-compared' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 くらべる数を求める例 / Finding the compared amount example
+          </p>
+          <FindingComparedVisualizer {...findingComparedExample} />
+        </div>
+      )}
+
+      {/* Finding Base Visualizer */}
+      {info.id === 'finding-base' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 もとにする数を求める例 / Finding the base amount example
+          </p>
+          <FindingBaseVisualizer {...findingBaseExample} />
+        </div>
+      )}
+
+      {/* Difference vs Multiple Visualizer */}
+      {info.id === 'difference-vs-multiple' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 差と倍のちがいの例 / Difference vs multiple example
+          </p>
+          <DifferenceVsMultipleVisualizer {...differenceVsMultipleExample} />
+        </div>
+      )}
     </div>
   );
 };

@@ -23,8 +23,8 @@ const LargeNumbersQuestionItem = ({
 }: LargeNumbersQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
-  // For reading-oku-cho topic: custom input with kanji unit buttons
-  const isKanjiInput = question.topic === 'reading-oku-cho';
+  // For reading-oku-cho and calculating-oku-cho topics: custom input with kanji unit buttons
+  const isKanjiInput = question.topic === 'reading-oku-cho' || question.topic === 'calculating-oku-cho';
 
   // Handle kanji button clicks for reading-oku-cho
   const handleKanjiClick = (kanji: string) => {
@@ -155,6 +155,38 @@ const LargeNumbersQuestionItem = ({
                   </p>
                 </>
               )}
+            </>
+          )}
+          {question.topic === 'calculating-oku-cho' && question.num1 && question.num2 && (
+            <>
+              <p className="font-medium text-foreground">
+                💡 大きな数の計算のコツ：
+              </p>
+              <p className="text-foreground text-sm mt-1">
+                ① 単位（億、兆）をそろえる
+              </p>
+              <p className="text-foreground text-sm">
+                ② 数字部分を{question.operation === 'add' ? 'たし算' : 'ひき算'}する
+              </p>
+              <p className="text-foreground text-sm">
+                ③ 最後に単位をつける
+              </p>
+            </>
+          )}
+          {question.topic === 'estimating-calculations' && question.num1 && question.num2 && (
+            <>
+              <p className="font-medium text-foreground">
+                💡 がい算のステップ：
+              </p>
+              <p className="text-foreground text-sm mt-1">
+                ① {question.num1} を{question.roundPlace}で四捨五入 → <strong className="text-primary">{question.roundedNum1}</strong>
+              </p>
+              <p className="text-foreground text-sm">
+                ② {question.num2} を{question.roundPlace}で四捨五入 → <strong className="text-primary">{question.roundedNum2}</strong>
+              </p>
+              <p className="text-foreground text-sm">
+                ③ {question.roundedNum1} + {question.roundedNum2} = およその答え
+              </p>
             </>
           )}
         </div>

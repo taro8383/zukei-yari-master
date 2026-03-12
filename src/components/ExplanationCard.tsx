@@ -1,5 +1,11 @@
 import { TopicInfo } from '@/lib/geometry';
 import { Lightbulb, BookOpen, Rocket, Star } from 'lucide-react';
+import AnglesVisualizer from './geometry/AnglesVisualizer';
+import AreaVisualizer from './geometry/AreaVisualizer';
+import LinesVisualizer from './geometry/LinesVisualizer';
+import IntersectingVisualizer from './geometry/IntersectingVisualizer';
+import QuadrilateralsVisualizer from './geometry/QuadrilateralsVisualizer';
+import DiagonalsVisualizer from './geometry/DiagonalsVisualizer';
 
 interface ExplanationCardProps {
   info: TopicInfo;
@@ -33,6 +39,56 @@ const ExplanationCard = ({ info }: ExplanationCardProps) => {
           </div>
         ))}
       </div>
+
+      {/* Visual Examples based on topic */}
+      {info.label === '角度のけいさん' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 角度の例 / Angle examples
+          </p>
+          <AnglesVisualizer />
+        </div>
+      )}
+      {info.label === '面積のけいさん' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 面積の例 / Area examples
+          </p>
+          <AreaVisualizer />
+        </div>
+      )}
+      {info.label === '垂直と平行' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 垂直と平行の例 / Perpendicular and parallel examples
+          </p>
+          <LinesVisualizer />
+        </div>
+      )}
+      {info.label === '交わる直線と角' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 交わる直線と角の例 / Intersecting lines examples
+          </p>
+          <IntersectingVisualizer />
+        </div>
+      )}
+      {info.label === '四角形のなかま分け' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 四角形の分類の例 / Quadrilateral classification examples
+          </p>
+          <QuadrilateralsVisualizer />
+        </div>
+      )}
+      {info.label === '対角線' && (
+        <div className="mt-6 pt-6 border-t border-border">
+          <p className="text-center font-bold text-foreground mb-4">
+            📖 対角線の例 / Diagonal examples
+          </p>
+          <DiagonalsVisualizer />
+        </div>
+      )}
     </div>
   );
 };
