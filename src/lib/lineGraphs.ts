@@ -212,77 +212,79 @@ function generateReadingGraphQuestions(): LineGraphQuestion[] {
   return questions;
 }
 
-// Generate slope/change questions with dynamically calculated answers from actual data
+// Generate random slope/change questions with dynamically calculated answers from actual data
+// Each call generates different random data
 function generateChangeSlopeQuestions(): LineGraphQuestion[] {
   const questions: LineGraphQuestion[] = [];
 
-  // Create scenarios with distinct slope patterns - only data, answers calculated dynamically
-  const scenarios = [
-    // Scenario 0: Steep increase, then flat, then decrease
-    {
-      dataPoints: [
-        { x: '9:00', y: 20 },
-        { x: '10:00', y: 22 },
-        { x: '11:00', y: 26 }, // Steep increase
-        { x: '12:00', y: 26 }, // Flat
-        { x: '13:00', y: 26 }, // Flat
-        { x: '14:00', y: 24 }, // Decrease
-        { x: '15:00', y: 22 },
-      ],
-    },
-    // Scenario 1: Gradual then steep
-    {
-      dataPoints: [
-        { x: '9:00', y: 18 },
-        { x: '10:00', y: 19 },
-        { x: '11:00', y: 20 },
-        { x: '12:00', y: 24 }, // Steep
-        { x: '13:00', y: 28 }, // Steep
-        { x: '14:00', y: 28 }, // Flat
-        { x: '15:00', y: 27 },
-      ],
-    },
-    // Scenario 2: Flat then steep decrease
-    {
-      dataPoints: [
-        { x: '9:00', y: 25 },
-        { x: '10:00', y: 25 }, // Flat
-        { x: '11:00', y: 25 }, // Flat
-        { x: '12:00', y: 23 },
-        { x: '13:00', y: 20 }, // Steep decrease
-        { x: '14:00', y: 18 },
-        { x: '15:00', y: 17 },
-      ],
-    },
-    // Scenario 3: Steep increase throughout
-    {
-      dataPoints: [
-        { x: '9:00', y: 15 },
-        { x: '10:00', y: 18 },
-        { x: '11:00', y: 22 }, // Steepest
-        { x: '12:00', y: 25 },
-        { x: '13:00', y: 27 },
-        { x: '14:00', y: 28 },
-        { x: '15:00', y: 28 }, // Flat
-      ],
-    },
-    // Scenario 4: Decrease then flat
-    {
-      dataPoints: [
-        { x: '9:00', y: 30 },
-        { x: '10:00', y: 28 },
-        { x: '11:00', y: 26 }, // Steep decrease
-        { x: '12:00', y: 24 },
-        { x: '13:00', y: 24 }, // Flat
-        { x: '14:00', y: 24 }, // Flat
-        { x: '15:00', y: 23 },
-      ],
-    },
-  ];
-
+  // Generate 5 random scenarios with different patterns
   for (let i = 0; i < 5; i++) {
-    const scenario = scenarios[i];
-    const values = scenario.dataPoints.map(d => d.y);
+    // Random base temperature (15-30)
+    const baseTemp = 15 + Math.floor(Math.random() * 16);
+    // Random pattern type
+    const patternType = i % 5; // Cycle through different patterns
+
+    let dataPoints: LineGraphDataPoint[] = [];
+
+    switch (patternType) {
+      case 0: // Steep increase, flat, then decrease
+        dataPoints = [
+          { x: '9:00', y: baseTemp },
+          { x: '10:00', y: baseTemp + 2 + Math.floor(Math.random() * 2) },
+          { x: '11:00', y: baseTemp + 6 + Math.floor(Math.random() * 3) }, // Steep
+          { x: '12:00', y: baseTemp + 6 + Math.floor(Math.random() * 3) }, // Flat
+          { x: '13:00', y: baseTemp + 6 + Math.floor(Math.random() * 3) }, // Flat
+          { x: '14:00', y: baseTemp + 4 + Math.floor(Math.random() * 2) }, // Decrease
+          { x: '15:00', y: baseTemp + 2 + Math.floor(Math.random() * 2) },
+        ];
+        break;
+      case 1: // Gradual then steep
+        dataPoints = [
+          { x: '9:00', y: baseTemp },
+          { x: '10:00', y: baseTemp + 1 },
+          { x: '11:00', y: baseTemp + 2 },
+          { x: '12:00', y: baseTemp + 4 + Math.floor(Math.random() * 3) }, // Steep
+          { x: '13:00', y: baseTemp + 8 + Math.floor(Math.random() * 3) }, // Steepest
+          { x: '14:00', y: baseTemp + 8 + Math.floor(Math.random() * 3) }, // Flat
+          { x: '15:00', y: baseTemp + 7 + Math.floor(Math.random() * 2) },
+        ];
+        break;
+      case 2: // Flat then steep decrease
+        dataPoints = [
+          { x: '9:00', y: baseTemp + 10 },
+          { x: '10:00', y: baseTemp + 10 }, // Flat
+          { x: '11:00', y: baseTemp + 10 }, // Flat
+          { x: '12:00', y: baseTemp + 8 + Math.floor(Math.random() * 2) },
+          { x: '13:00', y: baseTemp + 5 + Math.floor(Math.random() * 2) }, // Steep decrease
+          { x: '14:00', y: baseTemp + 3 + Math.floor(Math.random() * 2) },
+          { x: '15:00', y: baseTemp + 2 + Math.floor(Math.random() * 2) },
+        ];
+        break;
+      case 3: // Steep increase throughout
+        dataPoints = [
+          { x: '9:00', y: baseTemp },
+          { x: '10:00', y: baseTemp + 3 + Math.floor(Math.random() * 2) },
+          { x: '11:00', y: baseTemp + 7 + Math.floor(Math.random() * 3) }, // Steepest
+          { x: '12:00', y: baseTemp + 10 + Math.floor(Math.random() * 3) },
+          { x: '13:00', y: baseTemp + 12 + Math.floor(Math.random() * 2) },
+          { x: '14:00', y: baseTemp + 13 + Math.floor(Math.random() * 2) },
+          { x: '15:00', y: baseTemp + 13 + Math.floor(Math.random() * 2) }, // Flat
+        ];
+        break;
+      case 4: // Decrease then flat
+        dataPoints = [
+          { x: '9:00', y: baseTemp + 15 },
+          { x: '10:00', y: baseTemp + 13 + Math.floor(Math.random() * 2) },
+          { x: '11:00', y: baseTemp + 11 + Math.floor(Math.random() * 2) }, // Steep decrease
+          { x: '12:00', y: baseTemp + 9 + Math.floor(Math.random() * 2) },
+          { x: '13:00', y: baseTemp + 9 + Math.floor(Math.random() * 2) }, // Flat
+          { x: '14:00', y: baseTemp + 9 + Math.floor(Math.random() * 2) }, // Flat
+          { x: '15:00', y: baseTemp + 8 + Math.floor(Math.random() * 2) },
+        ];
+        break;
+    }
+
+    const values = dataPoints.map(d => d.y);
     const minValue = Math.min(...values);
     const maxValue = Math.max(...values);
     // Use appropriate margins based on data range
@@ -303,9 +305,9 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
     }
 
     const segments: Segment[] = [];
-    for (let j = 0; j < scenario.dataPoints.length - 1; j++) {
-      const current = scenario.dataPoints[j];
-      const next = scenario.dataPoints[j + 1];
+    for (let j = 0; j < dataPoints.length - 1; j++) {
+      const current = dataPoints[j];
+      const next = dataPoints[j + 1];
       const change = next.y - current.y;
       segments.push({
         start: current.x,
@@ -364,7 +366,7 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         text: '気温が一番大きく上がったのは、何時から何時の間ですか？',
         textEn: 'Between which times did the temperature rise the most?',
         answer: `${steepestRise.start}から${steepestRise.end}`,
-        dataPoints: scenario.dataPoints,
+        dataPoints: dataPoints,
         xAxisLabel: '時間',
         xAxisLabelEn: 'Time',
         yAxisLabel: '気温 (℃)',
@@ -389,7 +391,7 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         text: '気温が変わらなかったのは、何時から何時の間ですか？',
         textEn: 'Between which times did the temperature not change?',
         answer: `${longestFlatStart}から${longestFlatEnd}`,
-        dataPoints: scenario.dataPoints,
+        dataPoints: dataPoints,
         xAxisLabel: '時間',
         xAxisLabelEn: 'Time',
         yAxisLabel: '気温 (℃)',
@@ -415,7 +417,7 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         text: '気温が一番大きく下がったのは、何時から何時の間ですか？',
         textEn: 'Between which times did the temperature fall the most?',
         answer: `${steepestFall.start}から${steepestFall.end}`,
-        dataPoints: scenario.dataPoints,
+        dataPoints: dataPoints,
         xAxisLabel: '時間',
         xAxisLabelEn: 'Time',
         yAxisLabel: '気温 (℃)',
@@ -440,7 +442,7 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         text: '気温が一番大きく上がったのは、何時から何時の間ですか？',
         textEn: 'Between which times did the temperature rise the most?',
         answer: `${steepestRise.start}から${steepestRise.end}`,
-        dataPoints: scenario.dataPoints,
+        dataPoints: dataPoints,
         xAxisLabel: '時間',
         xAxisLabelEn: 'Time',
         yAxisLabel: '気温 (℃)',
@@ -465,7 +467,7 @@ function generateChangeSlopeQuestions(): LineGraphQuestion[] {
         text: '気温が変わらなかったのは、何時から何時の間ですか？',
         textEn: 'Between which times did the temperature not change?',
         answer: `${longestFlatStart}から${longestFlatEnd}`,
-        dataPoints: scenario.dataPoints,
+        dataPoints: dataPoints,
         xAxisLabel: '時間',
         xAxisLabelEn: 'Time',
         yAxisLabel: '気温 (℃)',
