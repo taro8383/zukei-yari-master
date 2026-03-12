@@ -120,16 +120,16 @@ const LineGraphQuestionItem = ({
             <>
               💡 <strong>グラフの書き方:</strong><br />
               ① 表の数字を確認する<br />
-              ② 横じく（時間）と縦じく（値）を見る<br />
-              ③ 交差点をクリックして点を打つ
+              ② 各時間の下に、表の数字を入力する<br />
+              ③ グラフが自動で描かれるよ！
             </>
           ),
           en: (
             <>
               <strong>How to draw the graph:</strong><br />
               1. Check the numbers in the table<br />
-              2. Look at horizontal (time) and vertical (value) axes<br />
-              3. Click the intersection to plot a point
+              2. Enter the value from the table for each time<br />
+              3. The graph will be drawn automatically!
             </>
           ),
         };
@@ -194,29 +194,59 @@ const LineGraphQuestionItem = ({
               />
             ) : isDrawingGraph && question.tableData ? (
               <>
-                {/* Table Display */}
+                {/* Table Display with Input Fields */}
                 <div className="bg-kid-blue/10 rounded-xl p-4 border border-kid-blue/30 mb-4">
-                  <p className="text-sm font-bold text-foreground mb-2 text-center">
-                    📊 表 / Table
+                  <p className="text-sm font-bold text-foreground mb-3 text-center">
+                    📊 表の数字をグラフに書こう / Plot the Table Data
                   </p>
-                  <table className="w-full text-center border-collapse">
-                    <thead>
-                      <tr className="border-b-2 border-primary">
-                        {question.tableData.map((row, idx) => (
-                          <th key={idx} className="p-2 text-sm font-bold">{row.x}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        {question.tableData.map((row, idx) => (
-                          <td key={idx} className="p-2 text-lg font-bold text-primary">{row.y}</td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
+                  <div className="grid gap-3">
+                    {question.tableData.map((row, idx) => {
+                      // Find if there's a plotted point for this x-index
+                      const plottedPoint = plottedPoints?.find(p => p.x === idx);
+                      const isCorrectPoint = graded && plottedPoint && question.correctPoints?.find(cp => cp.x === idx && cp.y === row.y);
+                      const isWrongPoint = graded && plottedPoint && !isCorrectPoint;
+
+                      return (
+                        <div key={idx} className="flex items-center gap-3 bg-white rounded-lg p-3 shadow-sm">
+                          <span className="font-bold text-foreground min-w-[60px]">{row.x}:</span>
+                          <span className="text-lg font-bold text-primary">{row.y}</span>
+                          <span className="text-muted-foreground">→</span>
+                          {!graded ? (
+                            <div className="flex items-center gap-2 flex-1">
+                              <input
+                                type="number"
+                                value={plottedPoint?.y ?? ''}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  if (value === '') {
+                                    // Remove point if cleared
+                                    const newPoints = (plottedPoints || []).filter(p => p.x !== idx);
+                                    // Update parent with removed point
+                                    onPointPlot?.(idx, -1); // Signal to remove
+                                  } else {
+                                    onPointPlot?.(idx, parseInt(value));
+                                  }
+                                }}
+                                className="w-20 h-10 text-center text-lg font-bold rounded-lg border-2 border-input bg-background focus:border-primary focus:ring-2 focus:ring-ring outline-none transition-all"
+                                placeholder="?"
+                              />
+                              <span className="text-sm text-muted-foreground">をグラフに書く</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 flex-1">
+                              <span className={`text-lg font-bold ${isCorrectPoint ? 'text-green-600' : 'text-red-600'}`}>
+                                {plottedPoint?.y ?? '?'}
+                              </span>
+                              {isCorrectPoint && <span className="text-2xl">✅</span>}
+                              {isWrongPoint && <span className="text-2xl">❌</span>}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                {/* Interactive Graph Grid */}
+                {/* Graph Display (read-only preview) */}
                 <LineGraphVisualizer
                   dataPoints={plottedPoints || []}
                   tableData={question.tableData}
@@ -228,8 +258,7 @@ const LineGraphQuestionItem = ({
                   yAxisMax={question.yAxisMax}
                   tickInterval={question.tickInterval}
                   hasWavyLine={false}
-                  isDrawing={true}
-                  onPointPlot={onPointPlot}
+                  isDrawing={false}
                   graded={graded}
                 />
                 {/* Clear button */}
@@ -241,7 +270,7 @@ const LineGraphQuestionItem = ({
                       className="px-4 py-2 bg-red-100 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed text-red-700 rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
                     >
                       <span>🗑️</span>
-                      <span>点を全部消す / Clear All Points</span>
+                      <span>全部消す / Clear All</span>
                     </button>
                   </div>
                 )}

@@ -763,6 +763,14 @@ const Index = () => {
     if (!newPlottedPoints[index]) {
       newPlottedPoints[index] = [];
     }
+
+    // If y is -1, remove the point at this x
+    if (y === -1) {
+      newPlottedPoints[index] = newPlottedPoints[index].filter(p => p.x !== x);
+      setLineGraphPlottedPoints(newPlottedPoints);
+      return;
+    }
+
     // Check if point already exists at this x, update if so
     const existingPointIndex = newPlottedPoints[index].findIndex(p => p.x === x);
     if (existingPointIndex >= 0) {
