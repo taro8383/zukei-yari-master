@@ -1685,7 +1685,7 @@ const Index = () => {
                         onAnswerChange={(v) => handleLargeNumberAnswerChange(i, v)}
                         graded={largeNumberGraded}
                         isCorrect={largeNumberGraded ?
-                          (q.topic === 'reading-oku-cho'
+                          (q.topic === 'reading-oku-cho' || q.topic === 'calculating-oku-cho'
                             ? largeNumberAnswers[i].trim() === (q.answer as string)
                             : parseInt(largeNumberAnswers[i]) === q.answer)
                           : undefined}
