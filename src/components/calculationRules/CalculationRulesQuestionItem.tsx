@@ -41,14 +41,18 @@ const CalculationRulesQuestionItem = ({
           return {
             ja: (
               <>
-                💡 <strong>ステップ1:</strong> かっこの中を先に計算しよう！<br />
-                <strong>ステップ2:</strong> その答えを次の計算に使おう
+                💡 <strong>順序のきまり:</strong><br />
+                ① かっこの中を先に計算<br />
+                ② その答えで次の計算<br />
+                ③ 自分で計算して答えを出そう！
               </>
             ),
             en: (
               <>
-                <strong>Step 1:</strong> Calculate inside the parentheses first!<br />
-                <strong>Step 2:</strong> Use that answer in the next calculation
+                <strong>Order Rules:</strong><br />
+                ① Parentheses first<br />
+                ② Then use that result<br />
+                ③ Calculate yourself!
               </>
             ),
           };
@@ -56,14 +60,18 @@ const CalculationRulesQuestionItem = ({
         return {
           ja: (
             <>
-              💡 <strong>ステップ1:</strong> かけ算(×)を先に計算しよう！<br />
-              <strong>ステップ2:</strong> たし算(+)は最後に計算しよう
+              💡 <strong>順序のきまり:</strong><br />
+              ① かけ算(×)とわり算(÷)を先に<br />
+              ② たし算(+)とひき算(-)はあと<br />
+              ③ 自分で計算して答えを出そう！
             </>
           ),
           en: (
             <>
-              <strong>Step 1:</strong> Multiply (×) first!<br />
-              <strong>Step 2:</strong> Add (+) last
+              <strong>Order Rules:</strong><br />
+              ① Multiply/Divide first<br />
+              ② Add/Subtract last<br />
+              ③ Calculate yourself!
             </>
           ),
         };
@@ -125,11 +133,16 @@ const CalculationRulesQuestionItem = ({
 
   // Render visual aid based on topic
   const renderVisualAid = () => {
+    // Only show visual aids AFTER grading (for review), not before answering
+    if (!graded) {
+      return null;
+    }
+
     if (question.topic === 'order-of-operations' && question.expression) {
       return (
         <OrderOfOperationsTree
           expression={question.expression}
-          highlightStep={showHint || graded ? 0 : -1}
+          highlightStep={0}
           steps={question.steps}
         />
       );
