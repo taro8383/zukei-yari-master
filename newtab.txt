@@ -1,77 +1,33 @@
-CRITICAL ARCHITECTURE UPDATE: NEW TAB FOR 折れ線グラフ (LINE GRAPHS)
+Tab 10: 変わり方調べ / Investigating Changes
 
-Expand the application by adding an eighth tab dedicated to "折れ線グラフ / Line Graphs". This targets the Japanese 4th-grade standard for organizing data and reading/drawing line graphs to understand changes over time, including understanding scales and wavy lines (omissions).
+Visual Aid Requirements:
 
-1. Tab Integration
+    Dynamic Data Tables: Render HTML <table> elements to display relationships between two changing variables (e.g., Number of squares vs. Total perimeter). Top row represents variable 〇, bottom row represents variable △.
 
-    Add Tab 8: 折れ線グラフ / Line Graphs.
+Topics & Pre-Exercise Explanations:
 
-    Ensure state resets when navigating to this tab.
+    Topic 1: 表を完成させる / Completing the Table
 
-    Maintain the strict bilingual requirement (Japanese primary, English secondary, text-gray-500) and the disabled "Check Answers" logic until all inputs in the generated batch are filled.
+        Goal / めあて: Find the pattern in the table and fill in the missing numbers! / 表の数字のきまりを見つけて、空いているマスをうめよう！
 
-2. Visual Aid Requirements
+        How it Works / やりかた: Look at how the bottom number changes when the top number goes up by 1. / 上の数が1増えると、下の数がどう変わるか注目しよう。
 
-    Dynamic SVG Graphs: For every exercise, dynamically render a clean SVG line graph (折れ線グラフ).
+        Real-Life / 生活の中でのつかいみち: Figuring out how much damage you deal if you upgrade your sword 5 times! / 剣を5回強化したら、ダメージがどれくらい増えるか予測するとき！
 
-    Graph Components: The graph MUST include:
+        Exercise Generation Logic: Generate a simple linear relationship (e.g., y=3x or y=x+4). Provide a table with x values 1 through 5. Leave two y values blank with <input> fields.
 
-        A grid background.
+    Topic 2: きまりを見つける / Finding the Rule
 
-        X-axis (横じく) representing Time/Months (e.g., 時, 月).
+        Goal / めあて: Explain the secret rule of the table in words! / 表にかくされた「きまり」を言葉で説明しよう！
 
-        Y-axis (縦じく) representing Amount/Temperature (e.g., 度, cm, 人).
+        Exercise Generation Logic: Generate a completed table.
 
-        Clear data points connected by straight SVG <line> elements.
+        Prompt format: "When 〇 increases by 1, how does △ change? / 〇が1増えると、△はどうなりますか？" (Provide multiple-choice buttons: Increases by X, Decreases by X).
 
-        Dynamically rendered wavy lines (波線) on the Y-axis for Topic 3 to represent omitted scales.
+    Topic 3: 〇と△を使った式 / Writing the Equation
 
-3. Topic Selection & Pre-Exercise Explanations (折れ線グラフ Tab)
+        Goal / めあて: Turn the table's rule into a powerful math equation! / 表のきまりを「〇」と「△」を使った計算の式に変えよう！
 
-    Topic 1: グラフの読み取り / Reading Line Graphs
+        How it Works / やりかた: If △ is always 4 times bigger than 〇, the equation is 〇 × 4 = △. / △がいつも〇の4倍なら、「〇 × 4 = △」という式になるよ。
 
-        Goal / めあて: Read how things change over time from the graph! / 時間がたつとどう変わるか、グラフから正確に読みとろう！
-
-        How it Works / やりかた: Check the horizontal axis (time) and vertical axis (amount). Always check what one small tick mark (1めもり) represents! / 横じく（時間）と縦じく（数）を確認しよう。1めもりがいくつ分か調べるのがコツ！
-
-        Real-Life / 生活の中でのつかいみち: Checking if your favorite game's player count is going up every month! / 好きなゲームのプレイヤーの数が、毎月どうやって増えているか調べるとき！
-
-        Benefit / できるようになること: You can instantly understand large amounts of data without reading boring tables! / たくさんの数字の表を読まなくても、一目でパッと変化がわかるようになる！
-
-        Exercise Generation Logic: Generate a simple dataset (e.g., temperatures from 9:00 to 15:00). Render the SVG graph.
-
-        Prompt format 1: "What does one small tick mark on the vertical axis represent? / 縦じくの1めもりは何度を表していますか？" (Expected input: Integer or decimal).
-
-        Prompt format 2: "What was the temperature at 1 PM? / 午後1時の気温は何度ですか？" (Expected input: Integer or decimal).
-
-    Topic 2: 変化のようす / How Things Change (Slope)
-
-        Goal / めあて: Look at the slope of the line to see how fast things are changing! / 折れ線の傾き（かたむき）を見て、変化のスピードをつかもう！
-
-        How it Works / やりかた: Steep up = increased a lot. Flat = no change. Going down = decreased. / 急な右上がり ＝ 大きく増えた。平ら ＝ 変わらない。右下がり ＝ 減った。
-
-        Real-Life / 生活の中でのつかいみち: Looking at a character's speed boost graph in a racing game! / レースゲームで、マシンのスピードが急に上がった「ブーストの瞬間」を探すとき！
-
-        Exercise Generation Logic: Generate a graph with distinct variations in slope (one steep increase, one flat section, one decrease).
-
-        Prompt format 1: "Between which times did the temperature rise the most? / 気温が一番大きく上がったのは、何時から何時の間ですか？" Provide two <select> dropdowns for the start and end times.
-
-        Prompt format 2: "Between which times did the temperature not change? / 気温が変わらなかったのは、何時から何時の間ですか？"
-
-    Topic 3: 波線（省略）のあるグラフ / Graphs with Wavy Lines
-
-        Goal / めあて: Read graphs that skip the empty zero-space using a wavy line! / 波線（〜）を使って、いらない部分をはぶいたグラフを読もう！
-
-        How it Works / やりかた: A wavy line (波線) means "we skipped these numbers" so we can zoom in and make the important changes look bigger. / 波線は「ここの数は飛ばすよ」というマーク。変化を大きく見せたいときに使うよ。
-
-        Real-Life / 生活の中でのつかいみち: Tracking your own height! You don't start from 0 cm every year, you only track the part where you grew! / 自分の身長の記録！毎年0cmから書かずに、伸びた分だけを大きく書くよね！
-
-        Exercise Generation Logic: Generate data with a high baseline and small variations (e.g., body temperature: 36.1 to 37.2). Render the SVG graph with a `` at the bottom of the Y-axis, starting the visible scale at 36.0. Set 1 tick mark to 0.1.
-
-        Prompt format: "Look at the graph with the wavy line. What is the highest temperature recorded? / 波線のあるグラフを見て答えましょう。一番高い気温は何度ですか？" (Expected input: Decimal, e.g., 37.2).
-
-4. Grading & Feedback Constraints
-
-    Disable the "Check Answers" (こたえあわせ) button until all inputs and dropdowns in the generated questions are filled.
-
-    Next to incorrect answers, explicitly render the rule. Example for Topic 2: "正解: 10時から11時 (線が一番急な右上がりになっているところを探すよ / Look for the steepest upward line)" in red text so he can learn from the mistake.
+        Exercise Generation Logic: Generate a table. Provide an equation builder UI where the user must select the correct operator (+,−,×,÷) and input the correct constant to complete the formula 〇 [operator] [input] = △.

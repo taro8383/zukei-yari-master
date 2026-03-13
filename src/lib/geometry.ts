@@ -1,4 +1,13 @@
-export type Topic = 'angles' | 'area' | 'lines' | 'intersecting' | 'quadrilaterals' | 'diagonals';
+export type Topic =
+  | 'angles'
+  | 'calculating-area'
+  | 'large-area-units'
+  | 'choosing-units'
+  | 'composite-shapes'
+  | 'lines'
+  | 'intersecting'
+  | 'quadrilaterals'
+  | 'diagonals';
 
 export type DiagramType =
   | 'straight-line-angle'
@@ -18,7 +27,12 @@ export type DiagramType =
   // Interactive SVG exercise types
   | 'intersecting-lines-interactive'
   | 'dotted-paper-quadrilateral'
-  | 'diagonals-drawing';
+  | 'diagonals-drawing'
+  // Area module types
+  | 'area-calculating'
+  | 'area-large-units'
+  | 'area-choosing-units'
+  | 'area-composite-lshape';
 
 export interface DiagramData {
   type: DiagramType;
@@ -29,10 +43,18 @@ export interface Question {
   id: number;
   text: string;
   textEn: string;
-  answer: number;
+  answer: number | string;
   unit: string;
   diagram: DiagramData;
   isInteractive?: boolean; // Flag for SVG drawing exercises
+  // For area topics
+  explanation?: string;
+  explanationEn?: string;
+  // For large-area-units topic
+  fromUnit?: 'm2' | 'a' | 'ha' | 'km2';
+  toUnit?: 'm2' | 'a' | 'ha' | 'km2';
+  // For choosing-units topic
+  appropriateUnit?: 'cm2' | 'm2' | 'a' | 'ha' | 'km2';
 }
 
 export interface TopicInfo {
@@ -63,18 +85,57 @@ export const TOPICS: Record<Topic, TopicInfo> = {
     benefit: '角度がわかると、ものの形やうごきを正しくりかいできるようになるよ。ロボットのうでを動かす計算にもつかうんだ！',
     benefitEn: 'Understanding angles helps you understand shapes and movement. It\'s also used to program robot arms!',
   },
-  area: {
-    label: '面積のけいさん',
+  'calculating-area': {
+    label: '面積の計算',
     labelEn: 'Calculating Area',
     icon: '📏',
-    goal: '長方形と正方形の面積をもとめよう！',
-    goalEn: 'Find the area of rectangles and squares!',
-    method: '長方形の面積 ＝ たて × よこ。正方形の面積 ＝ 一辺 × 一辺。単位は cm²（平方センチメートル）だよ！',
-    methodEn: 'Rectangle area = length × width. Square area = side × side. The unit is cm² (square centimeters)!',
-    realLife: 'マインクラフトで家をたてるとき、ゆかの広さを計算するのと同じだよ！建築家やインテリアデザイナーもつかっているよ。',
-    realLifeEn: 'It\'s like calculating floor space when building a house in Minecraft! Architects and interior designers use this too.',
-    benefit: '面積がわかると、部屋にどのくらいものがおけるかわかるし、大きな地図をよむのもとくいになるよ！',
-    benefitEn: 'Knowing area helps you figure out how much fits in a room, and makes you better at reading maps!',
+    goal: '四角形の広さ（面積）を正確に計算しよう！',
+    goalEn: 'Find the exact size of a flat space!',
+    method: '① 長方形：たて × よこ ② 正方形：一辺 × 一辺 ③ 単位は cm²（平方センチメートル） 例：たて5cm × よこ3cm = 15cm²',
+    methodEn: 'Step 1: Rectangle = Length × Width. Step 2: Square = Side × Side. Step 3: Unit is cm² (square centimeters). Example: 5cm × 3cm = 15cm²',
+    realLife: 'マインクラフトで、家の床を作るのにブロックがいくつ必要か計算するとき！',
+    realLifeEn: 'Calculating how many blocks you need to build a floor in Minecraft!',
+    benefit: '部屋の広さや物の大きさが計算できるようになる！',
+    benefitEn: 'You will be able to calculate room sizes and object dimensions!',
+  },
+  'large-area-units': {
+    label: '大きな面積の単位',
+    labelEn: 'Large Area Units',
+    icon: '🏞️',
+    goal: '畑や町、国の広さを表す巨大な単位をマスターしよう！',
+    goalEn: 'Master the giant units used for farms, cities, and countries!',
+    method: '① 1a(アール) = 100m² ② 1ha(ヘクタール) = 100a = 10,000m² ③ 1km² = 100ha = 1,000,000m²。100倍ずつ大きくなる！',
+    methodEn: 'Step 1: 1 are (a) = 100 m². Step 2: 1 hectare (ha) = 100 ares = 10,000 m². Step 3: 1 km² = 100 ha = 1,000,000 m². Each step is ×100!',
+    realLife: '学校のグラウンドやサッカー場、東京ドームの広さを比べるとき！',
+    realLifeEn: 'When comparing the size of school grounds, soccer fields, or Tokyo Dome!',
+    benefit: '大きな土地の広さがわかるようになる！',
+    benefitEn: 'You will understand the size of large areas of land!',
+  },
+  'choosing-units': {
+    label: 'ぴったりな単位をえらぶ',
+    labelEn: 'Choosing the Right Unit',
+    icon: '🎯',
+    goal: '場所の広さに合わせて、一番ぴったりな単位をえらぼう。',
+    goalEn: 'Pick the perfect unit for the job.',
+    method: '① 小さいもの（消しゴムなど）→ cm² ② 部屋の広さ → m² ③ 学校のグラウンド → a ④ 大きな農場 → ha ⑤ 町や国 → km²',
+    methodEn: 'Step 1: Small objects (eraser) → cm². Step 2: Room size → m². Step 3: School ground → a. Step 4: Large farm → ha. Step 5: City/country → km²',
+    realLife: 'ママにお手伝いして、新しい机が部屋に入るか調べるとき！',
+    realLifeEn: 'Helping mom check if a new desk will fit in your room!',
+    benefit: '適切な単位を選べるようになる！',
+    benefitEn: 'You will be able to choose the appropriate unit for any situation!',
+  },
+  'composite-shapes': {
+    label: 'いろいろな形の面積',
+    labelEn: 'Area of Composite Shapes',
+    icon: '🧩',
+    goal: 'L字のような変わった形は、分けたり引いたりして面積を出そう！',
+    goalEn: 'Find the area of weird shapes by splitting them or subtracting!',
+    method: '① L字を2つの長方形に分ける ② それぞれの面積を計算 ③ たし算して合計を出す！ 例：大きい長方形 - 小さい長方形 = 答え',
+    methodEn: 'Step 1: Split the L-shape into 2 rectangles. Step 2: Calculate each area. Step 3: Add them together! Example: Large rectangle - Small rectangle = Answer',
+    realLife: '部屋に家具を置くとき、使えるスペースを計算するのに役立つよ！',
+    realLifeEn: 'Useful for calculating available space when placing furniture in a room!',
+    benefit: '複雑な形の面積も計算できるようになる！',
+    benefitEn: 'You will be able to calculate the area of complex shapes!',
   },
   lines: {
     label: '垂直と平行',
@@ -163,26 +224,115 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
         };
       }
     }
-    case 'area': {
-      const isSquare = Math.random() > 0.5;
+    case 'calculating-area': {
+      const isSquare = Math.random() > 0.6;
       if (isSquare) {
         const side = Math.floor(Math.random() * 10) + 2;
+        const area = side * side;
         return {
-          id, answer: side * side, unit: 'cm²',
-          text: '下の正方形の面積をもとめましょう。',
-          textEn: 'Find the area of the square below.',
-          diagram: { type: 'square-area', params: { side } },
+          id, answer: area, unit: 'cm²',
+          text: `一辺 ${side} cm の正方形の面積は？`,
+          textEn: `What is the area of a square with side ${side} cm?`,
+          explanation: `一辺 ${side} cm × ${side} cm = ${area} cm²`,
+          explanationEn: `${side} cm × ${side} cm = ${area} cm²`,
+          diagram: { type: 'area-calculating', params: { shape: 'square', side, area } },
         };
       } else {
         const w = Math.floor(Math.random() * 10) + 3;
         const h = Math.floor(Math.random() * 8) + 2;
+        const area = w * h;
         return {
-          id, answer: w * h, unit: 'cm²',
-          text: '下の長方形の面積をもとめましょう。',
-          textEn: 'Find the area of the rectangle below.',
-          diagram: { type: 'rectangle-area', params: { width: w, height: h } },
+          id, answer: area, unit: 'cm²',
+          text: `たて ${h} cm、よこ ${w} cm の長方形の面積は？`,
+          textEn: `What is the area of a rectangle with height ${h} cm and width ${w} cm?`,
+          explanation: `たて ${h} cm × よこ ${w} cm = ${area} cm²`,
+          explanationEn: `${h} cm × ${w} cm = ${area} cm²`,
+          diagram: { type: 'area-calculating', params: { shape: 'rectangle', width: w, height: h, area } },
         };
       }
+    }
+    case 'large-area-units': {
+      const conversions: { from: 'm2' | 'a' | 'ha' | 'km2'; to: 'm2' | 'a' | 'ha' | 'km2'; multiplier: number }[] = [
+        { from: 'a', to: 'm2', multiplier: 100 },
+        { from: 'ha', to: 'a', multiplier: 100 },
+        { from: 'ha', to: 'm2', multiplier: 10000 },
+        { from: 'km2', to: 'ha', multiplier: 100 },
+        { from: 'km2', to: 'm2', multiplier: 1000000 },
+        { from: 'm2', to: 'a', multiplier: 0.01 },
+        { from: 'a', to: 'ha', multiplier: 0.01 },
+        { from: 'm2', to: 'ha', multiplier: 0.0001 },
+        { from: 'ha', to: 'km2', multiplier: 0.01 },
+        { from: 'm2', to: 'km2', multiplier: 0.000001 },
+      ];
+      const unitNames: Record<string, { ja: string; en: string }> = {
+        m2: { ja: 'm²', en: 'm²' },
+        a: { ja: 'a', en: 'ares' },
+        ha: { ja: 'ha', en: 'hectares' },
+        km2: { ja: 'km²', en: 'km²' },
+      };
+      const conversion = conversions[Math.floor(Math.random() * conversions.length)];
+      let value: number;
+      if (conversion.multiplier >= 1) {
+        value = Math.floor(Math.random() * 50) + 1;
+      } else {
+        value = Math.floor(Math.random() * 100) * (1 / conversion.multiplier);
+      }
+      const answer = Math.round(value * conversion.multiplier * 1000000) / 1000000;
+      return {
+        id, answer, unit: unitNames[conversion.to].ja,
+        text: `${value}${unitNames[conversion.from].ja} = [ ] ${unitNames[conversion.to].ja}`,
+        textEn: `${value} ${unitNames[conversion.from].en} = [ ] ${unitNames[conversion.to].en}`,
+        explanation: `${value} ${unitNames[conversion.from].ja} × ${conversion.multiplier} = ${answer} ${unitNames[conversion.to].ja}`,
+        explanationEn: `${value} ${unitNames[conversion.from].en} × ${conversion.multiplier} = ${answer} ${unitNames[conversion.to].en}`,
+        fromUnit: conversion.from,
+        toUnit: conversion.to,
+        diagram: { type: 'area-large-units', params: { value, from: conversion.from, to: conversion.to, multiplier: conversion.multiplier, answer } },
+      };
+    }
+    case 'choosing-units': {
+      const locations: { name: string; nameEn: string; unit: 'cm2' | 'm2' | 'a' | 'ha' | 'km2'; hint: string; hintEn: string }[] = [
+        { name: '消しゴムの表面', nameEn: 'Surface of an eraser', unit: 'cm2', hint: '小さいものは cm²', hintEn: 'Small objects use cm²' },
+        { name: 'ポストカード', nameEn: 'Postcard', unit: 'cm2', hint: '小さいものは cm²', hintEn: 'Small objects use cm²' },
+        { name: '教室の床', nameEn: 'Classroom floor', unit: 'm2', hint: '部屋の広さは m²', hintEn: 'Room sizes use m²' },
+        { name: 'リビングの床', nameEn: 'Living room floor', unit: 'm2', hint: '部屋の広さは m²', hintEn: 'Room sizes use m²' },
+        { name: '学校のグラウンド', nameEn: 'School ground', unit: 'a', hint: 'グラウンドは a（アール）', hintEn: 'School grounds use ares (a)' },
+        { name: 'サッカー場', nameEn: 'Soccer field', unit: 'a', hint: 'グラウンドは a（アール）', hintEn: 'Sports fields use ares (a)' },
+        { name: '大きな農場', nameEn: 'Large farm', unit: 'ha', hint: '大きな農場は ha（ヘクタール）', hintEn: 'Large farms use hectares (ha)' },
+        { name: '都道府県', nameEn: 'Prefecture', unit: 'km2', hint: '町や県は km²', hintEn: 'Cities and prefectures use km²' },
+        { name: '日本の面積', nameEn: 'Area of Japan', unit: 'km2', hint: '国は km²', hintEn: 'Countries use km²' },
+        { name: '東京ドーム', nameEn: 'Tokyo Dome', unit: 'ha', hint: '大きな建物の敷地は ha', hintEn: 'Large building sites use ha' },
+      ];
+      const location = locations[Math.floor(Math.random() * locations.length)];
+      return {
+        id, answer: location.unit, unit: '',
+        text: `「${location.name}」の広さを表すのに最もふさわしい単位は？`,
+        textEn: `What is the most appropriate unit for measuring the "${location.nameEn}"?`,
+        explanation: `${location.name}は${location.unit}で表します。${location.hint}`,
+        explanationEn: `${location.nameEn} is measured in ${location.unit}. ${location.hintEn}`,
+        appropriateUnit: location.unit,
+        diagram: { type: 'area-choosing-units', params: { location: location.name, locationEn: location.nameEn, unit: location.unit } },
+      };
+    }
+    case 'composite-shapes': {
+      const outerWidth = Math.floor(Math.random() * 8) + 8; // 8-15
+      const outerHeight = Math.floor(Math.random() * 8) + 8; // 8-15
+      const cutoutWidth = Math.floor(Math.random() * (outerWidth - 6)) + 3; // 3 to outerWidth-3
+      const cutoutHeight = Math.floor(Math.random() * (outerHeight - 6)) + 3; // 3 to outerHeight-3
+      const rect1Width = outerWidth - cutoutWidth;
+      const rect1Height = outerHeight;
+      const rect1Area = rect1Width * rect1Height;
+      const rect2Width = cutoutWidth;
+      const rect2Height = outerHeight - cutoutHeight;
+      const rect2Area = rect2Width * rect2Height;
+      const totalArea = rect1Area + rect2Area;
+      return {
+        id, answer: totalArea, unit: 'cm²',
+        text: `下のL字の形の面積は？（単位：cm²）`,
+        textEn: `What is the area of the L-shape below? (Unit: cm²)`,
+        explanation: `方法1：${rect1Width}×${rect1Height}=${rect1Area} と ${rect2Width}×${rect2Height}=${rect2Area} → 合計 ${totalArea}cm²`,
+        explanationEn: `Method 1: ${rect1Width}×${rect1Height}=${rect1Area} and ${rect2Width}×${rect2Height}=${rect2Area} → Total ${totalArea}cm²`,
+        diagram: { type: 'area-composite-lshape', params: { outerWidth, outerHeight, cutoutWidth, cutoutHeight, rect1Area, rect2Area, totalArea } },
+      };
     }
     case 'lines': {
       const type = Math.floor(Math.random() * 4);

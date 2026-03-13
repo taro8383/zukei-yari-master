@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, RotateCcw, CheckCircle2, Compass, Circle, Shapes, Percent, Hash, Calculator, Divide, Dot, TrendingUp, History } from 'lucide-react';
+import { Sparkles, RotateCcw, CheckCircle2, Compass, Circle, Shapes, Percent, Hash, Calculator, Divide, Dot, TrendingUp, History, Pizza } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ExplanationCard from '@/components/ExplanationCard';
@@ -14,32 +14,39 @@ import { CalculationRulesQuestion, CalculationRulesTopic, CALCULATION_RULES_TOPI
 import { DivisionQuestion, DivisionTopic, DIVISION_TOPICS, generateDivisionQuestions } from '@/lib/division';
 import { DecimalQuestion, DecimalTopic, DECIMAL_TOPICS, generateDecimalQuestions } from '@/lib/decimals';
 import { LineGraphQuestion, LineGraphTopic, LINE_GRAPH_TOPICS, generateLineGraphQuestions } from '@/lib/lineGraphs';
+import { FractionQuestion, FractionTopic, FRACTION_TOPICS, generateFractionQuestions } from '@/lib/fractions';
+import { InvestigatingChangesQuestion, InvestigatingChangesTopic, INVESTIGATING_CHANGES_TOPICS, generateInvestigatingChangesQuestions } from '@/lib/investigatingChanges';
 import { RatioExplanationCard, RatioQuestionItem, AccuracyRateQuestionItem, AccuracyRateExplanationCard } from '@/components/ratios';
 import { LargeNumbersExplanationCard, LargeNumbersQuestionItem } from '@/components/largeNumbers';
 import { CalculationRulesExplanationCard, CalculationRulesQuestionItem } from '@/components/calculationRules';
 import { DivisionExplanationCard, DivisionQuestionItem } from '@/components/division';
 import { DecimalExplanationCard, DecimalQuestionItem } from '@/components/decimals';
 import { LineGraphExplanationCard, LineGraphQuestionItem } from '@/components/lineGraphs';
+import { FractionsExplanationCard, FractionsQuestionItem } from '@/components/fractions';
+import { AreaExplanationCard, AreaQuestionItem } from '@/components/area';
+import { InvestigatingChangesExplanationCard, InvestigatingChangesQuestionItem } from '@/components/investigatingChanges';
 import { saveHistoryEntry, getHistory, clearHistory, TAB_NAMES } from '@/lib/historyStorage';
 
-const topicKeys: Topic[] = ['angles', 'area', 'lines', 'intersecting', 'quadrilaterals', 'diagonals'];
+const topicKeys: Topic[] = ['lines', 'angles', 'intersecting', 'quadrilaterals', 'diagonals', 'calculating-area', 'choosing-units', 'large-area-units', 'composite-shapes'];
 const ratioTopicKeys: RatioTopic[] = ['finding-ratio', 'finding-compared', 'finding-base', 'difference-vs-multiple'];
 const accuracyRateTopicKeys: AccuracyRateTopic[] = ['decimal-ratio', 'convert-percent', 'calculate-accuracy'];
-const largeNumberTopicKeys: LargeNumberTopic[] = ['reading-oku-cho', 'rounding-off', 'rounding-up-down', 'calculating-oku-cho', 'estimating-calculations'];
+const largeNumberTopicKeys: LargeNumberTopic[] = ['reading-oku-cho', 'calculating-oku-cho', 'rounding-off', 'rounding-up-down', 'estimating-calculations'];
 const calculationRulesTopicKeys: CalculationRulesTopic[] = ['order-of-operations', 'calculate-smartly', 'distributive-property', 'combining-into-one-equation'];
-const divisionTopicKeys: DivisionTopic[] = ['division-with-remainder', 'long-division', 'division-properties', 'long-division-2digit', 'mental-division'];
-const decimalTopicKeys: DecimalTopic[] = ['decimal-structure', 'decimal-add-subtract', 'decimal-shift', 'decimal-multiply-divide'];
+const divisionTopicKeys: DivisionTopic[] = ['division-with-remainder', 'long-division', 'long-division-2digit', 'division-properties', 'mental-division'];
+const decimalTopicKeys: DecimalTopic[] = ['decimal-structure', 'decimal-shift', 'decimal-add-subtract', 'decimal-multiply-divide'];
 const lineGraphTopicKeys: LineGraphTopic[] = ['reading-graph', 'change-slope', 'wavy-line', 'comparing-two-graphs', 'drawing-graph'];
+const fractionTopicKeys: FractionTopic[] = ['fraction-types', 'converting-fractions', 'adding-fractions', 'subtracting-fractions'];
+const investigatingChangesTopicKeys: InvestigatingChangesTopic[] = ['completing-table', 'finding-rule', 'writing-equation'];
 
 type ProtractorType = '180' | '360' | null;
-type AppTab = 'geometry' | 'ratios' | 'accuracy-rate' | 'large-numbers' | 'calculation-rules' | 'division' | 'decimals' | 'line-graphs';
+type AppTab = 'geometry' | 'ratios' | 'accuracy-rate' | 'large-numbers' | 'calculation-rules' | 'division' | 'decimals' | 'line-graphs' | 'fractions' | 'investigating-changes';
 
 const Index = () => {
   // Active tab state
   const [activeTab, setActiveTab] = useState<AppTab>('geometry');
 
   // Geometry state
-  const [selectedTopic, setSelectedTopic] = useState<Topic>('angles');
+  const [selectedTopic, setSelectedTopic] = useState<Topic>('lines');
   const [geometryQuestions, setGeometryQuestions] = useState<Question[]>([]);
   const [geometryAnswers, setGeometryAnswers] = useState<string[]>([]);
   const [geometryGraded, setGeometryGraded] = useState(false);
@@ -111,6 +118,24 @@ const Index = () => {
   const [lineGraphEndTimeAnswers, setLineGraphEndTimeAnswers] = useState<string[]>([]);
   // For drawing graph topic (plotted points)
   const [lineGraphPlottedPoints, setLineGraphPlottedPoints] = useState<Array<Array<{ x: number; y: number }>>>([]);
+
+  // Fractions state
+  const [selectedFractionTopic, setSelectedFractionTopic] = useState<FractionTopic>('fraction-types');
+  const [fractionQuestions, setFractionQuestions] = useState<FractionQuestion[]>([]);
+  const [fractionAnswers, setFractionAnswers] = useState<string[]>([]);
+  const [fractionGraded, setFractionGraded] = useState(false);
+  const [fractionScore, setFractionScore] = useState(0);
+  // For fraction input (numerator/denominator)
+  const [fractionNumeratorAnswers, setFractionNumeratorAnswers] = useState<(number | '')[]>([]);
+  const [fractionDenominatorAnswers, setFractionDenominatorAnswers] = useState<(number | '')[]>([]);
+  const [fractionWholeNumberAnswers, setFractionWholeNumberAnswers] = useState<(number | '')[]>([]);
+
+  // Investigating Changes state
+  const [selectedInvestigatingChangesTopic, setSelectedInvestigatingChangesTopic] = useState<InvestigatingChangesTopic>('completing-table');
+  const [investigatingChangesQuestions, setInvestigatingChangesQuestions] = useState<InvestigatingChangesQuestion[]>([]);
+  const [investigatingChangesAnswers, setInvestigatingChangesAnswers] = useState<string[]>([]);
+  const [investigatingChangesGraded, setInvestigatingChangesGraded] = useState(false);
+  const [investigatingChangesScore, setInvestigatingChangesScore] = useState(0);
 
   // Protractor state (shared across tabs)
   const [activeProtractor, setActiveProtractor] = useState<ProtractorType>(null);
@@ -186,6 +211,19 @@ const Index = () => {
     setLineGraphPlottedPoints([]);
     setLineGraphStartTimeAnswers([]);
     setLineGraphEndTimeAnswers([]);
+    // Reset Fractions state
+    setFractionQuestions([]);
+    setFractionAnswers([]);
+    setFractionGraded(false);
+    setFractionScore(0);
+    setFractionNumeratorAnswers([]);
+    setFractionDenominatorAnswers([]);
+    setFractionWholeNumberAnswers([]);
+    // Reset Investigating Changes state
+    setInvestigatingChangesQuestions([]);
+    setInvestigatingChangesAnswers([]);
+    setInvestigatingChangesGraded(false);
+    setInvestigatingChangesScore(0);
     // Hide protractor when leaving geometry tab
     if (value !== 'geometry') {
       setActiveProtractor(null);
@@ -212,13 +250,24 @@ const Index = () => {
   const handleGeometryCheck = () => {
     let correct = 0;
     const results = geometryQuestions.map((q, i) => {
-      const isCorrect = parseInt(geometryAnswers[i]) === q.answer;
+      let isCorrect = false;
+      // Handle area topics specially
+      if (selectedTopic === 'choosing-units') {
+        isCorrect = geometryAnswers[i] === q.appropriateUnit;
+      } else if (selectedTopic === 'large-area-units') {
+        // Allow some tolerance for decimal conversions
+        const userAnswer = parseFloat(geometryAnswers[i]);
+        const correctAnswer = typeof q.answer === 'number' ? q.answer : parseFloat(q.answer as string);
+        isCorrect = Math.abs(userAnswer - correctAnswer) < 0.0001;
+      } else {
+        isCorrect = parseInt(geometryAnswers[i]) === q.answer;
+      }
       if (isCorrect) correct++;
       return {
         index: i,
         isCorrect,
         userAnswer: geometryAnswers[i],
-        correctAnswer: q.answer,
+        correctAnswer: selectedTopic === 'choosing-units' ? q.appropriateUnit : q.answer,
       };
     });
     setGeometryScore(correct);
@@ -858,6 +907,179 @@ const Index = () => {
 
   const lineGraphScorePercent = lineGraphScore * 20;
 
+  // Fractions handlers
+  const handleGenerateFractions = () => {
+    const newQuestions = generateFractionQuestions(selectedFractionTopic);
+    setFractionQuestions(newQuestions);
+    setFractionAnswers(new Array(5).fill(''));
+    setFractionNumeratorAnswers(new Array(5).fill(''));
+    setFractionDenominatorAnswers(new Array(5).fill(''));
+    setFractionWholeNumberAnswers(new Array(5).fill(''));
+    setFractionGraded(false);
+    setFractionScore(0);
+  };
+
+  const handleFractionAnswerChange = (index: number, value: string) => {
+    const newAnswers = [...fractionAnswers];
+    newAnswers[index] = value;
+    setFractionAnswers(newAnswers);
+  };
+
+  const handleFractionNumeratorChange = (index: number, value: string) => {
+    const newAnswers = [...fractionNumeratorAnswers];
+    newAnswers[index] = value === '' ? '' : parseInt(value);
+    setFractionNumeratorAnswers(newAnswers);
+  };
+
+  const handleFractionDenominatorChange = (index: number, value: string) => {
+    const newAnswers = [...fractionDenominatorAnswers];
+    newAnswers[index] = value === '' ? '' : parseInt(value);
+    setFractionDenominatorAnswers(newAnswers);
+  };
+
+  const handleFractionWholeNumberChange = (index: number, value: string) => {
+    const newAnswers = [...fractionWholeNumberAnswers];
+    newAnswers[index] = value === '' ? '' : parseInt(value);
+    setFractionWholeNumberAnswers(newAnswers);
+  };
+
+  const allFractionsAnswered = fractionAnswers.length === 5 && fractionAnswers.every((a, i) => {
+    const q = fractionQuestions[i];
+    if (!q) return false;
+    if (q.topic === 'fraction-types') {
+      return a.trim() !== '';
+    }
+    // For other topics, check numerator and denominator are filled
+    return fractionNumeratorAnswers[i] !== '' && fractionDenominatorAnswers[i] !== '';
+  });
+
+  const handleFractionCheck = () => {
+    let correct = 0;
+    const results = fractionQuestions.map((q, i) => {
+      let isCorrect = false;
+      if (q.topic === 'fraction-types') {
+        isCorrect = fractionAnswers[i] === q.fractionType;
+      } else if (q.topic === 'converting-fractions') {
+        const userNum = fractionNumeratorAnswers[i];
+        const userDen = fractionDenominatorAnswers[i];
+        const userWhole = fractionWholeNumberAnswers[i];
+        if (q.convertTo === 'mixed') {
+          isCorrect = userWhole === q.answerMixedWhole && userNum === q.answerNum && userDen === q.answerDen;
+        } else {
+          isCorrect = userNum === q.answerNum && userDen === q.answerDen;
+        }
+      } else {
+        // Adding and subtracting fractions - answer is always simplified fraction only
+        const userNum = fractionNumeratorAnswers[i];
+        const userDen = fractionDenominatorAnswers[i];
+        isCorrect = userNum === q.answerNum && userDen === q.answerDen;
+      }
+      if (isCorrect) correct++;
+      return {
+        index: i,
+        isCorrect,
+        userAnswer: q.topic === 'fraction-types'
+          ? fractionAnswers[i]
+          : `${fractionWholeNumberAnswers[i] || ''} ${fractionNumeratorAnswers[i]}/${fractionDenominatorAnswers[i]}`,
+        correctAnswer: q.topic === 'fraction-types'
+          ? q.fractionType
+          : q.topic === 'converting-fractions' && q.convertTo === 'mixed'
+            ? `${q.answerMixedWhole} ${q.answerNum}/${q.answerDen}`
+            : `${q.answerNum}/${q.answerDen}`,
+      };
+    });
+    setFractionScore(correct);
+    setFractionGraded(true);
+
+    // Show score modal
+    setCurrentScore(correct);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES.fractions.ja);
+    setCurrentTopicName(FRACTION_TOPICS[selectedFractionTopic].label);
+    setScoreModalOpen(true);
+
+    // Save to history
+    saveHistoryEntry({
+      date: new Date().toISOString(),
+      timestamp: Date.now(),
+      tabKey: 'fractions',
+      tabName: TAB_NAMES.fractions.ja,
+      tabNameEn: TAB_NAMES.fractions.en,
+      topicKey: selectedFractionTopic,
+      topicName: FRACTION_TOPICS[selectedFractionTopic].label,
+      topicNameEn: FRACTION_TOPICS[selectedFractionTopic].labelEn,
+      score: correct,
+      totalQuestions: fractionQuestions.length,
+    });
+    setHistory(getHistory());
+  };
+
+  const fractionScorePercent = fractionScore * 20;
+
+  // Investigating Changes handlers
+  const handleGenerateInvestigatingChanges = () => {
+    const newQuestions = generateInvestigatingChangesQuestions(selectedInvestigatingChangesTopic);
+    setInvestigatingChangesQuestions(newQuestions);
+    setInvestigatingChangesAnswers(new Array(5).fill(''));
+    setInvestigatingChangesGraded(false);
+    setInvestigatingChangesScore(0);
+  };
+
+  const handleInvestigatingChangesAnswerChange = (index: number, value: string) => {
+    const newAnswers = [...investigatingChangesAnswers];
+    newAnswers[index] = value;
+    setInvestigatingChangesAnswers(newAnswers);
+  };
+
+  const allInvestigatingChangesAnswered = investigatingChangesAnswers.length === 5 && investigatingChangesAnswers.every((a) => a.trim() !== '');
+
+  const handleInvestigatingChangesCheck = () => {
+    let correct = 0;
+    const results = investigatingChangesQuestions.map((q, i) => {
+      let isCorrect = false;
+      if (q.topic === 'completing-table') {
+        isCorrect = parseInt(investigatingChangesAnswers[i]) === q.answer;
+      } else if (q.topic === 'finding-rule') {
+        isCorrect = investigatingChangesAnswers[i] === q.answer;
+      } else if (q.topic === 'writing-equation') {
+        isCorrect = investigatingChangesAnswers[i] === q.answer;
+      }
+      if (isCorrect) correct++;
+      return {
+        index: i,
+        isCorrect,
+        userAnswer: investigatingChangesAnswers[i],
+        correctAnswer: q.answer,
+      };
+    });
+    setInvestigatingChangesScore(correct);
+    setInvestigatingChangesGraded(true);
+
+    // Show score modal
+    setCurrentScore(correct);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES['investigating-changes'].ja);
+    setCurrentTopicName(INVESTIGATING_CHANGES_TOPICS[selectedInvestigatingChangesTopic].label);
+    setScoreModalOpen(true);
+
+    // Save to history
+    saveHistoryEntry({
+      date: new Date().toISOString(),
+      timestamp: Date.now(),
+      tabKey: 'investigating-changes',
+      tabName: TAB_NAMES['investigating-changes'].ja,
+      tabNameEn: TAB_NAMES['investigating-changes'].en,
+      topicKey: selectedInvestigatingChangesTopic,
+      topicName: INVESTIGATING_CHANGES_TOPICS[selectedInvestigatingChangesTopic].label,
+      topicNameEn: INVESTIGATING_CHANGES_TOPICS[selectedInvestigatingChangesTopic].labelEn,
+      score: correct,
+      totalQuestions: investigatingChangesQuestions.length,
+    });
+    setHistory(getHistory());
+  };
+
+  const investigatingChangesScorePercent = investigatingChangesScore * 20;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -924,37 +1146,8 @@ const Index = () => {
       {/* Main Content with Tabs */}
       <main className="container max-w-3xl mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-           <TabsList className="w-full grid grid-cols-4 mb-8 h-auto p-2 bg-muted rounded-2xl gap-2">
-            <TabsTrigger
-              value="geometry"
-              className="flex items-center justify-center gap-2 py-3 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
-            >
-              <Shapes className="w-5 h-5 flex-shrink-0" />
-              <div className="flex flex-col items-center">
-                <span>図形</span>
-                <span className="text-xs font-normal opacity-60">Geometry</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="ratios"
-              className="flex items-center justify-center gap-2 py-3 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
-            >
-              <Percent className="w-5 h-5 flex-shrink-0" />
-              <div className="flex flex-col items-center">
-                <span>割合</span>
-                <span className="text-xs font-normal opacity-60">Ratios</span>
-              </div>
-            </TabsTrigger>
-            <TabsTrigger
-              value="accuracy-rate"
-              className="flex items-center justify-center gap-2 py-3 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
-            >
-              <span className="text-xl flex-shrink-0">🔋</span>
-              <div className="flex flex-col items-center">
-                <span>正答率</span>
-                <span className="text-xs font-normal opacity-60">Accuracy</span>
-              </div>
-            </TabsTrigger>
+           <TabsList className="w-full grid grid-cols-5 mb-8 h-auto p-2 bg-muted rounded-2xl gap-2">
+            {/* Row 1: Numbers & Operations */}
             <TabsTrigger
               value="large-numbers"
               className="flex items-center justify-center gap-2 py-3 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
@@ -996,6 +1189,37 @@ const Index = () => {
               </div>
             </TabsTrigger>
             <TabsTrigger
+              value="fractions"
+              className="flex items-center justify-center gap-2 py-3 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
+            >
+              <Pizza className="w-5 h-5 flex-shrink-0" />
+              <div className="flex flex-col items-center">
+                <span>分数</span>
+                <span className="text-xs font-normal opacity-60">Fractions</span>
+              </div>
+            </TabsTrigger>
+            {/* Row 2: Relationships, Space & Data */}
+            <TabsTrigger
+              value="geometry"
+              className="flex items-center justify-center gap-2 py-3 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
+            >
+              <Shapes className="w-5 h-5 flex-shrink-0" />
+              <div className="flex flex-col items-center">
+                <span>図形</span>
+                <span className="text-xs font-normal opacity-60">Geometry</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="ratios"
+              className="flex items-center justify-center gap-2 py-3 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
+            >
+              <Percent className="w-5 h-5 flex-shrink-0" />
+              <div className="flex flex-col items-center">
+                <span>割合</span>
+                <span className="text-xs font-normal opacity-60">Ratios</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
               value="line-graphs"
               className="flex items-center justify-center gap-2 py-3 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
             >
@@ -1003,6 +1227,26 @@ const Index = () => {
               <div className="flex flex-col items-center">
                 <span>折れ線</span>
                 <span className="text-xs font-normal opacity-60">Line Graphs</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="investigating-changes"
+              className="flex items-center justify-center gap-2 py-3 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
+            >
+              <TrendingUp className="w-5 h-5 flex-shrink-0" />
+              <div className="flex flex-col items-center">
+                <span>変わり方</span>
+                <span className="text-xs font-normal opacity-60">Changes</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger
+              value="accuracy-rate"
+              className="flex items-center justify-center gap-2 py-3 text-base font-bold rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-kid"
+            >
+              <span className="text-xl flex-shrink-0">🔋</span>
+              <div className="flex flex-col items-center">
+                <span>正答率</span>
+                <span className="text-xs font-normal opacity-60">Accuracy</span>
               </div>
             </TabsTrigger>
           </TabsList>
@@ -1059,14 +1303,53 @@ const Index = () => {
                 <div className="space-y-4 mb-8">
                   {geometryQuestions.map((q, i) => (
                     <div key={q.id} id={`question-${i}`}>
-                      <QuestionItem
-                        question={q}
-                        index={i}
-                        userAnswer={geometryAnswers[i]}
-                        onAnswerChange={(v) => handleGeometryAnswerChange(i, v)}
-                        graded={geometryGraded}
-                        isCorrect={geometryGraded ? parseInt(geometryAnswers[i]) === q.answer : undefined}
-                      />
+                      {/* Use AreaQuestionItem for area topics, QuestionItem for others */}
+                      {['calculating-area', 'large-area-units', 'choosing-units', 'composite-shapes'].includes(selectedTopic) ? (
+                        <AreaQuestionItem
+                          question={{
+                            id: q.id,
+                            topic: selectedTopic as AreaTopic,
+                            text: q.text,
+                            textEn: q.textEn,
+                            explanation: q.explanation || '',
+                            explanationEn: q.explanationEn || '',
+                            shape: q.diagram.params.shape,
+                            width: q.diagram.params.width,
+                            height: q.diagram.params.height,
+                            side: q.diagram.params.side,
+                            answerArea: typeof q.answer === 'number' ? q.answer : undefined,
+                            fromUnit: q.fromUnit,
+                            toUnit: q.toUnit,
+                            answerConversion: typeof q.answer === 'number' ? q.answer : undefined,
+                            appropriateUnit: q.appropriateUnit,
+                            dimensions: q.diagram.params.outerWidth ? {
+                              outerWidth: q.diagram.params.outerWidth,
+                              outerHeight: q.diagram.params.outerHeight,
+                              cutoutWidth: q.diagram.params.cutoutWidth,
+                              cutoutHeight: q.diagram.params.cutoutHeight,
+                            } : undefined,
+                          }}
+                          index={i}
+                          userAnswer={geometryAnswers[i]}
+                          onAnswerChange={(v) => handleGeometryAnswerChange(i, v)}
+                          graded={geometryGraded}
+                          isCorrect={geometryGraded ? (() => {
+                            if (selectedTopic === 'choosing-units') {
+                              return geometryAnswers[i] === q.appropriateUnit;
+                            }
+                            return parseFloat(geometryAnswers[i]) === q.answer;
+                          })() : undefined}
+                        />
+                      ) : (
+                        <QuestionItem
+                          question={q}
+                          index={i}
+                          userAnswer={geometryAnswers[i]}
+                          onAnswerChange={(v) => handleGeometryAnswerChange(i, v)}
+                          graded={geometryGraded}
+                          isCorrect={geometryGraded ? parseInt(geometryAnswers[i]) === q.answer : undefined}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1837,6 +2120,234 @@ const Index = () => {
               </div>
             )}
           </TabsContent>
+
+          {/* Fractions Tab */}
+          <TabsContent value="fractions" className="mt-0">
+            {/* Topic Selection */}
+            <div className="mb-6">
+              <p className="font-bold mb-1 text-lg">分数のもんだいをえらぼう：</p>
+              <p className="text-sm text-muted-foreground mb-3">Choose a fractions topic:</p>
+              <div className="flex flex-wrap gap-3">
+                {fractionTopicKeys.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => {
+                      setSelectedFractionTopic(t);
+                      // Flush exercises when topic changes
+                      setFractionQuestions([]);
+                      setFractionAnswers([]);
+                      setFractionGraded(false);
+                      setFractionScore(0);
+                      setFractionNumeratorAnswers([]);
+                      setFractionDenominatorAnswers([]);
+                      setFractionWholeNumberAnswers([]);
+                    }}
+                    className={`px-4 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 flex flex-col items-center ${
+                      selectedFractionTopic === t
+                        ? 'bg-primary text-primary-foreground shadow-kid-lg scale-105'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    <span>{FRACTION_TOPICS[t].icon} {FRACTION_TOPICS[t].label}</span>
+                    <span className={`text-xs mt-0.5 ${selectedFractionTopic === t ? 'text-primary-foreground/80' : 'text-muted-foreground/60'}`}>{FRACTION_TOPICS[t].labelEn}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Topic Info */}
+            <div className="mb-6">
+              <FractionsExplanationCard info={FRACTION_TOPICS[selectedFractionTopic]} />
+            </div>
+
+            {/* Generate Button */}
+            <Button variant="generate" size="lg" onClick={handleGenerateFractions} className="mb-8 w-full sm:w-auto">
+              <Sparkles className="w-5 h-5" />
+              <div className="flex flex-col items-start leading-tight">
+                <span>もんだいをつくる！</span>
+                <span className="text-xs opacity-80">Generate Exercises</span>
+              </div>
+            </Button>
+
+            {/* Questions */}
+            {fractionQuestions.length > 0 && (
+              <div className="animate-bounce-in">
+                {/* Questions */}
+                <div className="space-y-4 mb-8">
+                  {fractionQuestions.map((q, i) => (
+                    <div key={q.id} id={`question-${i}`}>
+                      <FractionsQuestionItem
+                        question={q}
+                        index={i}
+                        userAnswer={fractionAnswers[i]}
+                        onAnswerChange={(v) => handleFractionAnswerChange(i, v)}
+                        userNumerator={fractionNumeratorAnswers[i]}
+                        userDenominator={fractionDenominatorAnswers[i]}
+                        userWholeNumber={fractionWholeNumberAnswers[i]}
+                        onNumeratorChange={(v) => handleFractionNumeratorChange(i, v)}
+                        onDenominatorChange={(v) => handleFractionDenominatorChange(i, v)}
+                        onWholeNumberChange={(v) => handleFractionWholeNumberChange(i, v)}
+                        graded={fractionGraded}
+                        isCorrect={fractionGraded ? (
+                          (() => {
+                            if (q.topic === 'fraction-types') {
+                              return fractionAnswers[i] === q.fractionType;
+                            } else if (q.topic === 'converting-fractions') {
+                              const userNum = fractionNumeratorAnswers[i];
+                              const userDen = fractionDenominatorAnswers[i];
+                              const userWhole = fractionWholeNumberAnswers[i];
+                              if (q.convertTo === 'mixed') {
+                                return userWhole === q.answerMixedWhole && userNum === q.answerNum && userDen === q.answerDen;
+                              } else {
+                                return userNum === q.answerNum && userDen === q.answerDen;
+                              }
+                            } else {
+                              // Adding and subtracting fractions - simplified fraction only
+                              const userNum = fractionNumeratorAnswers[i];
+                              const userDen = fractionDenominatorAnswers[i];
+                              return userNum === q.answerNum && userDen === q.answerDen;
+                            }
+                          })()
+                        ) : undefined}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Check Button */}
+                <div className="text-center">
+                  <Button
+                    variant="check"
+                    size="lg"
+                    onClick={handleFractionCheck}
+                    disabled={!allFractionsAnswered || fractionGraded}
+                  >
+                    <CheckCircle2 className="w-5 h-5" />
+                    <div className="flex flex-col items-start leading-tight">
+                      <span>こたえあわせ</span>
+                      <span className="text-xs opacity-80">Check Answers</span>
+                    </div>
+                  </Button>
+                  {!allFractionsAnswered && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      ぜんぶのこたえを入れてね！ / Fill in all answers!
+                    </p>
+                  )}
+                  {fractionGraded && (
+                    <Button variant="generate" size="lg" onClick={handleGenerateFractions} className="ml-4">
+                      <RotateCcw className="w-5 h-5" />
+                      <div className="flex flex-col items-start leading-tight">
+                        <span>もういちど！</span>
+                        <span className="text-xs opacity-80">Try Again</span>
+                      </div>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Investigating Changes Tab */}
+          <TabsContent value="investigating-changes" className="mt-0">
+            {/* Topic Selection */}
+            <div className="mb-6">
+              <p className="font-bold mb-1 text-lg">もんだいのしゅるいをえらぼう：</p>
+              <p className="text-sm text-muted-foreground mb-3">Choose a topic:</p>
+              <div className="flex flex-wrap gap-3">
+                {investigatingChangesTopicKeys.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => {
+                      setSelectedInvestigatingChangesTopic(t);
+                      // Flush exercises when topic changes
+                      setInvestigatingChangesQuestions([]);
+                      setInvestigatingChangesAnswers([]);
+                      setInvestigatingChangesGraded(false);
+                      setInvestigatingChangesScore(0);
+                    }}
+                    className={`px-4 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 flex flex-col items-center ${
+                      selectedInvestigatingChangesTopic === t
+                        ? 'bg-primary text-primary-foreground shadow-kid-lg scale-105'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    <span>{INVESTIGATING_CHANGES_TOPICS[t].icon} {INVESTIGATING_CHANGES_TOPICS[t].label}</span>
+                    <span className={`text-xs mt-0.5 ${selectedInvestigatingChangesTopic === t ? 'text-primary-foreground/80' : 'text-muted-foreground/60'}`}>{INVESTIGATING_CHANGES_TOPICS[t].labelEn}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Topic Info */}
+            <div className="mb-6">
+              <InvestigatingChangesExplanationCard info={INVESTIGATING_CHANGES_TOPICS[selectedInvestigatingChangesTopic]} />
+            </div>
+
+            {/* Generate Button */}
+            <Button variant="generate" size="lg" onClick={handleGenerateInvestigatingChanges} className="mb-8 w-full sm:w-auto">
+              <Sparkles className="w-5 h-5" />
+              <div className="flex flex-col items-start leading-tight">
+                <span>もんだいをつくる！</span>
+                <span className="text-xs opacity-80">Generate Exercises</span>
+              </div>
+            </Button>
+
+            {/* Questions */}
+            {investigatingChangesQuestions.length > 0 && (
+              <div className="animate-bounce-in">
+                {/* Questions */}
+                <div className="space-y-4 mb-8">
+                  {investigatingChangesQuestions.map((q, i) => (
+                    <div key={q.id} id={`question-${i}`}>
+                      <InvestigatingChangesQuestionItem
+                        question={q}
+                        index={i}
+                        userAnswer={investigatingChangesAnswers[i]}
+                        onAnswerChange={(v) => handleInvestigatingChangesAnswerChange(i, v)}
+                        graded={investigatingChangesGraded}
+                        isCorrect={investigatingChangesGraded ? (
+                          selectedInvestigatingChangesTopic === 'completing-table'
+                            ? parseInt(investigatingChangesAnswers[i]) === q.answer
+                            : investigatingChangesAnswers[i] === q.answer
+                        ) : undefined}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Check Button */}
+                <div className="text-center">
+                  <Button
+                    variant="check"
+                    size="lg"
+                    onClick={handleInvestigatingChangesCheck}
+                    disabled={!allInvestigatingChangesAnswered || investigatingChangesGraded}
+                  >
+                    <CheckCircle2 className="w-5 h-5" />
+                    <div className="flex flex-col items-start leading-tight">
+                      <span>こたえあわせ</span>
+                      <span className="text-xs opacity-80">Check Answers</span>
+                    </div>
+                  </Button>
+                  {!allInvestigatingChangesAnswered && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      ぜんぶのこたえを入れてね！ / Fill in all answers!
+                    </p>
+                  )}
+                  {investigatingChangesGraded && (
+                    <Button variant="generate" size="lg" onClick={handleGenerateInvestigatingChanges} className="ml-4">
+                      <RotateCcw className="w-5 h-5" />
+                      <div className="flex flex-col items-start leading-tight">
+                        <span>もういちど！</span>
+                        <span className="text-xs opacity-80">Try Again</span>
+                      </div>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
         </Tabs>
       </main>
 
@@ -1874,6 +2385,12 @@ const Index = () => {
               break;
             case 'line-graphs':
               handleGenerateLineGraphs();
+              break;
+            case 'fractions':
+              handleGenerateFractions();
+              break;
+            case 'investigating-changes':
+              handleGenerateInvestigatingChanges();
               break;
           }
         }}

@@ -48,4 +48,6 @@ export const TAB_NAMES: Record<string, { ja: string; en: string }> = {
   division: { ja: 'わり算', en: 'Division' },
   decimals: { ja: '小数', en: 'Decimals' },
   'line-graphs': { ja: '折れ線', en: 'Line Graphs' },
+  fractions: { ja: '分数', en: 'Fractions' },
+  'investigating-changes': { ja: '変わり方', en: 'Changes' },
 };
