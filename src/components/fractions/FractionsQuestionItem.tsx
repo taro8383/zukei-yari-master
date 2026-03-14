@@ -129,8 +129,13 @@ const FractionsQuestionItem = ({
   // Check if this is adding or subtracting fractions
   const isAddingOrSubtracting = question.topic === 'adding-fractions' || question.topic === 'subtracting-fractions';
 
-  // Check if the answer needs a whole number input (only for converting to mixed)
-  const needsWholeNumber = isConverting && question.convertTo === 'mixed';
+  // Check if the answer needs a whole number input
+  // - Converting to mixed number
+  // - Adding fractions that result in mixed numbers
+  // - Subtracting fractions that result in mixed numbers
+  const needsWholeNumber =
+    (isConverting && question.convertTo === 'mixed') ||
+    (isAddingOrSubtracting && question.answerMixedWhole !== undefined && question.answerMixedWhole > 0);
 
   // Parse the original fraction for display
   const parseFraction = (fractionStr: string | undefined) => {
