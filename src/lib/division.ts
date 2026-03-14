@@ -192,18 +192,27 @@ function generateLongDivisionQuestions(): DivisionQuestion[] {
 function generateDivisionPropertiesQuestions(): DivisionQuestion[] {
   const questions: DivisionQuestion[] = [];
 
-  // Pairs of numbers that simplify nicely
+  // Division properties: divide both numbers by the same factor (2, 3, 4, 5, etc.)
+  // NOT just canceling zeros - that's for Mental Division
   const pairs = [
-    { dividend: 800, divisor: 200, simplifiedDividend: 8, simplifiedDivisor: 2 },
-    { dividend: 120, divisor: 30, simplifiedDividend: 12, simplifiedDivisor: 3 },
-    { dividend: 600, divisor: 150, simplifiedDividend: 4, simplifiedDivisor: 1 },
-    { dividend: 900, divisor: 300, simplifiedDividend: 9, simplifiedDivisor: 3 },
-    { dividend: 250, divisor: 50, simplifiedDividend: 25, simplifiedDivisor: 5 },
-    { dividend: 420, divisor: 60, simplifiedDividend: 42, simplifiedDivisor: 6 },
-    { dividend: 1000, divisor: 250, simplifiedDividend: 4, simplifiedDivisor: 1 },
-    { dividend: 560, divisor: 80, simplifiedDividend: 56, simplifiedDivisor: 8 },
-    { dividend: 360, divisor: 40, simplifiedDividend: 36, simplifiedDivisor: 4 },
-    { dividend: 720, divisor: 90, simplifiedDividend: 72, simplifiedDivisor: 9 },
+    // Divide by 2
+    { dividend: 84, divisor: 12, simplifiedDividend: 42, simplifiedDivisor: 6, factor: 2 },
+    { dividend: 96, divisor: 16, simplifiedDividend: 48, simplifiedDivisor: 8, factor: 2 },
+    { dividend: 128, divisor: 32, simplifiedDividend: 64, simplifiedDivisor: 16, factor: 2 },
+    // Divide by 3
+    { dividend: 72, divisor: 18, simplifiedDividend: 24, simplifiedDivisor: 6, factor: 3 },
+    { dividend: 90, divisor: 15, simplifiedDividend: 30, simplifiedDivisor: 5, factor: 3 },
+    { dividend: 135, divisor: 27, simplifiedDividend: 45, simplifiedDivisor: 9, factor: 3 },
+    // Divide by 4
+    { dividend: 80, divisor: 16, simplifiedDividend: 20, simplifiedDivisor: 4, factor: 4 },
+    { dividend: 112, divisor: 28, simplifiedDividend: 28, simplifiedDivisor: 7, factor: 4 },
+    // Divide by 5
+    { dividend: 85, divisor: 15, simplifiedDividend: 17, simplifiedDivisor: 3, factor: 5 },
+    { dividend: 125, divisor: 25, simplifiedDividend: 25, simplifiedDivisor: 5, factor: 5 },
+    // Divide by 6
+    { dividend: 96, divisor: 24, simplifiedDividend: 16, simplifiedDivisor: 4, factor: 6 },
+    // Divide by 8
+    { dividend: 144, divisor: 16, simplifiedDividend: 18, simplifiedDivisor: 2, factor: 8 },
   ];
 
   const usedIndices = new Set<number>();
@@ -221,8 +230,8 @@ function generateDivisionPropertiesQuestions(): DivisionQuestion[] {
     questions.push({
       id: `prop-${i}`,
       topic: 'division-properties',
-      text: `わり算の性質を使って計算しましょう。`,
-      textEn: 'Calculate using the properties of division.',
+      text: `わり算の性質を使って計算しましょう。（両方を${pair.factor}で割る）`,
+      textEn: `Calculate using the properties of division. (Divide both by ${pair.factor})`,
       dividend: pair.dividend,
       divisor: pair.divisor,
       quotient,
@@ -231,8 +240,8 @@ function generateDivisionPropertiesQuestions(): DivisionQuestion[] {
       simplifiedDivisor: pair.simplifiedDivisor,
       formula: `正解: ${pair.dividend} ÷ ${pair.divisor} = ${pair.simplifiedDividend} ÷ ${pair.simplifiedDivisor} = ${quotient}`,
       formulaEn: `Answer: ${pair.dividend} ÷ ${pair.divisor} = ${pair.simplifiedDividend} ÷ ${pair.simplifiedDivisor} = ${quotient}`,
-      explanation: `${pair.dividend} ÷ ${pair.divisor} = ${pair.simplifiedDividend} ÷ ${pair.simplifiedDivisor} = ${quotient}`,
-      explanationEn: `${pair.dividend} ÷ ${pair.divisor} = ${pair.simplifiedDividend} ÷ ${pair.simplifiedDivisor} = ${quotient}`,
+      explanation: `${pair.dividend} ÷ ${pair.divisor}：両方を${pair.factor}で割ると ${pair.simplifiedDividend} ÷ ${pair.simplifiedDivisor} = ${quotient}`,
+      explanationEn: `${pair.dividend} ÷ ${pair.divisor}: Divide both by ${pair.factor} = ${pair.simplifiedDividend} ÷ ${pair.simplifiedDivisor} = ${quotient}`,
     });
   }
 
