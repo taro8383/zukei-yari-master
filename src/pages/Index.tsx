@@ -218,40 +218,49 @@ const Index = () => {
       activeTab,
       // Geometry
       selectedTopic,
+      geometryQuestions,
       geometryAnswers,
       geometryGraded,
       // Ratios
       selectedRatioTopic,
+      ratioQuestions,
       ratioAnswers,
       ratioGraded,
       // Accuracy Rate
       selectedAccuracyRateTopic,
+      accuracyRateQuestions,
       accuracyRateAnswers,
       accuracyRateGraded,
       // Large Numbers
       selectedLargeNumberTopic,
+      largeNumberQuestions,
       largeNumberAnswers,
       largeNumberGraded,
       // Calculation Rules
       selectedCalculationRulesTopic,
+      calculationRulesQuestions,
       calculationRulesAnswers,
       calculationRulesGraded,
       calculationRulesStepAnswers,
       // Division
       selectedDivisionTopic,
+      divisionQuestions,
       divisionAnswers,
       divisionGraded,
       divisionStepAnswers,
       // Decimals
       selectedDecimalTopic,
+      decimalQuestions,
       decimalAnswers,
       decimalGraded,
       // Line Graphs
       selectedLineGraphTopic,
+      lineGraphQuestions,
       lineGraphAnswers,
       lineGraphGraded,
       // Fractions
       selectedFractionTopic,
+      fractionQuestions,
       fractionAnswers,
       fractionGraded,
       fractionNumeratorAnswers,
@@ -259,6 +268,7 @@ const Index = () => {
       fractionWholeNumberAnswers,
       // Investigating Changes
       selectedInvestigatingChangesTopic,
+      investigatingChangesQuestions,
       investigatingChangesAnswers,
       investigatingChangesGraded,
     };
@@ -270,16 +280,16 @@ const Index = () => {
     }
   }, [
     activeTab,
-    selectedTopic, geometryAnswers, geometryGraded,
-    selectedRatioTopic, ratioAnswers, ratioGraded,
-    selectedAccuracyRateTopic, accuracyRateAnswers, accuracyRateGraded,
-    selectedLargeNumberTopic, largeNumberAnswers, largeNumberGraded,
-    selectedCalculationRulesTopic, calculationRulesAnswers, calculationRulesGraded, calculationRulesStepAnswers,
-    selectedDivisionTopic, divisionAnswers, divisionGraded, divisionStepAnswers,
-    selectedDecimalTopic, decimalAnswers, decimalGraded,
-    selectedLineGraphTopic, lineGraphAnswers, lineGraphGraded,
-    selectedFractionTopic, fractionAnswers, fractionGraded, fractionNumeratorAnswers, fractionDenominatorAnswers, fractionWholeNumberAnswers,
-    selectedInvestigatingChangesTopic, investigatingChangesAnswers, investigatingChangesGraded,
+    selectedTopic, geometryQuestions, geometryAnswers, geometryGraded,
+    selectedRatioTopic, ratioQuestions, ratioAnswers, ratioGraded,
+    selectedAccuracyRateTopic, accuracyRateQuestions, accuracyRateAnswers, accuracyRateGraded,
+    selectedLargeNumberTopic, largeNumberQuestions, largeNumberAnswers, largeNumberGraded,
+    selectedCalculationRulesTopic, calculationRulesQuestions, calculationRulesAnswers, calculationRulesGraded, calculationRulesStepAnswers,
+    selectedDivisionTopic, divisionQuestions, divisionAnswers, divisionGraded, divisionStepAnswers,
+    selectedDecimalTopic, decimalQuestions, decimalAnswers, decimalGraded,
+    selectedLineGraphTopic, lineGraphQuestions, lineGraphAnswers, lineGraphGraded,
+    selectedFractionTopic, fractionQuestions, fractionAnswers, fractionGraded, fractionNumeratorAnswers, fractionDenominatorAnswers, fractionWholeNumberAnswers,
+    selectedInvestigatingChangesTopic, investigatingChangesQuestions, investigatingChangesAnswers, investigatingChangesGraded,
   ]);
 
   // Auto-save every 3 seconds
@@ -326,6 +336,18 @@ const Index = () => {
       if (state.selectedLineGraphTopic) setSelectedLineGraphTopic(state.selectedLineGraphTopic);
       if (state.selectedFractionTopic) setSelectedFractionTopic(state.selectedFractionTopic);
       if (state.selectedInvestigatingChangesTopic) setSelectedInvestigatingChangesTopic(state.selectedInvestigatingChangesTopic);
+
+      // Restore questions (so exercises are preserved)
+      if (state.geometryQuestions) setGeometryQuestions(state.geometryQuestions);
+      if (state.ratioQuestions) setRatioQuestions(state.ratioQuestions);
+      if (state.accuracyRateQuestions) setAccuracyRateQuestions(state.accuracyRateQuestions);
+      if (state.largeNumberQuestions) setLargeNumberQuestions(state.largeNumberQuestions);
+      if (state.calculationRulesQuestions) setCalculationRulesQuestions(state.calculationRulesQuestions);
+      if (state.divisionQuestions) setDivisionQuestions(state.divisionQuestions);
+      if (state.decimalQuestions) setDecimalQuestions(state.decimalQuestions);
+      if (state.lineGraphQuestions) setLineGraphQuestions(state.lineGraphQuestions);
+      if (state.fractionQuestions) setFractionQuestions(state.fractionQuestions);
+      if (state.investigatingChangesQuestions) setInvestigatingChangesQuestions(state.investigatingChangesQuestions);
 
       // Restore answers and graded status
       if (state.geometryAnswers) setGeometryAnswers(state.geometryAnswers);
