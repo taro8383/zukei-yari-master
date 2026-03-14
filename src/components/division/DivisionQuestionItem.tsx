@@ -75,13 +75,13 @@ const DivisionQuestionItem = ({
           ja: (
             <>
               💡 <strong>コツ:</strong> 両方の数から0を同じ数だけ消そう！<br />
-              例：{question.dividend} ÷ {question.divisor} → {question.simplifiedDividend} ÷ {question.simplifiedDivisor}
+              例：600 ÷ 200 → 6 ÷ 2 = 3
             </>
           ),
           en: (
             <>
               <strong>Tip:</strong> Remove the same number of zeros from both numbers!<br />
-              Example: {question.dividend} ÷ {question.divisor} → {question.simplifiedDividend} ÷ {question.simplifiedDivisor}
+              Example: 600 ÷ 200 → 6 ÷ 2 = 3
             </>
           ),
         };
@@ -107,13 +107,13 @@ const DivisionQuestionItem = ({
           ja: (
             <>
               💡 <strong>暗算のコツ:</strong> 0を1つずつ消してから計算！<br />
-              {question.dividend} ÷ {question.divisor} → {question.simplifiedDividend} ÷ {question.simplifiedDivisor}
+              例：600 ÷ 20 → 60 ÷ 2 = 30
             </>
           ),
           en: (
             <>
               <strong>Mental Math Tip:</strong> Cancel one zero from each, then calculate!<br />
-              {question.dividend} ÷ {question.divisor} → {question.simplifiedDividend} ÷ {question.simplifiedDivisor}
+              Example: 600 ÷ 20 → 60 ÷ 2 = 30
             </>
           ),
         };
@@ -148,6 +148,7 @@ const DivisionQuestionItem = ({
     }
 
     if (question.topic === 'division-properties') {
+      // Don't show the simplified version - let students figure it out
       return (
         <div className="bg-kid-green/10 rounded-xl p-4 border border-kid-green/30">
           <p className="text-sm font-bold text-foreground mb-2 text-center">
@@ -155,11 +156,10 @@ const DivisionQuestionItem = ({
           </p>
           <div className="text-center space-y-2">
             <p className="text-lg">
-              <span className="font-bold">{question.dividend}</span> ÷ <span className="font-bold">{question.divisor}</span>
+              <span className="font-bold">{question.dividend}</span> ÷ <span className="font-bold">{question.divisor}</span> = ?
             </p>
-            <p className="text-muted-foreground">↓ 両方を同じ数で割る</p>
-            <p className="text-lg text-primary font-bold">
-              {question.simplifiedDividend} ÷ {question.simplifiedDivisor} = ?
+            <p className="text-xs text-muted-foreground">
+              ヒント：両方の数を同じ数で割ると簡単になるよ / Hint: Divide both numbers by the same amount to simplify
             </p>
           </div>
         </div>
