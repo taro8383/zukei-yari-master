@@ -2155,6 +2155,7 @@ const Index = () => {
                         ) : undefined}
                         noHintsMode={challengeModes.noHints}
                         onHintUsed={() => setHintsUsed(prev => prev + 1)}
+                        onTeachMe={() => handleTeachMe(q, ratioAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -2573,6 +2574,7 @@ const Index = () => {
                         ) : undefined}
                         gridAnswers={decimalGridAnswers[i] || []}
                         onGridAnswerChange={(cellIdx, v) => handleDecimalGridAnswerChange(i, cellIdx, v)}
+                        onTeachMe={() => handleTeachMe(q, decimalAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -2911,6 +2913,7 @@ const Index = () => {
                             }
                           })()
                         ) : undefined}
+                        onTeachMe={() => handleTeachMe(q, fractionAnswers[i], i)}
                       />
                     </div>
                   ))}

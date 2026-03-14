@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { DecimalQuestion } from '@/lib/decimals';
 import VerticalDecimalGrid from './VerticalDecimalGrid';
 import DecimalShiftArrow from './DecimalShiftArrow';
+import { Lightbulb } from 'lucide-react';
 
 interface DecimalQuestionItemProps {
   question: DecimalQuestion;
@@ -13,6 +14,8 @@ interface DecimalQuestionItemProps {
   // For vertical decimal grid (add/subtract)
   gridAnswers?: string[];
   onGridAnswerChange?: (cellIndex: number, value: string) => void;
+  // For teach me feature
+  onTeachMe?: () => void;
 }
 
 const DecimalQuestionItem = ({
@@ -24,6 +27,7 @@ const DecimalQuestionItem = ({
   isCorrect,
   gridAnswers = [],
   onGridAnswerChange,
+  onTeachMe,
 }: DecimalQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -321,6 +325,15 @@ const DecimalQuestionItem = ({
               <span className="text-xs text-red-400 block">
                 {question.formulaEn}
               </span>
+              {onTeachMe && (
+                <button
+                  onClick={onTeachMe}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors mt-3"
+                >
+                  <Lightbulb className="w-4 h-4" />
+                  <span>おしえて / Teach Me</span>
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FractionQuestion } from '@/lib/fractions';
 import { FractionInput } from './FractionInput';
 import { cn } from '@/lib/utils';
+import { Lightbulb } from 'lucide-react';
 
 interface FractionsQuestionItemProps {
   question: FractionQuestion;
@@ -16,6 +17,8 @@ interface FractionsQuestionItemProps {
   onWholeNumberChange?: (value: string) => void;
   graded: boolean;
   isCorrect?: boolean;
+  // For teach me feature
+  onTeachMe?: () => void;
 }
 
 const FractionsQuestionItem = ({
@@ -31,6 +34,7 @@ const FractionsQuestionItem = ({
   onWholeNumberChange,
   graded,
   isCorrect,
+  onTeachMe,
 }: FractionsQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -513,6 +517,15 @@ const FractionsQuestionItem = ({
                         : `${question.answerNum}/${question.answerDen}`)}
                   </span>
                 </>
+              )}
+              {onTeachMe && (
+                <button
+                  onClick={onTeachMe}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors mt-3"
+                >
+                  <Lightbulb className="w-4 h-4" />
+                  <span>おしえて / Teach Me</span>
+                </button>
               )}
             </div>
           )}

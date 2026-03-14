@@ -3,6 +3,7 @@ import TapeDiagram from './TapeDiagram';
 import SmartHintPanel from '@/components/SmartHintPanel';
 import { generateRatioHints } from '@/lib/gameState';
 import { useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 
 interface RatioQuestionItemProps {
   question: RatioQuestion;
@@ -17,6 +18,8 @@ interface RatioQuestionItemProps {
   // For smart hints
   noHintsMode?: boolean;
   onHintUsed?: () => void;
+  // For teach me feature
+  onTeachMe?: () => void;
 }
 
 const RatioQuestionItem = ({
@@ -30,6 +33,7 @@ const RatioQuestionItem = ({
   isCorrect,
   noHintsMode = false,
   onHintUsed,
+  onTeachMe,
 }: RatioQuestionItemProps) => {
   const [showExplanation, setShowExplanation] = useState(false);
 
@@ -211,6 +215,15 @@ const RatioQuestionItem = ({
                             : `${formatRatio(question.answer)}倍`}
                         </strong>
                       </span>
+                      {onTeachMe && (
+                        <button
+                          onClick={onTeachMe}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors ml-auto"
+                        >
+                          <Lightbulb className="w-4 h-4" />
+                          <span>おしえて / Teach Me</span>
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
