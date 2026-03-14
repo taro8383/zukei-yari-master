@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Sparkles, RotateCcw, CheckCircle2, Compass, Circle, Shapes, Percent, Hash, Calculator, Divide, Dot, TrendingUp, History, Pizza } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -210,6 +210,180 @@ const Index = () => {
     setGameData(data);
     setCurrentTheme(data.settings.theme);
   }, []);
+
+  // Auto-save state to localStorage every 3 seconds
+  const saveCurrentState = useCallback(() => {
+    const stateToSave = {
+      timestamp: Date.now(),
+      activeTab,
+      // Geometry
+      selectedTopic,
+      geometryAnswers,
+      geometryGraded,
+      // Ratios
+      selectedRatioTopic,
+      ratioAnswers,
+      ratioGraded,
+      // Accuracy Rate
+      selectedAccuracyRateTopic,
+      accuracyRateAnswers,
+      accuracyRateGraded,
+      // Large Numbers
+      selectedLargeNumberTopic,
+      largeNumberAnswers,
+      largeNumberGraded,
+      // Calculation Rules
+      selectedCalculationRulesTopic,
+      calculationRulesAnswers,
+      calculationRulesGraded,
+      calculationRulesStepAnswers,
+      // Division
+      selectedDivisionTopic,
+      divisionAnswers,
+      divisionGraded,
+      divisionStepAnswers,
+      // Decimals
+      selectedDecimalTopic,
+      decimalAnswers,
+      decimalGraded,
+      // Line Graphs
+      selectedLineGraphTopic,
+      lineGraphAnswers,
+      lineGraphGraded,
+      // Fractions
+      selectedFractionTopic,
+      fractionAnswers,
+      fractionGraded,
+      fractionNumeratorAnswers,
+      fractionDenominatorAnswers,
+      fractionWholeNumberAnswers,
+      // Investigating Changes
+      selectedInvestigatingChangesTopic,
+      investigatingChangesAnswers,
+      investigatingChangesGraded,
+    };
+
+    try {
+      localStorage.setItem('zukei-yari-session-state', JSON.stringify(stateToSave));
+    } catch (e) {
+      console.warn('Failed to save session state:', e);
+    }
+  }, [
+    activeTab,
+    selectedTopic, geometryAnswers, geometryGraded,
+    selectedRatioTopic, ratioAnswers, ratioGraded,
+    selectedAccuracyRateTopic, accuracyRateAnswers, accuracyRateGraded,
+    selectedLargeNumberTopic, largeNumberAnswers, largeNumberGraded,
+    selectedCalculationRulesTopic, calculationRulesAnswers, calculationRulesGraded, calculationRulesStepAnswers,
+    selectedDivisionTopic, divisionAnswers, divisionGraded, divisionStepAnswers,
+    selectedDecimalTopic, decimalAnswers, decimalGraded,
+    selectedLineGraphTopic, lineGraphAnswers, lineGraphGraded,
+    selectedFractionTopic, fractionAnswers, fractionGraded, fractionNumeratorAnswers, fractionDenominatorAnswers, fractionWholeNumberAnswers,
+    selectedInvestigatingChangesTopic, investigatingChangesAnswers, investigatingChangesGraded,
+  ]);
+
+  // Auto-save every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(saveCurrentState, 3000);
+    return () => clearInterval(interval);
+  }, [saveCurrentState]);
+
+  // Save on page visibility change (tab switch, minimize)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        saveCurrentState();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [saveCurrentState]);
+
+  // Restore state on mount (if saved within last 24 hours)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('zukei-yari-session-state');
+      if (!saved) return;
+
+      const state = JSON.parse(saved);
+      const age = Date.now() - state.timestamp;
+      const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+
+      if (age > maxAge) {
+        localStorage.removeItem('zukei-yari-session-state');
+        return;
+      }
+
+      // Restore tab and topics
+      if (state.activeTab) setActiveTab(state.activeTab);
+      if (state.selectedTopic) setSelectedTopic(state.selectedTopic);
+      if (state.selectedRatioTopic) setSelectedRatioTopic(state.selectedRatioTopic);
+      if (state.selectedAccuracyRateTopic) setSelectedAccuracyRateTopic(state.selectedAccuracyRateTopic);
+      if (state.selectedLargeNumberTopic) setSelectedLargeNumberTopic(state.selectedLargeNumberTopic);
+      if (state.selectedCalculationRulesTopic) setSelectedCalculationRulesTopic(state.selectedCalculationRulesTopic);
+      if (state.selectedDivisionTopic) setSelectedDivisionTopic(state.selectedDivisionTopic);
+      if (state.selectedDecimalTopic) setSelectedDecimalTopic(state.selectedDecimalTopic);
+      if (state.selectedLineGraphTopic) setSelectedLineGraphTopic(state.selectedLineGraphTopic);
+      if (state.selectedFractionTopic) setSelectedFractionTopic(state.selectedFractionTopic);
+      if (state.selectedInvestigatingChangesTopic) setSelectedInvestigatingChangesTopic(state.selectedInvestigatingChangesTopic);
+
+      // Restore answers and graded status
+      if (state.geometryAnswers) setGeometryAnswers(state.geometryAnswers);
+      if (state.geometryGraded !== undefined) setGeometryGraded(state.geometryGraded);
+      if (state.ratioAnswers) setRatioAnswers(state.ratioAnswers);
+      if (state.ratioGraded !== undefined) setRatioGraded(state.ratioGraded);
+      if (state.accuracyRateAnswers) setAccuracyRateAnswers(state.accuracyRateAnswers);
+      if (state.accuracyRateGraded !== undefined) setAccuracyRateGraded(state.accuracyRateGraded);
+      if (state.largeNumberAnswers) setLargeNumberAnswers(state.largeNumberAnswers);
+      if (state.largeNumberGraded !== undefined) setLargeNumberGraded(state.largeNumberGraded);
+      if (state.calculationRulesAnswers) setCalculationRulesAnswers(state.calculationRulesAnswers);
+      if (state.calculationRulesGraded !== undefined) setCalculationRulesGraded(state.calculationRulesGraded);
+      if (state.calculationRulesStepAnswers) setCalculationRulesStepAnswers(state.calculationRulesStepAnswers);
+      if (state.divisionAnswers) setDivisionAnswers(state.divisionAnswers);
+      if (state.divisionGraded !== undefined) setDivisionGraded(state.divisionGraded);
+      if (state.divisionStepAnswers) setDivisionStepAnswers(state.divisionStepAnswers);
+      if (state.decimalAnswers) setDecimalAnswers(state.decimalAnswers);
+      if (state.decimalGraded !== undefined) setDecimalGraded(state.decimalGraded);
+      if (state.lineGraphAnswers) setLineGraphAnswers(state.lineGraphAnswers);
+      if (state.lineGraphGraded !== undefined) setLineGraphGraded(state.lineGraphGraded);
+      if (state.fractionAnswers) setFractionAnswers(state.fractionAnswers);
+      if (state.fractionGraded !== undefined) setFractionGraded(state.fractionGraded);
+      if (state.fractionNumeratorAnswers) setFractionNumeratorAnswers(state.fractionNumeratorAnswers);
+      if (state.fractionDenominatorAnswers) setFractionDenominatorAnswers(state.fractionDenominatorAnswers);
+      if (state.fractionWholeNumberAnswers) setFractionWholeNumberAnswers(state.fractionWholeNumberAnswers);
+      if (state.investigatingChangesAnswers) setInvestigatingChangesAnswers(state.investigatingChangesAnswers);
+      if (state.investigatingChangesGraded !== undefined) setInvestigatingChangesGraded(state.investigatingChangesGraded);
+    } catch (e) {
+      console.warn('Failed to restore session state:', e);
+    }
+  }, []);
+
+  // Clear saved state when graded (submitted) to avoid restoring old completed work
+  useEffect(() => {
+    const allGraded = [
+      geometryGraded, ratioGraded, accuracyRateGraded, largeNumberGraded,
+      calculationRulesGraded, divisionGraded, decimalGraded, lineGraphGraded,
+      fractionGraded, investigatingChangesGraded
+    ];
+    if (allGraded.some(g => g)) {
+      // Keep state for potential restore, but mark as completed
+      try {
+        const saved = localStorage.getItem('zukei-yari-session-state');
+        if (saved) {
+          const state = JSON.parse(saved);
+          state.completed = true;
+          state.completedAt = Date.now();
+          localStorage.setItem('zukei-yari-session-state', JSON.stringify(state));
+        }
+      } catch (e) {
+        console.warn('Failed to mark state as completed:', e);
+      }
+    }
+  }, [
+    geometryGraded, ratioGraded, accuracyRateGraded, largeNumberGraded,
+    calculationRulesGraded, divisionGraded, decimalGraded, lineGraphGraded,
+    fractionGraded, investigatingChangesGraded
+  ]);
 
   // Listen for theme and settings changes
   useEffect(() => {
