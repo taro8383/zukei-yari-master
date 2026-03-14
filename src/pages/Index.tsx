@@ -7,6 +7,15 @@ import QuestionItem from '@/components/QuestionItem';
 import Protractor from '@/components/Protractor';
 import ScoreResultModal from '@/components/ScoreResultModal';
 import HistoryModal, { HistoryEntry } from '@/components/HistoryModal';
+import HeaderBar from '@/components/HeaderBar';
+import ChallengeModeSelector, { ChallengeModes } from '@/components/ChallengeModeSelector';
+import ShopModal from '@/components/ShopModal';
+import AdventureMap from '@/components/AdventureMap';
+import DailyQuests from '@/components/DailyQuests';
+import LearningInsights from '@/components/LearningInsights';
+import EndOfSessionSummary from '@/components/EndOfSessionSummary';
+import TeachMeModal from '@/components/TeachMeModal';
+import ParticleManager, { celebrateCorrect, celebratePerfect, celebrateCoin, celebrateAchievement, celebrateLevelUp } from '@/components/ParticleEffects';
 import { Topic, TOPICS, Question, generateQuestions } from '@/lib/geometry';
 import { RatioQuestion, RatioTopic, RATIO_TOPICS, generateRatioQuestions, AccuracyRateQuestion, AccuracyRateTopic, ACCURACY_RATE_TOPICS, generateAccuracyRateQuestions } from '@/lib/ratios';
 import { LargeNumberQuestion, LargeNumberTopic, LARGE_NUMBER_TOPICS, generateLargeNumberQuestions } from '@/lib/largeNumbers';
@@ -26,6 +35,7 @@ import { FractionsExplanationCard, FractionsQuestionItem } from '@/components/fr
 import { AreaExplanationCard, AreaQuestionItem } from '@/components/area';
 import { InvestigatingChangesExplanationCard, InvestigatingChangesQuestionItem } from '@/components/investigatingChanges';
 import { saveHistoryEntry, getHistory, clearHistory, TAB_NAMES } from '@/lib/historyStorage';
+import { getGameData, saveGameData, getThemeColors, updateQuestProgress, recordMistake, getLearningInsights } from '@/lib/gameState';
 
 const topicKeys: Topic[] = ['lines', 'angles', 'intersecting', 'quadrilaterals', 'diagonals', 'calculating-area', 'choosing-units', 'large-area-units', 'composite-shapes'];
 const ratioTopicKeys: RatioTopic[] = ['finding-ratio', 'finding-compared', 'finding-base', 'difference-vs-multiple'];
@@ -137,6 +147,14 @@ const Index = () => {
   const [investigatingChangesGraded, setInvestigatingChangesGraded] = useState(false);
   const [investigatingChangesScore, setInvestigatingChangesScore] = useState(0);
 
+  // Gamification state
+  const [challengeModes, setChallengeModes] = useState<ChallengeModes>({
+    speedMode: false,
+    noHints: false,
+  });
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+
   // Protractor state (shared across tabs)
   const [activeProtractor, setActiveProtractor] = useState<ProtractorType>(null);
 
@@ -149,19 +167,86 @@ const Index = () => {
 
   // History modal state
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [shopModalOpen, setShopModalOpen] = useState(false);
+  const [questsModalOpen, setQuestsModalOpen] = useState(false);
+  const [insightsModalOpen, setInsightsModalOpen] = useState(false);
+  const [unacknowledgedInsights, setUnacknowledgedInsights] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  // End-of-session summary state
+  const [sessionSummaryOpen, setSessionSummaryOpen] = useState(false);
+  const [sessionCoinsEarned, setSessionCoinsEarned] = useState(0);
+  const [sessionTopicKey, setSessionTopicKey] = useState('');
+  const [sessionTopicName, setSessionTopicName] = useState('');
+
+  // Teach Me modal state
+  const [teachMeOpen, setTeachMeOpen] = useState(false);
+  const [teachMeQuestion, setTeachMeQuestion] = useState<any>(null);
+  const [teachMeUserAnswer, setTeachMeUserAnswer] = useState('');
+  const [teachMeQuestionIndex, setTeachMeQuestionIndex] = useState(0);
+
+  // Theme state
+  const [currentTheme, setCurrentTheme] = useState('default');
+
+  // Adventure map state
+  const [showAdventureMap, setShowAdventureMap] = useState(true);
+
+  // Game data for particle settings
+  const [gameData, setGameData] = useState(getGameData());
+
+  // Load unacknowledged insights count
+  useEffect(() => {
+    const insights = getLearningInsights();
+    setUnacknowledgedInsights(insights.length);
+  }, [insightsModalOpen]);
 
   // Refs for scrolling to questions
   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Load history on mount
+  // Load history and theme on mount
   useEffect(() => {
     setHistory(getHistory());
+    const data = getGameData();
+    setGameData(data);
+    setCurrentTheme(data.settings.theme);
   }, []);
+
+  // Listen for theme and settings changes
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const data = getGameData();
+      setCurrentTheme(data.settings.theme);
+      setGameData(data);
+    };
+
+    window.addEventListener('theme-changed', handleThemeChange);
+    window.addEventListener('inventory-changed', handleThemeChange);
+    window.addEventListener('coins-changed', handleThemeChange);
+    return () => {
+      window.removeEventListener('theme-changed', handleThemeChange);
+      window.removeEventListener('inventory-changed', handleThemeChange);
+      window.removeEventListener('coins-changed', handleThemeChange);
+    };
+  }, []);
+
+  // Handle region selection from adventure map
+  const handleRegionSelect = (regionId: string, tabId: string) => {
+    setShowAdventureMap(false);
+    handleTabChange(tabId);
+  };
+
+  // Handle opening Teach Me modal for a question
+  const handleTeachMe = (question: any, userAnswer: string, index: number) => {
+    setTeachMeQuestion(question);
+    setTeachMeUserAnswer(userAnswer);
+    setTeachMeQuestionIndex(index);
+    setTeachMeOpen(true);
+  };
 
   // Handle tab switch - reset exercise states
   const handleTabChange = (value: string) => {
     setActiveTab(value as AppTab);
+    setShowAdventureMap(false);
     // Reset all exercise states when switching tabs
     setGeometryQuestions([]);
     setGeometryAnswers([]);
@@ -237,6 +322,8 @@ const Index = () => {
     setGeometryAnswers(new Array(5).fill(''));
     setGeometryGraded(false);
     setGeometryScore(0);
+    setHintsUsed(0);
+    setSessionStartTime(Date.now());
   };
 
   const handleGeometryAnswerChange = (index: number, value: string) => {
@@ -273,12 +360,50 @@ const Index = () => {
     setGeometryScore(correct);
     setGeometryGraded(true);
 
-    // Show score modal
+    // Update current score for summary
     setCurrentScore(correct);
-    setCurrentResults(results);
-    setCurrentTabName(TAB_NAMES.geometry.ja);
-    setCurrentTopicName(TOPICS[selectedTopic].label);
-    setScoreModalOpen(true);
+
+    // Calculate coins earned
+    const baseCoins = correct * 5;
+    const perfectBonus = correct === 5 ? 25 : 0;
+    const noHintBonus = hintsUsed === 0 ? 10 : 0;
+    const speedBonus =
+      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
+    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
+
+    // Update coins in game data
+    const data = getGameData();
+    data.player.coins += totalCoins;
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+
+    // Show end-of-session summary
+    setSessionCoinsEarned(totalCoins);
+    setSessionTopicKey(selectedTopic);
+    setSessionTopicName(TOPICS[selectedTopic].label);
+    setSessionSummaryOpen(true);
+
+    // Trigger particle effects for perfect score
+    if (correct === 5) {
+      celebratePerfect();
+      updateQuestProgress('perfect-score');
+    }
+
+    // Update quest progress
+    updateQuestProgress('answer-questions', 5);
+    updateQuestProgress('answer-correct', correct);
+
+    // Record mistakes for incorrect answers
+    results.forEach((result) => {
+      if (!result.isCorrect) {
+        recordMistake(
+          selectedTopic,
+          'geometry',
+          result.userAnswer.toString(),
+          result.correctAnswer.toString()
+        );
+      }
+    });
 
     // Save to history
     saveHistoryEntry({
@@ -305,6 +430,8 @@ const Index = () => {
     setRatioOperationAnswers(new Array(5).fill(''));
     setRatioGraded(false);
     setRatioScore(0);
+    setHintsUsed(0);
+    setSessionStartTime(Date.now());
   };
 
   const handleRatioAnswerChange = (index: number, value: string) => {
@@ -354,12 +481,50 @@ const Index = () => {
     setRatioScore(correct);
     setRatioGraded(true);
 
-    // Show score modal
+    // Update current score for summary
     setCurrentScore(correct);
-    setCurrentResults(results);
-    setCurrentTabName(TAB_NAMES.ratios.ja);
-    setCurrentTopicName(RATIO_TOPICS[selectedRatioTopic].label);
-    setScoreModalOpen(true);
+
+    // Calculate coins earned
+    const baseCoins = correct * 5;
+    const perfectBonus = correct === 5 ? 25 : 0;
+    const noHintBonus = hintsUsed === 0 ? 10 : 0;
+    const speedBonus =
+      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
+    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
+
+    // Update coins in game data
+    const data = getGameData();
+    data.player.coins += totalCoins;
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+
+    // Show end-of-session summary
+    setSessionCoinsEarned(totalCoins);
+    setSessionTopicKey(selectedRatioTopic);
+    setSessionTopicName(RATIO_TOPICS[selectedRatioTopic].label);
+    setSessionSummaryOpen(true);
+
+    // Trigger particle effects for perfect score
+    if (correct === 5) {
+      celebratePerfect();
+      updateQuestProgress('perfect-score');
+    }
+
+    // Update quest progress
+    updateQuestProgress('answer-questions', 5);
+    updateQuestProgress('answer-correct', correct);
+
+    // Record mistakes for incorrect answers
+    results.forEach((result) => {
+      if (!result.isCorrect) {
+        recordMistake(
+          selectedRatioTopic,
+          'ratios',
+          result.userAnswer.toString(),
+          result.correctAnswer.toString()
+        );
+      }
+    });
 
     // Save to history
     saveHistoryEntry({
@@ -384,6 +549,8 @@ const Index = () => {
     setAccuracyRateAnswers(new Array(5).fill(''));
     setAccuracyRateGraded(false);
     setAccuracyRateScore(0);
+    setHintsUsed(0);
+    setSessionStartTime(Date.now());
   };
 
   const handleAccuracyRateAnswerChange = (index: number, value: string) => {
@@ -417,12 +584,50 @@ const Index = () => {
     setAccuracyRateScore(correct);
     setAccuracyRateGraded(true);
 
-    // Show score modal
+    // Update current score for summary
     setCurrentScore(correct);
-    setCurrentResults(results);
-    setCurrentTabName(TAB_NAMES['accuracy-rate'].ja);
-    setCurrentTopicName(ACCURACY_RATE_TOPICS[selectedAccuracyRateTopic].label);
-    setScoreModalOpen(true);
+
+    // Calculate coins earned
+    const baseCoins = correct * 5;
+    const perfectBonus = correct === 5 ? 25 : 0;
+    const noHintBonus = hintsUsed === 0 ? 10 : 0;
+    const speedBonus =
+      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
+    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
+
+    // Update coins in game data
+    const data = getGameData();
+    data.player.coins += totalCoins;
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+
+    // Show end-of-session summary
+    setSessionCoinsEarned(totalCoins);
+    setSessionTopicKey(selectedAccuracyRateTopic);
+    setSessionTopicName(ACCURACY_RATE_TOPICS[selectedAccuracyRateTopic].label);
+    setSessionSummaryOpen(true);
+
+    // Trigger particle effects for perfect score
+    if (correct === 5) {
+      celebratePerfect();
+      updateQuestProgress('perfect-score');
+    }
+
+    // Update quest progress
+    updateQuestProgress('answer-questions', 5);
+    updateQuestProgress('answer-correct', correct);
+
+    // Record mistakes for incorrect answers
+    results.forEach((result) => {
+      if (!result.isCorrect) {
+        recordMistake(
+          selectedAccuracyRateTopic,
+          'accuracy-rate',
+          result.userAnswer.toString(),
+          result.correctAnswer.toString()
+        );
+      }
+    });
 
     // Save to history
     saveHistoryEntry({
@@ -447,6 +652,8 @@ const Index = () => {
     setLargeNumberAnswers(new Array(5).fill(''));
     setLargeNumberGraded(false);
     setLargeNumberScore(0);
+    setHintsUsed(0);
+    setSessionStartTime(Date.now());
   };
 
   const handleLargeNumberAnswerChange = (index: number, value: string) => {
@@ -484,12 +691,50 @@ const Index = () => {
     setLargeNumberScore(correct);
     setLargeNumberGraded(true);
 
-    // Show score modal
+    // Update current score for summary
     setCurrentScore(correct);
-    setCurrentResults(results);
-    setCurrentTabName(TAB_NAMES['large-numbers'].ja);
-    setCurrentTopicName(LARGE_NUMBER_TOPICS[selectedLargeNumberTopic].label);
-    setScoreModalOpen(true);
+
+    // Calculate coins earned
+    const baseCoins = correct * 5;
+    const perfectBonus = correct === 5 ? 25 : 0;
+    const noHintBonus = hintsUsed === 0 ? 10 : 0;
+    const speedBonus =
+      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
+    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
+
+    // Update coins in game data
+    const data = getGameData();
+    data.player.coins += totalCoins;
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+
+    // Show end-of-session summary
+    setSessionCoinsEarned(totalCoins);
+    setSessionTopicKey(selectedLargeNumberTopic);
+    setSessionTopicName(LARGE_NUMBER_TOPICS[selectedLargeNumberTopic].label);
+    setSessionSummaryOpen(true);
+
+    // Trigger particle effects for perfect score
+    if (correct === 5) {
+      celebratePerfect();
+      updateQuestProgress('perfect-score');
+    }
+
+    // Update quest progress
+    updateQuestProgress('answer-questions', 5);
+    updateQuestProgress('answer-correct', correct);
+
+    // Record mistakes for incorrect answers
+    results.forEach((result) => {
+      if (!result.isCorrect) {
+        recordMistake(
+          selectedLargeNumberTopic,
+          'large-numbers',
+          result.userAnswer.toString(),
+          result.correctAnswer.toString()
+        );
+      }
+    });
 
     // Save to history
     saveHistoryEntry({
@@ -518,6 +763,8 @@ const Index = () => {
     setCalculationRulesEquationAnswers(new Array(5).fill(''));
     setCalculationRulesGraded(false);
     setCalculationRulesScore(0);
+    setHintsUsed(0);
+    setSessionStartTime(Date.now());
   };
 
   const handleCalculationRulesAnswerChange = (index: number, value: string) => {
@@ -575,12 +822,40 @@ const Index = () => {
     setCalculationRulesScore(correct);
     setCalculationRulesGraded(true);
 
-    // Show score modal
+    // Update current score for summary
     setCurrentScore(correct);
-    setCurrentResults(results);
-    setCurrentTabName(TAB_NAMES['calculation-rules'].ja);
-    setCurrentTopicName(CALCULATION_RULES_TOPICS[selectedCalculationRulesTopic].label);
-    setScoreModalOpen(true);
+
+    // Calculate coins earned
+    const baseCoins = correct * 5;
+    const perfectBonus = correct === 5 ? 25 : 0;
+    const noHintBonus = hintsUsed === 0 ? 10 : 0;
+    const speedBonus =
+      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
+    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
+
+    // Update coins in game data
+    const data = getGameData();
+    data.player.coins += totalCoins;
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+
+    // Show end-of-session summary
+    setSessionCoinsEarned(totalCoins);
+    setSessionTopicKey(selectedCalculationRulesTopic);
+    setSessionTopicName(CALCULATION_RULES_TOPICS[selectedCalculationRulesTopic].label);
+    setSessionSummaryOpen(true);
+
+    // Record mistakes for incorrect answers
+    results.forEach((result) => {
+      if (!result.isCorrect) {
+        recordMistake(
+          selectedCalculationRulesTopic,
+          'calculation-rules',
+          result.userAnswer.toString(),
+          result.correctAnswer.toString()
+        );
+      }
+    });
 
     // Save to history
     saveHistoryEntry({
@@ -615,6 +890,8 @@ const Index = () => {
     setDivisionStepAnswers(newQuestions.map(() => new Array(2).fill('')));
     setDivisionGraded(false);
     setDivisionScore(0);
+    setHintsUsed(0);
+    setSessionStartTime(Date.now());
   };
 
   const handleDivisionAnswerChange = (index: number, value: string) => {
@@ -685,12 +962,40 @@ const Index = () => {
     setDivisionScore(correct);
     setDivisionGraded(true);
 
-    // Show score modal
+    // Update current score for summary
     setCurrentScore(correct);
-    setCurrentResults(results);
-    setCurrentTabName(TAB_NAMES.division.ja);
-    setCurrentTopicName(DIVISION_TOPICS[selectedDivisionTopic].label);
-    setScoreModalOpen(true);
+
+    // Calculate coins earned
+    const baseCoins = correct * 5;
+    const perfectBonus = correct === 5 ? 25 : 0;
+    const noHintBonus = hintsUsed === 0 ? 10 : 0;
+    const speedBonus =
+      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
+    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
+
+    // Update coins in game data
+    const data = getGameData();
+    data.player.coins += totalCoins;
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+
+    // Show end-of-session summary
+    setSessionCoinsEarned(totalCoins);
+    setSessionTopicKey(selectedDivisionTopic);
+    setSessionTopicName(DIVISION_TOPICS[selectedDivisionTopic].label);
+    setSessionSummaryOpen(true);
+
+    // Record mistakes for incorrect answers
+    results.forEach((result) => {
+      if (!result.isCorrect) {
+        recordMistake(
+          selectedDivisionTopic,
+          'division',
+          result.userAnswer.toString(),
+          result.correctAnswer.toString()
+        );
+      }
+    });
 
     // Save to history
     saveHistoryEntry({
@@ -719,6 +1024,8 @@ const Index = () => {
     setDecimalGridAnswers(newQuestions.map(() => new Array(10).fill('')));
     setDecimalGraded(false);
     setDecimalScore(0);
+    setHintsUsed(0);
+    setSessionStartTime(Date.now());
   };
 
   const handleDecimalAnswerChange = (index: number, value: string) => {
@@ -756,12 +1063,40 @@ const Index = () => {
     setDecimalScore(correct);
     setDecimalGraded(true);
 
-    // Show score modal
+    // Update current score for summary
     setCurrentScore(correct);
-    setCurrentResults(results);
-    setCurrentTabName(TAB_NAMES.decimals.ja);
-    setCurrentTopicName(DECIMAL_TOPICS[selectedDecimalTopic].label);
-    setScoreModalOpen(true);
+
+    // Calculate coins earned
+    const baseCoins = correct * 5;
+    const perfectBonus = correct === 5 ? 25 : 0;
+    const noHintBonus = hintsUsed === 0 ? 10 : 0;
+    const speedBonus =
+      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
+    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
+
+    // Update coins in game data
+    const data = getGameData();
+    data.player.coins += totalCoins;
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+
+    // Show end-of-session summary
+    setSessionCoinsEarned(totalCoins);
+    setSessionTopicKey(selectedDecimalTopic);
+    setSessionTopicName(DECIMAL_TOPICS[selectedDecimalTopic].label);
+    setSessionSummaryOpen(true);
+
+    // Record mistakes for incorrect answers
+    results.forEach((result) => {
+      if (!result.isCorrect) {
+        recordMistake(
+          selectedDecimalTopic,
+          'decimals',
+          result.userAnswer.toString(),
+          result.correctAnswer.toString()
+        );
+      }
+    });
 
     // Save to history
     saveHistoryEntry({
@@ -791,6 +1126,8 @@ const Index = () => {
     setLineGraphPlottedPoints(Array.from({ length: 5 }, () => []));
     setLineGraphGraded(false);
     setLineGraphScore(0);
+    setHintsUsed(0);
+    setSessionStartTime(Date.now());
   };
 
   const handleLineGraphAnswerChange = (index: number, value: string) => {
@@ -882,12 +1219,40 @@ const Index = () => {
     setLineGraphScore(correct);
     setLineGraphGraded(true);
 
-    // Show score modal
+    // Update current score for summary
     setCurrentScore(correct);
-    setCurrentResults(results);
-    setCurrentTabName(TAB_NAMES['line-graphs'].ja);
-    setCurrentTopicName(LINE_GRAPH_TOPICS[selectedLineGraphTopic].label);
-    setScoreModalOpen(true);
+
+    // Calculate coins earned
+    const baseCoins = correct * 5;
+    const perfectBonus = correct === 5 ? 25 : 0;
+    const noHintBonus = hintsUsed === 0 ? 10 : 0;
+    const speedBonus =
+      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
+    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
+
+    // Update coins in game data
+    const data = getGameData();
+    data.player.coins += totalCoins;
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+
+    // Show end-of-session summary
+    setSessionCoinsEarned(totalCoins);
+    setSessionTopicKey(selectedLineGraphTopic);
+    setSessionTopicName(LINE_GRAPH_TOPICS[selectedLineGraphTopic].label);
+    setSessionSummaryOpen(true);
+
+    // Record mistakes for incorrect answers
+    results.forEach((result) => {
+      if (!result.isCorrect) {
+        recordMistake(
+          selectedLineGraphTopic,
+          'line-graphs',
+          result.userAnswer.toString(),
+          result.correctAnswer.toString()
+        );
+      }
+    });
 
     // Save to history
     saveHistoryEntry({
@@ -917,6 +1282,8 @@ const Index = () => {
     setFractionWholeNumberAnswers(new Array(5).fill(''));
     setFractionGraded(false);
     setFractionScore(0);
+    setHintsUsed(0);
+    setSessionStartTime(Date.now());
   };
 
   const handleFractionAnswerChange = (index: number, value: string) => {
@@ -991,12 +1358,40 @@ const Index = () => {
     setFractionScore(correct);
     setFractionGraded(true);
 
-    // Show score modal
+    // Update current score for summary
     setCurrentScore(correct);
-    setCurrentResults(results);
-    setCurrentTabName(TAB_NAMES.fractions.ja);
-    setCurrentTopicName(FRACTION_TOPICS[selectedFractionTopic].label);
-    setScoreModalOpen(true);
+
+    // Calculate coins earned
+    const baseCoins = correct * 5;
+    const perfectBonus = correct === 5 ? 25 : 0;
+    const noHintBonus = hintsUsed === 0 ? 10 : 0;
+    const speedBonus =
+      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
+    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
+
+    // Update coins in game data
+    const data = getGameData();
+    data.player.coins += totalCoins;
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+
+    // Show end-of-session summary
+    setSessionCoinsEarned(totalCoins);
+    setSessionTopicKey(selectedFractionTopic);
+    setSessionTopicName(FRACTION_TOPICS[selectedFractionTopic].label);
+    setSessionSummaryOpen(true);
+
+    // Record mistakes for incorrect answers
+    results.forEach((result) => {
+      if (!result.isCorrect) {
+        recordMistake(
+          selectedFractionTopic,
+          'fractions',
+          result.userAnswer.toString(),
+          result.correctAnswer.toString()
+        );
+      }
+    });
 
     // Save to history
     saveHistoryEntry({
@@ -1023,6 +1418,8 @@ const Index = () => {
     setInvestigatingChangesAnswers(new Array(5).fill(''));
     setInvestigatingChangesGraded(false);
     setInvestigatingChangesScore(0);
+    setHintsUsed(0);
+    setSessionStartTime(Date.now());
   };
 
   const handleInvestigatingChangesAnswerChange = (index: number, value: string) => {
@@ -1055,12 +1452,40 @@ const Index = () => {
     setInvestigatingChangesScore(correct);
     setInvestigatingChangesGraded(true);
 
-    // Show score modal
+    // Update current score for summary
     setCurrentScore(correct);
-    setCurrentResults(results);
-    setCurrentTabName(TAB_NAMES['investigating-changes'].ja);
-    setCurrentTopicName(INVESTIGATING_CHANGES_TOPICS[selectedInvestigatingChangesTopic].label);
-    setScoreModalOpen(true);
+
+    // Calculate coins earned
+    const baseCoins = correct * 5;
+    const perfectBonus = correct === 5 ? 25 : 0;
+    const noHintBonus = hintsUsed === 0 ? 10 : 0;
+    const speedBonus =
+      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
+    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
+
+    // Update coins in game data
+    const data = getGameData();
+    data.player.coins += totalCoins;
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+
+    // Show end-of-session summary
+    setSessionCoinsEarned(totalCoins);
+    setSessionTopicKey(selectedInvestigatingChangesTopic);
+    setSessionTopicName(INVESTIGATING_CHANGES_TOPICS[selectedInvestigatingChangesTopic].label);
+    setSessionSummaryOpen(true);
+
+    // Record mistakes for incorrect answers
+    results.forEach((result) => {
+      if (!result.isCorrect) {
+        recordMistake(
+          selectedInvestigatingChangesTopic,
+          'investigating-changes',
+          result.userAnswer.toString(),
+          result.correctAnswer.toString()
+        );
+      }
+    });
 
     // Save to history
     saveHistoryEntry({
@@ -1080,10 +1505,25 @@ const Index = () => {
 
   const investigatingChangesScorePercent = investigatingChangesScore * 20;
 
+  const themeColors = getThemeColors(currentTheme);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen transition-colors duration-300"
+      style={{
+        backgroundColor: themeColors.background,
+        color: themeColors.text,
+      }}
+      data-theme={currentTheme}
+    >
       {/* Header */}
-      <header className="bg-card border-b border-border shadow-kid">
+      <header
+        className="border-b shadow-kid transition-colors duration-300"
+        style={{
+          backgroundColor: themeColors.card,
+          borderColor: currentTheme === 'default' ? '' : themeColors.primary + '30',
+        }}
+      >
         <div className="container max-w-3xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -1143,9 +1583,45 @@ const Index = () => {
         </div>
       )}
 
+      {/* Header Bar with Gamification Stats */}
+      <div className="container max-w-3xl mx-auto px-4 pt-4">
+        <HeaderBar
+          onOpenShop={() => setShopModalOpen(true)}
+          onOpenQuests={() => setQuestsModalOpen(true)}
+          onOpenInsights={() => setInsightsModalOpen(true)}
+          unacknowledgedInsights={unacknowledgedInsights}
+        />
+      </div>
+
+      {/* Adventure Map */}
+      {showAdventureMap && (
+        <div className="container max-w-4xl mx-auto px-4 py-6">
+          <div className="mb-4 text-center">
+            <h2 className="text-2xl font-black text-foreground mb-1">
+              🗺️ 冒険の地図 / Adventure Map
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              エリアを選んで冒険を始めよう！/ Choose an area to start your adventure!
+            </p>
+          </div>
+          <AdventureMap onSelectRegion={handleRegionSelect} activeTab={activeTab} />
+        </div>
+      )}
+
       {/* Main Content with Tabs */}
       <main className="container max-w-3xl mx-auto px-4 py-8">
+        {!showAdventureMap && (
+          <button
+            onClick={() => setShowAdventureMap(true)}
+            className="mb-6 flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-xl font-medium transition-colors"
+          >
+            <span>🗺️</span>
+            <span>冒険の地図に戻る / Back to Map</span>
+          </button>
+        )}
+
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          {!showAdventureMap && (
            <TabsList className="w-full grid grid-cols-5 mb-8 h-auto p-2 bg-muted rounded-2xl gap-2">
             {/* Row 1: Numbers & Operations */}
             <TabsTrigger
@@ -1250,6 +1726,7 @@ const Index = () => {
               </div>
             </TabsTrigger>
           </TabsList>
+          )}
 
           {/* Geometry Tab */}
           <TabsContent value="geometry" className="mt-0">
@@ -1268,6 +1745,8 @@ const Index = () => {
                       setGeometryAnswers([]);
                       setGeometryGraded(false);
                       setGeometryScore(0);
+                      // Update quest progress
+                      updateQuestProgress('try-topic');
                     }}
                     className={`px-4 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 flex flex-col items-center ${
                       selectedTopic === t
@@ -1286,6 +1765,13 @@ const Index = () => {
             <div className="mb-6">
               <ExplanationCard info={TOPICS[selectedTopic]} />
             </div>
+
+            {/* Challenge Modes */}
+            <ChallengeModeSelector
+              modes={challengeModes}
+              onChange={setChallengeModes}
+              disabled={geometryQuestions.length > 0}
+            />
 
             {/* Generate Button */}
             <Button variant="generate" size="lg" onClick={handleGenerateGeometry} className="mb-8 w-full sm:w-auto">
@@ -1339,6 +1825,7 @@ const Index = () => {
                             }
                             return parseFloat(geometryAnswers[i]) === q.answer;
                           })() : undefined}
+                          onTeachMe={() => handleTeachMe(q, geometryAnswers[i], i)}
                         />
                       ) : (
                         <QuestionItem
@@ -1348,6 +1835,7 @@ const Index = () => {
                           onAnswerChange={(v) => handleGeometryAnswerChange(i, v)}
                           graded={geometryGraded}
                           isCorrect={geometryGraded ? parseInt(geometryAnswers[i]) === q.answer : undefined}
+                          onTeachMe={() => handleTeachMe(q, geometryAnswers[i], i)}
                         />
                       )}
                     </div>
@@ -1453,6 +1941,8 @@ const Index = () => {
                             ? parseFloat(ratioAnswers[i]) === q.answer && ratioOperationAnswers[i] === q.correctOperation
                             : parseFloat(ratioAnswers[i]) === q.answer
                         ) : undefined}
+                        noHintsMode={challengeModes.noHints}
+                        onHintUsed={() => setHintsUsed(prev => prev + 1)}
                       />
                     </div>
                   ))}
@@ -2402,6 +2892,10 @@ const Index = () => {
         }}
         tabName={currentTabName}
         topicName={currentTopicName}
+        topicId={`${activeTab}-${activeTab === 'geometry' ? selectedTopic : activeTab === 'ratios' ? selectedRatioTopic : activeTab === 'accuracy-rate' ? selectedAccuracyRateTopic : activeTab === 'large-numbers' ? selectedLargeNumberTopic : activeTab === 'calculation-rules' ? selectedCalculationRulesTopic : activeTab === 'division' ? selectedDivisionTopic : activeTab === 'decimals' ? selectedDecimalTopic : activeTab === 'line-graphs' ? selectedLineGraphTopic : activeTab === 'fractions' ? selectedFractionTopic : selectedInvestigatingChangesTopic}`}
+        hintsUsed={hintsUsed}
+        challengeModes={challengeModes}
+        timeSpentSeconds={sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0}
       />
 
       {/* History Modal */}
@@ -2414,6 +2908,105 @@ const Index = () => {
           setHistory([]);
         }}
       />
+
+      {/* Shop Modal */}
+      <ShopModal
+        isOpen={shopModalOpen}
+        onClose={() => setShopModalOpen(false)}
+      />
+
+      {/* Daily Quests Modal */}
+      <DailyQuests
+        isOpen={questsModalOpen}
+        onClose={() => setQuestsModalOpen(false)}
+      />
+
+      {/* Learning Insights Modal */}
+      <LearningInsights
+        isOpen={insightsModalOpen}
+        onClose={() => setInsightsModalOpen(false)}
+        currentTopic={selectedTopic}
+      />
+
+      {/* End of Session Summary */}
+      <EndOfSessionSummary
+        isOpen={sessionSummaryOpen}
+        onClose={() => setSessionSummaryOpen(false)}
+        onPracticeMore={() => {
+          setSessionSummaryOpen(false);
+          // Regenerate questions for the same topic
+          switch (activeTab) {
+            case 'geometry':
+              handleGenerateGeometry();
+              break;
+            case 'ratios':
+              handleGenerateRatios();
+              break;
+            case 'accuracy-rate':
+              handleGenerateAccuracyRate();
+              break;
+            case 'large-numbers':
+              handleGenerateLargeNumbers();
+              break;
+            case 'calculation-rules':
+              handleGenerateCalculationRules();
+              break;
+            case 'division':
+              handleGenerateDivision();
+              break;
+            case 'decimals':
+              handleGenerateDecimals();
+              break;
+            case 'line-graphs':
+              handleGenerateLineGraphs();
+              break;
+            case 'fractions':
+              handleGenerateFractions();
+              break;
+            case 'investigating-changes':
+              handleGenerateInvestigatingChanges();
+              break;
+          }
+        }}
+        onBackToMap={() => {
+          setSessionSummaryOpen(false);
+          setShowAdventureMap(true);
+        }}
+        score={currentScore}
+        totalQuestions={5}
+        timeSpent={
+          sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0
+        }
+        coinsEarned={sessionCoinsEarned}
+        topic={sessionTopicKey}
+        topicName={sessionTopicName}
+      />
+
+      {/* Teach Me Modal */}
+      <TeachMeModal
+        isOpen={teachMeOpen}
+        onClose={() => setTeachMeOpen(false)}
+        onTrySimilar={() => {
+          setTeachMeOpen(false);
+          // Could regenerate similar question here in future
+        }}
+        onContinue={() => setTeachMeOpen(false)}
+        question={
+          teachMeQuestion
+            ? {
+                text: teachMeQuestion.text || '',
+                textEn: teachMeQuestion.textEn || '',
+                answer: teachMeQuestion.answer || '',
+              }
+            : { text: '', textEn: '', answer: '' }
+        }
+        userAnswer={teachMeUserAnswer}
+        topic={selectedTopic}
+        questionType={activeTab}
+      />
+
+      {/* Particle Effects Manager */}
+      <ParticleManager enabled={gameData?.settings?.animationsEnabled ?? true} />
     </div>
   );
 };

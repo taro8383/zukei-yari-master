@@ -12,6 +12,7 @@ import {
   DiagonalsDrawingExplanation,
 } from '@/components/explanations';
 import ConceptExplanation from '@/components/ConceptExplanation';
+import { Lightbulb } from 'lucide-react';
 
 interface QuestionItemProps {
   question: Question;
@@ -20,6 +21,7 @@ interface QuestionItemProps {
   onAnswerChange: (value: string) => void;
   graded: boolean;
   isCorrect?: boolean;
+  onTeachMe?: () => void;
 }
 
 const QuestionItem = ({
@@ -29,6 +31,7 @@ const QuestionItem = ({
   onAnswerChange,
   graded,
   isCorrect,
+  onTeachMe,
 }: QuestionItemProps) => {
   const { diagram } = question;
 
@@ -163,7 +166,7 @@ const QuestionItem = ({
                 <span className="font-medium text-muted-foreground">{question.unit}</span>
 
                 {graded && (
-                  <div className="flex items-center gap-2 animate-bounce-in">
+                  <div className="flex items-center gap-2 animate-bounce-in flex-wrap">
                     {isCorrect ? (
                       <span className="text-3xl font-black text-correct">〇</span>
                     ) : (
@@ -176,6 +179,15 @@ const QuestionItem = ({
                             {question.unit}
                           </strong>
                         </span>
+                        {onTeachMe && (
+                          <button
+                            onClick={onTeachMe}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors ml-auto"
+                          >
+                            <Lightbulb className="w-4 h-4" />
+                            <span>おしえて / Teach Me</span>
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
@@ -196,7 +208,7 @@ const QuestionItem = ({
 
           {/* Feedback for interactive exercises */}
           {isInteractive && graded && (
-            <div className="mt-4 flex items-center gap-2 animate-bounce-in">
+            <div className="mt-4 flex items-center gap-2 animate-bounce-in flex-wrap">
               {isCorrect ? (
                 <span className="text-3xl font-black text-correct">〇</span>
               ) : (
@@ -205,6 +217,15 @@ const QuestionItem = ({
                   <span className="text-sm text-muted-foreground">
                     もういちどチャレンジしてみよう！ / Try again!
                   </span>
+                  {onTeachMe && (
+                    <button
+                      onClick={onTeachMe}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors ml-auto"
+                    >
+                      <Lightbulb className="w-4 h-4" />
+                      <span>おしえて / Teach Me</span>
+                    </button>
+                  )}
                 </>
               )}
             </div>

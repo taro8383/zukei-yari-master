@@ -1,5 +1,7 @@
 import { RatioQuestion, formatRatio } from '@/lib/ratios';
 import TapeDiagram from './TapeDiagram';
+import SmartHintPanel from '@/components/SmartHintPanel';
+import { generateRatioHints } from '@/lib/gameState';
 import { useState } from 'react';
 
 interface RatioQuestionItemProps {
@@ -12,6 +14,9 @@ interface RatioQuestionItemProps {
   onOperationChange?: (operation: 'difference' | 'multiple') => void;
   graded: boolean;
   isCorrect?: boolean;
+  // For smart hints
+  noHintsMode?: boolean;
+  onHintUsed?: () => void;
 }
 
 const RatioQuestionItem = ({
@@ -23,10 +28,15 @@ const RatioQuestionItem = ({
   onOperationChange,
   graded,
   isCorrect,
+  noHintsMode = false,
+  onHintUsed,
 }: RatioQuestionItemProps) => {
-  const [showHint, setShowHint] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
 
   const isDifferenceVsMultiple = question.type === 'difference-vs-multiple';
+
+  // Generate progressive hints
+  const hints = generateRatioHints(question.type, question.ratio);
 
   // Determine if operation selection is correct
   const isOperationCorrect = isDifferenceVsMultiple
@@ -113,66 +123,20 @@ const RatioQuestionItem = ({
             </div>
           )}
 
-          {/* Hint Toggle */}
+          {/* Smart Hint Panel */}
           {!graded && (
-            <button
-              onClick={() => setShowHint(!showHint)}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors mb-3 flex items-center gap-1"
-            >
-              <span>{showHint ? '💡 ヒントをかくす' : '💡 ヒントをみる'}</span>
-              <span className="text-xs">({showHint ? 'Hide hint' : 'Show hint'})</span>
-            </button>
+            <SmartHintPanel
+              hints={hints}
+              onHintUsed={onHintUsed}
+              disabled={noHintsMode}
+            />
           )}
 
-          {/* Hint - helps identify numbers without giving answer */}
-          {(showHint || graded) && (
-            <div className="bg-kid-yellow/10 rounded-lg p-3 mb-4 text-sm">
-              {graded ? (
-                <>
-                  <p className="font-medium text-foreground">{question.explanation}</p>
-                  <p className="text-muted-foreground">{question.explanationEn}</p>
-                </>
-              ) : question.type === 'finding-compared' ? (
-                <>
-                  <p className="font-medium text-foreground">
-                    💡 もとにする数は <strong>{question.baseAmount}</strong>、倍は <strong>{question.ratio}</strong> だよ
-                  </p>
-                  <p className="text-muted-foreground">
-                    The base amount is <strong>{question.baseAmount}</strong>, the ratio is <strong>{question.ratio}</strong>.<br/>
-                    Remember: もとにする数 × 倍 = くらべる数
-                  </p>
-                </>
-              ) : question.type === 'finding-base' ? (
-                <>
-                  <p className="font-medium text-foreground">
-                    💡 くらべる数は <strong>{question.comparedAmount}</strong>、倍は <strong>{question.ratio}</strong> だよ
-                  </p>
-                  <p className="text-muted-foreground">
-                    The compared amount is <strong>{question.comparedAmount}</strong>, the ratio is <strong>{question.ratio}</strong>.<br/>
-                    Remember: くらべる数 ÷ 倍 = もとにする数
-                  </p>
-                </>
-              ) : isDifferenceVsMultiple ? (
-                <>
-                  <p className="font-medium text-foreground">
-                    💡 「どちらが大きいか」→ ひき算、「何倍か」→ わり算
-                  </p>
-                  <p className="text-muted-foreground">
-                    "How much bigger/smaller" → Subtraction, "How many times" → Division<br/>
-                    小さい数: {question.baseAmount}, 大きい数: {question.comparedAmount}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="font-medium text-foreground">
-                    💡 くらべる数は <strong>{question.comparedAmount}</strong>、もとにする数は <strong>{question.baseAmount}</strong> だよ
-                  </p>
-                  <p className="text-muted-foreground">
-                    The compared amount is <strong>{question.comparedAmount}</strong>, the base amount is <strong>{question.baseAmount}</strong>.<br/>
-                    Remember: くらべる数 ÷ もとにする数 = 倍
-                  </p>
-                </>
-              )}
+          {/* Explanation after grading */}
+          {graded && (
+            <div className="bg-kid-yellow/10 rounded-lg p-3 mb-4 text-sm mt-4">
+              <p className="font-medium text-foreground">{question.explanation}</p>
+              <p className="text-muted-foreground">{question.explanationEn}</p>
             </div>
           )}
 

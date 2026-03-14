@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { Lightbulb } from 'lucide-react';
 
 interface AreaQuestionItemProps {
   question: {
@@ -30,6 +31,7 @@ interface AreaQuestionItemProps {
   onAnswerChange: (value: string) => void;
   graded: boolean;
   isCorrect?: boolean;
+  onTeachMe?: () => void;
 }
 
 const AreaQuestionItem = ({
@@ -39,6 +41,7 @@ const AreaQuestionItem = ({
   onAnswerChange,
   graded,
   isCorrect,
+  onTeachMe,
 }: AreaQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -435,6 +438,19 @@ const AreaQuestionItem = ({
               </div>
             )}
           </div>
+
+          {/* Teach Me Button */}
+          {graded && !isCorrect && onTeachMe && (
+            <div className="mt-3">
+              <button
+                onClick={onTeachMe}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                <Lightbulb className="w-4 h-4" />
+                <span>おしえて / Teach Me</span>
+              </button>
+            </div>
+          )}
 
           {/* Formula for incorrect answers */}
           {graded && !isCorrect && (
