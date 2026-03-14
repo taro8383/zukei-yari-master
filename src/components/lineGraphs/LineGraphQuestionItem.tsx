@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 import { LineGraphQuestion } from '@/lib/lineGraphs';
 import LineGraphVisualizer from './LineGraphVisualizer';
 import DrawingGraphInteractive from './DrawingGraphInteractive';
@@ -19,6 +20,7 @@ interface LineGraphQuestionItemProps {
   onClearPoints?: () => void;
   graded: boolean;
   isCorrect?: boolean;
+  onTeachMe?: () => void;
 }
 
 const LineGraphQuestionItem = ({
@@ -35,6 +37,7 @@ const LineGraphQuestionItem = ({
   onClearPoints,
   graded,
   isCorrect,
+  onTeachMe,
 }: LineGraphQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -387,6 +390,17 @@ const LineGraphQuestionItem = ({
                 {question.formulaEn}
               </span>
             </div>
+          )}
+
+          {/* Teach Me Button for incorrect answers */}
+          {graded && !isCorrect && onTeachMe && (
+            <button
+              onClick={onTeachMe}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors mt-3"
+            >
+              <Lightbulb className="w-4 h-4" />
+              <span>おしえて / Teach Me</span>
+            </button>
           )}
         </div>
       </div>

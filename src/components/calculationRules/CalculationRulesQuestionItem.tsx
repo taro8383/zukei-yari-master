@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 import { CalculationRulesQuestion, CalculationRulesTopic, CALCULATION_RULES_TOPICS } from '@/lib/calculationRules';
 import OrderOfOperationsTree from './OrderOfOperationsTree';
 import AreaModel from './AreaModel';
@@ -10,6 +11,7 @@ interface CalculationRulesQuestionItemProps {
   onAnswerChange: (value: string) => void;
   graded: boolean;
   isCorrect?: boolean;
+  onTeachMe?: () => void;
   // For multi-step questions
   stepAnswers?: string[];
   onStepAnswerChange?: (stepIndex: number, value: string) => void;
@@ -25,6 +27,7 @@ const CalculationRulesQuestionItem = ({
   onAnswerChange,
   graded,
   isCorrect,
+  onTeachMe,
   stepAnswers = [],
   onStepAnswerChange,
   equationAnswer = '',
@@ -441,6 +444,17 @@ const CalculationRulesQuestionItem = ({
                 {question.formulaEn}
               </span>
             </div>
+          )}
+
+          {/* Teach Me Button for incorrect answers */}
+          {graded && !isCorrect && onTeachMe && (
+            <button
+              onClick={onTeachMe}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors mt-3"
+            >
+              <Lightbulb className="w-4 h-4" />
+              <span>おしえて / Teach Me</span>
+            </button>
           )}
         </div>
       </div>

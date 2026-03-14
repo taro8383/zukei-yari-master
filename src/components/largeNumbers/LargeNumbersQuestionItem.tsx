@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { LargeNumberQuestion } from '@/lib/largeNumbers';
 import PlaceValueChart from './PlaceValueChart';
@@ -11,6 +12,7 @@ interface LargeNumbersQuestionItemProps {
   onAnswerChange: (value: string) => void;
   graded: boolean;
   isCorrect?: boolean;
+  onTeachMe?: () => void;
 }
 
 const LargeNumbersQuestionItem = ({
@@ -20,6 +22,7 @@ const LargeNumbersQuestionItem = ({
   onAnswerChange,
   graded,
   isCorrect,
+  onTeachMe,
 }: LargeNumbersQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -296,6 +299,16 @@ const LargeNumbersQuestionItem = ({
           <span className="text-xs text-red-400 block">
             {question.formulaEn}
           </span>
+          {/* Teach Me Button */}
+          {onTeachMe && (
+            <button
+              onClick={onTeachMe}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors mt-3"
+            >
+              <Lightbulb className="w-4 h-4" />
+              <span>おしえて / Teach Me</span>
+            </button>
+          )}
         </div>
       )}
     </div>

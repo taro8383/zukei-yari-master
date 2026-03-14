@@ -2253,6 +2253,7 @@ const Index = () => {
                         onAnswerChange={(v) => handleAccuracyRateAnswerChange(i, v)}
                         graded={accuracyRateGraded}
                         isCorrect={accuracyRateGraded ? parseFloat(accuracyRateAnswers[i]) === q.answer : undefined}
+                        onTeachMe={() => handleTeachMe(q, accuracyRateAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -2359,8 +2360,9 @@ const Index = () => {
                         ) : undefined}
                         stepAnswers={calculationRulesStepAnswers[i] || []}
                         onStepAnswerChange={(stepIdx, v) => handleCalculationRulesStepAnswerChange(i, stepIdx, v)}
-                      equationAnswer={calculationRulesEquationAnswers[i] || ''}
-                      onEquationChange={(eq) => handleCalculationRulesEquationChange(i, eq)}
+                        equationAnswer={calculationRulesEquationAnswers[i] || ''}
+                        onEquationChange={(eq) => handleCalculationRulesEquationChange(i, eq)}
+                        onTeachMe={() => handleTeachMe(q, calculationRulesAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -2472,6 +2474,7 @@ const Index = () => {
                               parseInt(divisionRemainderAnswers[i] || '0') === q.remainder
                             : parseInt(divisionAnswers[i]) === q.quotient
                         ) : undefined}
+                        onTeachMe={() => handleTeachMe(q, divisionAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -2676,6 +2679,7 @@ const Index = () => {
                             ? largeNumberAnswers[i].trim() === (q.answer as string)
                             : parseInt(largeNumberAnswers[i]) === q.answer)
                           : undefined}
+                        onTeachMe={() => handleTeachMe(q, largeNumberAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -2787,6 +2791,7 @@ const Index = () => {
                             ? `${lineGraphStartTimeAnswers[i]}から${lineGraphEndTimeAnswers[i]}` === q.answer
                             : Math.abs(parseFloat(lineGraphAnswers[i] || '0') - (typeof q.answer === 'number' ? q.answer : parseFloat(q.answer))) < 0.01
                         ) : undefined}
+                        onTeachMe={() => handleTeachMe(q, lineGraphAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -3015,6 +3020,7 @@ const Index = () => {
                             ? parseInt(investigatingChangesAnswers[i]) === q.answer
                             : investigatingChangesAnswers[i] === q.answer
                         ) : undefined}
+                        onTeachMe={() => handleTeachMe(q, investigatingChangesAnswers[i], i)}
                       />
                     </div>
                   ))}
