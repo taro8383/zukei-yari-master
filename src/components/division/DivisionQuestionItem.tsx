@@ -126,14 +126,23 @@ const DivisionQuestionItem = ({
 
   // Render visual aid based on topic
   const renderVisualAid = () => {
+    // Don't show GroupingModel before grading - it reveals the answer by showing items
+    // It will be shown in the explanation after grading instead
     if (question.topic === 'division-with-remainder') {
       return (
-        <GroupingModel
-          dividend={question.dividend}
-          divisor={question.divisor}
-          quotient={question.quotient}
-          remainder={question.remainder}
-        />
+        <div className="bg-kid-yellow/10 rounded-xl p-4 border border-kid-yellow/30">
+          <p className="text-sm font-bold text-foreground mb-2 text-center">
+            📦 あまりのあるわり算 / Division with Remainder
+          </p>
+          <div className="text-center space-y-2">
+            <p className="text-lg">
+              <span className="font-bold">{question.dividend}</span> ÷ <span className="font-bold">{question.divisor}</span> = ? ... ?
+            </p>
+            <p className="text-xs text-muted-foreground">
+              計算して、商とあまりを求めよう / Calculate to find the quotient and remainder
+            </p>
+          </div>
+        </div>
       );
     }
 
@@ -224,19 +233,31 @@ const DivisionQuestionItem = ({
             </button>
           )}
 
-          {/* Hint */}
-          {(showHint || graded) && !isCorrect && (
-            <div className="bg-kid-yellow/10 rounded-lg p-3 mb-4 text-sm">
-              {graded ? (
-                <>
-                  <p className="font-medium text-foreground">{question.explanation}</p>
-                  <p className="text-gray-500">{question.explanationEn}</p>
-                </>
-              ) : (
-                <>
-                  <div className="font-medium text-foreground">{hintText.ja}</div>
-                  <div className="text-gray-500">{hintText.en}</div>
-                </>
+          {/* Hint - Show GroupingModel after grading for division-with-remainder */}
+          {(showHint || graded) && (
+            <div className="mb-4">
+              {graded && question.topic === 'division-with-remainder' && (
+                <GroupingModel
+                  dividend={question.dividend}
+                  divisor={question.divisor}
+                  quotient={question.quotient}
+                  remainder={question.remainder}
+                />
+              )}
+              {!isCorrect && (
+                <div className="bg-kid-yellow/10 rounded-lg p-3 text-sm mt-3">
+                  {graded ? (
+                    <>
+                      <p className="font-medium text-foreground">{question.explanation}</p>
+                      <p className="text-gray-500">{question.explanationEn}</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="font-medium text-foreground">{hintText.ja}</div>
+                      <div className="text-gray-500">{hintText.en}</div>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           )}
