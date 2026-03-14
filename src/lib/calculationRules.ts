@@ -338,90 +338,129 @@ export function generateDistributivePropertyQuestions(): CalculationRulesQuestio
 export function generateCombiningEquationQuestions(): CalculationRulesQuestion[] {
   const questions: CalculationRulesQuestion[] = [];
 
-  // Problem scenarios: [description, descriptionEn, numbers, correctEquation, answer]
-  const problems: Array<[string, string, number[], string, number]> = [
-    [
-      'お菓子が12個あります。4人で同じ数ずつ分けて、それぞれが2個食べました。残りは何個ですか？',
-      'There are 12 snacks. Divided equally among 4 people, then each ate 2. How many remain?',
-      [12, 4, 2],
-      '(12 ÷ 4) - 2',
-      1
-    ],
-    [
-      'けいくんは50円持っています。お菓子を3つ買って、それぞれ10円でした。残りは何円ですか？',
-      'Kei has 50 yen. He bought 3 snacks at 10 yen each. How much remains?',
-      [50, 3, 10],
-      '50 - (3 × 10)',
-      20
-    ],
-    [
-      'りんごが20個あります。5人に同じ数ずつ配って、それぞれが1個お母さんにあげました。残りは何個ですか？',
-      'There are 20 apples. Divided equally among 5 people, each gave 1 to mom. How many remain?',
-      [20, 5, 1],
-      '(20 ÷ 5) - 1',
-      3
-    ],
-    [
-      'お金が80円あります。ペンを1本15円で2本買いました。残りは何円ですか？',
-      'You have 80 yen. Bought 2 pens at 15 yen each. How much remains?',
-      [80, 15, 2],
-      '80 - (15 × 2)',
-      50
-    ],
-    [
-      'キャンディが30個あります。6人に同じ数ずつ分けて、それぞれが3個食べました。残りは何個ですか？',
-      'There are 30 candies. Divided equally among 6 people, each ate 3. How many remain?',
-      [30, 6, 3],
-      '(30 ÷ 6) - 3',
-      2
-    ],
-    [
-      'お金が100円あります。消しゴムを8円のものを5つ買いました。残りは何円ですか？',
-      'You have 100 yen. Bought 5 erasers at 8 yen each. How much remains?',
-      [100, 8, 5],
-      '100 - (8 × 5)',
-      60
-    ],
-    [
-      'チョコが24個あります。3人で同じ数ずつ分けて、それぞれが5個食べました。残りは何個ですか？',
-      'There are 24 chocolates. Divided equally among 3 people, each ate 5. How many remain?',
-      [24, 3, 5],
-      '(24 ÷ 3) - 5',
-      3
-    ],
-    [
-      'お金が60円あります。シールを12円のものを4つ買いました。残りは何円ですか？',
-      'You have 60 yen. Bought 4 stickers at 12 yen each. How much remains?',
-      [60, 12, 4],
-      '60 - (12 × 4)',
-      12
-    ],
+  // Division-type problem templates: [item, person, action, unit] with clearer wording
+  const divisionTemplates = [
+    {
+      ja: (items: number, people: number, action: number, unit: string) =>
+        `${unit}が${items}個あります。${people}人に同じ数ずつ分けて、それぞれが${action}個食べました。1人あたり残りは何個ですか？`,
+      en: (items: number, people: number, action: number, unit: string) =>
+        `There are ${items} ${unit}. Divided equally among ${people} people, then each ate ${action}. How many remain per person?`,
+      units: ['お菓子', 'キャンディ', 'チョコ', 'クッキー', '飴', 'せんべい'],
+      unitsEn: ['snacks', 'candies', 'chocolates', 'cookies', 'candies', 'crackers'],
+    },
+    {
+      ja: (items: number, people: number, action: number, unit: string) =>
+        `${unit}が${items}個あります。${people}人で同じ数ずつ分けて、それぞれが${action}個お母さんにあげました。1人あたり残りは何個ですか？`,
+      en: (items: number, people: number, action: number, unit: string) =>
+        `There are ${items} ${unit}. Divided equally among ${people} people, each gave ${action} to their mom. How many remain per person?`,
+      units: ['りんご', 'みかん', 'いちご', '桃', '梨', 'バナナ'],
+      unitsEn: ['apples', 'oranges', 'strawberries', 'peaches', 'pears', 'bananas'],
+    },
   ];
 
-  // Shuffle and pick 5
-  const shuffled = [...problems].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, 5);
+  // Subtraction-type problem templates: money-based
+  const subtractionTemplates = [
+    {
+      ja: (money: number, price: number, qty: number, item: string) =>
+        `お金が${money}円あります。${item}を${price}円のものを${qty}つ買いました。残りは何円ですか？`,
+      en: (money: number, price: number, qty: number, item: string) =>
+        `You have ${money} yen. Bought ${qty} ${item} at ${price} yen each. How much remains?`,
+      items: ['お菓子', 'ペン', '消しゴム', 'シール', 'メモ帳', '鉛筆'],
+      itemsEn: ['snacks', 'pens', 'erasers', 'stickers', 'notebooks', 'pencils'],
+    },
+    {
+      ja: (money: number, price: number, qty: number, item: string) =>
+        `けいくんは${money}円持っています。${item}を${qty}つ買って、それぞれ${price}円でした。残りは何円ですか？`,
+      en: (money: number, price: number, qty: number, item: string) =>
+        `Kei has ${money} yen. He bought ${qty} ${item} at ${price} yen each. How much remains?`,
+      items: ['お菓子', 'ジュース', 'チョコ', 'ガム', 'キャンディ', 'アイス'],
+      itemsEn: ['snacks', 'juice', 'chocolates', 'gum', 'candies', 'ice cream'],
+    },
+  ];
 
-  selected.forEach(([desc, descEn, numbers, correctEq, answer], index) => {
-    // Extract unique numbers and operators for equation building
-    const uniqueNumbers = [...new Set(numbers)];
-    const operators = ['+', '-', '×', '÷', '(', ')'];
+  // Generate 3 division-type problems
+  for (let i = 0; i < 3; i++) {
+    const template = divisionTemplates[i % divisionTemplates.length];
+
+    // Generate random numbers ensuring positive result
+    const people = [3, 4, 5, 6][Math.floor(Math.random() * 4)];
+    const perPerson = [3, 4, 5, 6, 7, 8][Math.floor(Math.random() * 6)];
+    const action = [1, 2, 3, 4][Math.floor(Math.random() * 4)];
+    const items = people * perPerson; // Ensures clean division
+    const remainder = perPerson - action;
+
+    // Ensure positive remainder
+    if (remainder <= 0) {
+      continue; // Skip this iteration and generate a new one
+    }
+
+    const unitIndex = Math.floor(Math.random() * template.units.length);
+    const unitJa = template.units[unitIndex];
+    const unitEn = template.unitsEn[unitIndex];
+
+    const desc = template.ja(items, people, action, unitJa);
+    const descEn = template.en(items, people, action, unitEn);
+    const correctEq = `(${items} ÷ ${people}) - ${action}`;
 
     questions.push({
-      id: index + 1,
+      id: questions.length + 1,
       topic: 'combining-into-one-equation',
       text: desc,
       textEn: descEn,
-      answer,
+      answer: remainder,
       correctEquation: correctEq,
-      numbers: uniqueNumbers,
-      operators,
-      equationParts: [...uniqueNumbers.map(String), ...operators],
-      explanation: `正しい式：${correctEq} = ${answer}`,
-      explanationEn: `Correct equation: ${correctEq} = ${answer}`,
-      formula: `正解: ${correctEq} = ${answer}`,
-      formulaEn: `Correct: ${correctEq} = ${answer}`,
+      numbers: [items, people, action],
+      operators: ['+', '-', '×', '÷', '(', ')'],
+      equationParts: [String(items), String(people), String(action), '+', '-', '×', '÷', '(', ')'],
+      explanation: `正しい式：${correctEq} = ${perPerson} - ${action} = ${remainder}（1人あたり）`,
+      explanationEn: `Correct equation: ${correctEq} = ${perPerson} - ${action} = ${remainder} (per person)`,
+      formula: `正解: ${correctEq} = ${remainder}（1人あたり）`,
+      formulaEn: `Correct: ${correctEq} = ${remainder} (per person)`,
     });
+  }
+
+  // Generate 2 subtraction-type problems
+  for (let i = 0; i < 2; i++) {
+    const template = subtractionTemplates[i % subtractionTemplates.length];
+
+    // Generate random numbers ensuring positive result
+    const price = [5, 8, 10, 12, 15, 20][Math.floor(Math.random() * 6)];
+    const qty = [2, 3, 4, 5][Math.floor(Math.random() * 4)];
+    const totalCost = price * qty;
+    const money = totalCost + [10, 20, 30, 40, 50][Math.floor(Math.random() * 5)];
+    const remainder = money - totalCost;
+
+    const itemIndex = Math.floor(Math.random() * template.items.length);
+    const itemJa = template.items[itemIndex];
+    const itemEn = template.itemsEn[itemIndex];
+
+    const desc = template.ja(money, price, qty, itemJa);
+    const descEn = template.en(money, price, qty, itemEn);
+    const correctEq = `${money} - (${price} × ${qty})`;
+
+    questions.push({
+      id: questions.length + 1,
+      topic: 'combining-into-one-equation',
+      text: desc,
+      textEn: descEn,
+      answer: remainder,
+      correctEquation: correctEq,
+      numbers: [money, price, qty],
+      operators: ['+', '-', '×', '÷', '(', ')'],
+      equationParts: [String(money), String(price), String(qty), '+', '-', '×', '÷', '(', ')'],
+      explanation: `正しい式：${correctEq} = ${money} - ${totalCost} = ${remainder}`,
+      explanationEn: `Correct equation: ${correctEq} = ${money} - ${totalCost} = ${remainder}`,
+      formula: `正解: ${correctEq} = ${remainder}`,
+      formulaEn: `Correct: ${correctEq} = ${remainder}`,
+    });
+  }
+
+  // Shuffle questions
+  questions.sort(() => Math.random() - 0.5);
+
+  // Reassign IDs after shuffle
+  questions.forEach((q, idx) => {
+    q.id = idx + 1;
   });
 
   return questions;

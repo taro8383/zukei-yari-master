@@ -34,8 +34,8 @@ const CalculationRulesExplanationCard = ({ info }: CalculationRulesExplanationCa
   };
 
   const combiningEquationExample = {
-    scenario: 'お菓子が12個あります。4人で同じ数ずつ分けて、それぞれが2個食べました。残りは何個ですか？',
-    scenarioEn: 'There are 12 snacks. Divided equally among 4 people, then each ate 2. How many remain?',
+    scenario: 'お菓子が12個あります。4人で同じ数ずつ分けて、それぞれが2個食べました。1人あたり残りは何個ですか？',
+    scenarioEn: 'There are 12 snacks. Divided equally among 4 people, then each ate 2. How many remain per person?',
     numbers: [12, 4, 2],
     operations: ['+', '-', '×', '÷', '(', ')'],
     correctEquation: '(12 ÷ 4) - 2',
