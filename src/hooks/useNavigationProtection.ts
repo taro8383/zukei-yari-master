@@ -1,22 +1,24 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 /**
- * Hook to protect against accidental navigation on tablets/mobile devices
+ * Hook to protect against accidental navigation on tablets/mobile devices and PC
  * - Warns when trying to leave the page with unsaved work
  * - Prevents swipe back/forward gestures
  * - Prevents pull-to-refresh
  * - Prevents hardware back button (Android tablets)
+ * - Prevents browser back button navigation (PC/Mac)
  */
-export function useNavigationProtection(isActive: boolean = true) {
+export function useNavigationProtection(isActive: boolean = true, hasUnsavedWork: boolean = true) {
+  // Save state before leaving and restore when returning
+  const handleBeforeUnload = useCallback((e: BeforeUnloadEvent) => {
+    if (!hasUnsavedWork) return;
+    e.preventDefault();
+    e.returnValue = '学習の進捗が失われます。本当に移動しますか？';
+    return e.returnValue;
+  }, [hasUnsavedWork]);
+
   useEffect(() => {
     if (!isActive) return;
-
-    // Prevent accidental page leave/reload
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = '学習の進捗が失われます。本当に移動しますか？';
-      return e.returnValue;
-    };
 
     // Prevent swipe back/forward on touch devices
     let touchStartX = 0;
@@ -61,27 +63,40 @@ export function useNavigationProtection(isActive: boolean = true) {
       }
     };
 
-    // Prevent hardware back button (Android tablets)
-    // Push dummy state to history so back button doesn't leave the app
-    const preventBackButton = () => {
-      // Push current state to history stack
-      window.history.pushState({ page: 'app' }, '', window.location.href);
-    };
-
+    // Prevent hardware/software back button
     const handlePopState = (e: PopStateEvent) => {
-      // User pressed back button - prevent navigation by pushing state again
+      if (!hasUnsavedWork) return;
+
+      // User pressed back button - prevent navigation
       e.preventDefault();
-      window.history.pushState({ page: 'app' }, '', window.location.href);
-      // Optional: show a toast or alert that back is disabled
-      console.log('Back button pressed - navigation prevented');
+      // Push current state back to prevent leaving
+      window.history.pushState({ page: 'app', timestamp: Date.now() }, '', window.location.href);
+
+      // Show warning alert
+      alert('学習の進捗が失われます。ページを離れる場合は、リロード後に「やめる」を選択してください。\n\nYour progress will be lost. If you want to leave, please select "Cancel" after reloading.');
     };
 
-    // Initialize history protection
-    window.history.pushState({ page: 'app' }, '', window.location.href);
-    window.addEventListener('popstate', handlePopState);
+    // For HashRouter - prevent hash changes
+    const handleHashChange = (e: HashChangeEvent) => {
+      if (!hasUnsavedWork) return;
+
+      // Prevent hash change (back/forward in hash router)
+      e.preventDefault();
+      // Restore the hash to current
+      window.history.pushState(null, '', e.oldURL);
+
+      alert('学習の進捗が失われます。ページを離れる場合は、リロード後に「やめる」を選択してください。\n\nYour progress will be lost. If you want to leave, please select "Cancel" after reloading.');
+    };
+
+    // Initialize history protection - push multiple states to trap back button
+    for (let i = 0; i < 3; i++) {
+      window.history.pushState({ page: 'app', index: i, timestamp: Date.now() }, '', window.location.href);
+    }
 
     // Add event listeners
     window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handleHashChange);
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
     document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('keydown', handleKeyDown);
@@ -89,12 +104,13 @@ export function useNavigationProtection(isActive: boolean = true) {
     // Cleanup
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handleHashChange);
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('popstate', handlePopState);
     };
-  }, [isActive]);
+  }, [isActive, hasUnsavedWork, handleBeforeUnload]);
 }
 
 export default useNavigationProtection;

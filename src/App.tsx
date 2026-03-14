@@ -9,9 +9,9 @@ import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
 
-// Navigation protection component
+// Navigation protection component - always active to prevent accidental exits
 const NavigationProtection = ({ children }: { children: React.ReactNode }) => {
-  useNavigationProtection(true);
+  useNavigationProtection(true, true);
   return <>{children}</>;
 };
 
