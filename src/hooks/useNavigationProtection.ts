@@ -5,6 +5,7 @@ import { useEffect } from 'react';
  * - Warns when trying to leave the page with unsaved work
  * - Prevents swipe back/forward gestures
  * - Prevents pull-to-refresh
+ * - Prevents hardware back button (Android tablets)
  */
 export function useNavigationProtection(isActive: boolean = true) {
   useEffect(() => {
@@ -60,6 +61,25 @@ export function useNavigationProtection(isActive: boolean = true) {
       }
     };
 
+    // Prevent hardware back button (Android tablets)
+    // Push dummy state to history so back button doesn't leave the app
+    const preventBackButton = () => {
+      // Push current state to history stack
+      window.history.pushState({ page: 'app' }, '', window.location.href);
+    };
+
+    const handlePopState = (e: PopStateEvent) => {
+      // User pressed back button - prevent navigation by pushing state again
+      e.preventDefault();
+      window.history.pushState({ page: 'app' }, '', window.location.href);
+      // Optional: show a toast or alert that back is disabled
+      console.log('Back button pressed - navigation prevented');
+    };
+
+    // Initialize history protection
+    window.history.pushState({ page: 'app' }, '', window.location.href);
+    window.addEventListener('popstate', handlePopState);
+
     // Add event listeners
     window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -72,6 +92,7 @@ export function useNavigationProtection(isActive: boolean = true) {
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, [isActive]);
 }
