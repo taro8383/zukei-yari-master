@@ -311,9 +311,13 @@ const Index = () => {
 
   // Restore state on mount (if saved within last 24 hours)
   useEffect(() => {
+    const restoreState = () => {
     try {
       const saved = localStorage.getItem('zukei-yari-session-state');
-      if (!saved) return;
+        if (!saved) {
+          console.log('No saved state found');
+          return;
+        }
 
       const state = JSON.parse(saved);
       const age = Date.now() - state.timestamp;
@@ -378,6 +382,18 @@ const Index = () => {
     } catch (e) {
       console.warn('Failed to restore session state:', e);
     }
+    };
+
+    // Restore on mount
+    restoreState();
+
+    // Also restore when window gains focus (user returns to page)
+    const handleFocus = () => {
+      restoreState();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   // Clear saved state when graded (submitted) to avoid restoring old completed work
