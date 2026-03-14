@@ -24,7 +24,7 @@ const MentalDivisionVisualizer = ({
     return count;
   };
 
-  const zerosRemoved = countTrailingZeros(dividend);
+  const zerosRemoved = Math.min(countTrailingZeros(dividend), countTrailingZeros(divisor));
 
   return (
     <div className="bg-kid-yellow/10 rounded-xl p-4 border border-kid-yellow/30">
