@@ -593,7 +593,7 @@ const Index = () => {
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedTopic);
     setSessionTopicName(TOPICS[selectedTopic].label);
-    setSessionSummaryOpen(true);
+    setScoreModalOpen(true);
 
     // Trigger particle effects for perfect score
     if (correct === 5) {
@@ -714,7 +714,7 @@ const Index = () => {
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedRatioTopic);
     setSessionTopicName(RATIO_TOPICS[selectedRatioTopic].label);
-    setSessionSummaryOpen(true);
+    setScoreModalOpen(true);
 
     // Trigger particle effects for perfect score
     if (correct === 5) {
@@ -817,7 +817,7 @@ const Index = () => {
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedAccuracyRateTopic);
     setSessionTopicName(ACCURACY_RATE_TOPICS[selectedAccuracyRateTopic].label);
-    setSessionSummaryOpen(true);
+    setScoreModalOpen(true);
 
     // Trigger particle effects for perfect score
     if (correct === 5) {
@@ -924,7 +924,7 @@ const Index = () => {
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedLargeNumberTopic);
     setSessionTopicName(LARGE_NUMBER_TOPICS[selectedLargeNumberTopic].label);
-    setSessionSummaryOpen(true);
+    setScoreModalOpen(true);
 
     // Trigger particle effects for perfect score
     if (correct === 5) {
@@ -1055,7 +1055,7 @@ const Index = () => {
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedCalculationRulesTopic);
     setSessionTopicName(CALCULATION_RULES_TOPICS[selectedCalculationRulesTopic].label);
-    setSessionSummaryOpen(true);
+    setScoreModalOpen(true);
 
     // Record mistakes for incorrect answers
     results.forEach((result) => {
@@ -1195,7 +1195,7 @@ const Index = () => {
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedDivisionTopic);
     setSessionTopicName(DIVISION_TOPICS[selectedDivisionTopic].label);
-    setSessionSummaryOpen(true);
+    setScoreModalOpen(true);
 
     // Record mistakes for incorrect answers
     results.forEach((result) => {
@@ -1296,7 +1296,7 @@ const Index = () => {
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedDecimalTopic);
     setSessionTopicName(DECIMAL_TOPICS[selectedDecimalTopic].label);
-    setSessionSummaryOpen(true);
+    setScoreModalOpen(true);
 
     // Record mistakes for incorrect answers
     results.forEach((result) => {
@@ -1452,7 +1452,7 @@ const Index = () => {
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedLineGraphTopic);
     setSessionTopicName(LINE_GRAPH_TOPICS[selectedLineGraphTopic].label);
-    setSessionSummaryOpen(true);
+    setScoreModalOpen(true);
 
     // Record mistakes for incorrect answers
     results.forEach((result) => {
@@ -1591,7 +1591,7 @@ const Index = () => {
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedFractionTopic);
     setSessionTopicName(FRACTION_TOPICS[selectedFractionTopic].label);
-    setSessionSummaryOpen(true);
+    setScoreModalOpen(true);
 
     // Record mistakes for incorrect answers
     results.forEach((result) => {
@@ -1685,7 +1685,7 @@ const Index = () => {
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedInvestigatingChangesTopic);
     setSessionTopicName(INVESTIGATING_CHANGES_TOPICS[selectedInvestigatingChangesTopic].label);
-    setSessionSummaryOpen(true);
+    setScoreModalOpen(true);
 
     // Record mistakes for incorrect answers
     results.forEach((result) => {
@@ -3101,6 +3101,10 @@ const Index = () => {
           if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
+        }}
+        onContinue={() => {
+          setScoreModalOpen(false);
+          setSessionSummaryOpen(true);
         }}
         tabName={currentTabName}
         topicName={currentTopicName}

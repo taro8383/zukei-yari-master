@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, RotateCcw, XCircle, ChevronRight, Coins, Sparkles, Target, Lock, Zap, EyeOff } from 'lucide-react';
+import { Trophy, RotateCcw, XCircle, ChevronRight, Coins, Sparkles, Target, Lock, Zap, EyeOff, ArrowRight } from 'lucide-react';
 import { celebrateAchievement, celebrateCoin } from '@/components/ParticleEffects';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +27,7 @@ interface ScoreResultModalProps {
   results: QuestionResult[];
   onTryAgain: () => void;
   onScrollToQuestion: (index: number) => void;
+  onContinue?: () => void; // New prop to proceed to session summary
   tabName: string;
   topicName: string;
   topicId: string;
@@ -46,6 +47,7 @@ const ScoreResultModal = ({
   results,
   onTryAgain,
   onScrollToQuestion,
+  onContinue,
   tabName,
   topicName,
   topicId,
@@ -335,14 +337,25 @@ const ScoreResultModal = ({
           </div>
         )}
 
-        {/* Try Again Button */}
-        <Button variant="generate" size="lg" onClick={onTryAgain} className="w-full">
-          <RotateCcw className="w-5 h-5" />
-          <div className="flex flex-col items-start leading-tight">
-            <span>もういちど！</span>
-            <span className="text-xs opacity-80">Try Again</span>
-          </div>
-        </Button>
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <Button variant="outline" size="lg" onClick={onTryAgain} className="flex-1">
+            <RotateCcw className="w-5 h-5 mr-2" />
+            <div className="flex flex-col items-start leading-tight">
+              <span>もういちど</span>
+              <span className="text-xs opacity-80">Try Again</span>
+            </div>
+          </Button>
+          {onContinue && (
+            <Button variant="generate" size="lg" onClick={onContinue} className="flex-1">
+              <div className="flex flex-col items-start leading-tight">
+                <span>つぎへ</span>
+                <span className="text-xs opacity-80">Continue</span>
+              </div>
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
