@@ -86,14 +86,14 @@ const GroupingModel = ({
                 );
               })}
 
-              {/* Group label */}
+              {/* Group label - hidden with ? so students figure it out */}
               <text
                 x={cx}
                 y={centerY + groupRadius + 20}
                 textAnchor="middle"
                 className="fill-foreground text-sm font-bold"
               >
-                {quotient}個ずつ
+                ?個ずつ
               </text>
             </g>
           );
@@ -122,9 +122,9 @@ const GroupingModel = ({
               />
             ))}
 
-            {/* Remainder count */}
+            {/* Remainder count - hidden with ? so students figure it out */}
             <text x="20" y="55" textAnchor="middle" className="fill-red-500 text-base font-bold">
-              {remainder}個
+              ?個
             </text>
           </g>
         )}
