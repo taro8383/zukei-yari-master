@@ -344,6 +344,17 @@ export function generateSubtractingFractionsQuestions(): FractionQuestion[] {
     // Simplify the result
     const simplified = simplifyFraction(resultNum, den);
 
+    // Calculate mixed number components if result is improper
+    let mixedWhole: number | undefined;
+    let mixedNum: number | undefined;
+    let finalNum = simplified.num;
+    let finalDen = simplified.den;
+
+    if (simplified.num > simplified.den) {
+      mixedWhole = Math.floor(simplified.num / simplified.den);
+      mixedNum = simplified.num % simplified.den;
+    }
+
     // Build explanation
     let explanation = `${formatMixedNumber(whole1, num1, den)} = ${formatFraction(improperNum, den)} → ${formatFraction(improperNum, den)} - ${formatFraction(num2, den)} = ${formatFraction(resultNum, den)}`;
     let explanationEn = `${whole1} ${num1}/${den} = ${formatFraction(improperNum, den)} → ${formatFraction(improperNum, den)} - ${formatFraction(num2, den)} = ${formatFraction(resultNum, den)}`;
@@ -361,8 +372,10 @@ export function generateSubtractingFractionsQuestions(): FractionQuestion[] {
       denominator1: den,
       numerator2: num2,
       denominator2: den,
-      answerNum: simplified.num,
-      answerDen: simplified.den,
+      answerNum: mixedNum !== undefined ? mixedNum : finalNum,
+      answerDen: finalDen,
+      answerMixedWhole: mixedWhole,
+      answerMixedNum: mixedNum,
       isBorrowing: true,
       visualAid: {
         type: 'pie',
