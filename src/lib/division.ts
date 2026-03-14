@@ -230,8 +230,8 @@ function generateDivisionPropertiesQuestions(): DivisionQuestion[] {
     questions.push({
       id: `prop-${i}`,
       topic: 'division-properties',
-      text: `わり算の性質を使って計算しましょう。（両方を${pair.factor}で割る）`,
-      textEn: `Calculate using the properties of division. (Divide both by ${pair.factor})`,
+      text: `わり算の性質を使って計算しましょう。`,
+      textEn: `Calculate using the properties of division.`,
       dividend: pair.dividend,
       divisor: pair.divisor,
       quotient,

@@ -74,14 +74,14 @@ const DivisionQuestionItem = ({
         return {
           ja: (
             <>
-              💡 <strong>コツ:</strong> 両方の数から0を同じ数だけ消そう！<br />
-              例：600 ÷ 200 → 6 ÷ 2 = 3
+              💡 <strong>コツ:</strong> 両方の数を同じ数で割ると簡単になるよ！<br />
+              例：84 ÷ 12 → 42 ÷ 6 = 7
             </>
           ),
           en: (
             <>
-              <strong>Tip:</strong> Remove the same number of zeros from both numbers!<br />
-              Example: 600 ÷ 200 → 6 ÷ 2 = 3
+              <strong>Tip:</strong> Divide both numbers by the same factor to simplify!<br />
+              Example: 84 ÷ 12 → 42 ÷ 6 = 7
             </>
           ),
         };
@@ -322,11 +322,11 @@ const DivisionQuestionItem = ({
           ) : question.topic === 'division-properties' || question.topic === 'mental-division' ? (
             // Step-by-step inputs for division properties
             <div className="space-y-3">
-              {/* Step 1: Cancel zeros */}
+              {/* Step 1: Simplify by dividing both */}
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex flex-col">
-                  <span className="text-foreground font-medium text-sm">ステップ1：0を消す</span>
-                  <span className="text-xs text-gray-500">Step 1: Cancel zeros</span>
+                  <span className="text-foreground font-medium text-sm">ステップ1：同じ数で割る</span>
+                  <span className="text-xs text-gray-500">Step 1: Divide both by same number</span>
                 </div>
                 {!graded ? (
                   <div className="flex items-center gap-2">

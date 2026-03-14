@@ -17,13 +17,13 @@ const DivisionExplanationCard = ({ info }: DivisionExplanationCardProps) => {
   // Division with remainder example
   const remainderExample = { dividend: 17, divisor: 5, quotient: 3, remainder: 2 };
 
-  // Division properties example
+  // Division properties example (using non-zero numbers to distinguish from Mental Division)
   const propertiesExample = {
-    dividend: 800,
-    divisor: 200,
-    simplifiedDividend: 8,
-    simplifiedDivisor: 2,
-    quotient: 4,
+    dividend: 84,
+    divisor: 12,
+    simplifiedDividend: 42,
+    simplifiedDivisor: 6,
+    quotient: 7,
   };
 
   // Long division 2-digit example
