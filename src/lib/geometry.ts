@@ -32,7 +32,8 @@ export type DiagramType =
   | 'area-calculating'
   | 'area-large-units'
   | 'area-choosing-units'
-  | 'area-composite-lshape';
+  | 'area-composite-lshape'
+  | 'area-composite-cshape';
 
 export interface DiagramData {
   type: DiagramType;
@@ -314,25 +315,53 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
       };
     }
     case 'composite-shapes': {
-      const outerWidth = Math.floor(Math.random() * 8) + 8; // 8-15
-      const outerHeight = Math.floor(Math.random() * 8) + 8; // 8-15
-      const cutoutWidth = Math.floor(Math.random() * (outerWidth - 6)) + 3; // 3 to outerWidth-3
-      const cutoutHeight = Math.floor(Math.random() * (outerHeight - 6)) + 3; // 3 to outerHeight-3
-      const rect1Width = outerWidth - cutoutWidth;
-      const rect1Height = outerHeight;
-      const rect1Area = rect1Width * rect1Height;
-      const rect2Width = cutoutWidth;
-      const rect2Height = outerHeight - cutoutHeight;
-      const rect2Area = rect2Width * rect2Height;
-      const totalArea = rect1Area + rect2Area;
-      return {
-        id, answer: totalArea, unit: 'cm²',
-        text: `下のL字の形の面積は？（単位：cm²）`,
-        textEn: `What is the area of the L-shape below? (Unit: cm²)`,
-        explanation: `方法1：${rect1Width}×${rect1Height}=${rect1Area} と ${rect2Width}×${rect2Height}=${rect2Area} → 合計 ${totalArea}cm²`,
-        explanationEn: `Method 1: ${rect1Width}×${rect1Height}=${rect1Area} and ${rect2Width}×${rect2Height}=${rect2Area} → Total ${totalArea}cm²`,
-        diagram: { type: 'area-composite-lshape', params: { outerWidth, outerHeight, cutoutWidth, cutoutHeight, rect1Area, rect2Area, totalArea } },
-      };
+      // 50% chance for L-shape, 50% for C-shape
+      const isCShape = Math.random() > 0.5;
+
+      if (isCShape) {
+        // C-shape: like a capital C, with top and bottom wider than middle
+        // Outer rectangle with a vertical cutout on one side
+        const outerWidth = Math.floor(Math.random() * 6) + 10; // 10-15
+        const outerHeight = Math.floor(Math.random() * 6) + 10; // 10-15
+        const cutoutWidth = Math.floor(Math.random() * (outerWidth - 5)) + 3; // Cutout width
+        const cutoutY = Math.floor(Math.random() * (outerHeight - 6)) + 3; // Where cutout starts vertically
+        const cutoutHeight = Math.floor(Math.random() * (outerHeight - cutoutY - 2)) + 2; // Cutout height
+
+        // Calculate areas - C-shape is outer minus cutout
+        const outerArea = outerWidth * outerHeight;
+        const cutoutArea = cutoutWidth * cutoutHeight;
+        const totalArea = outerArea - cutoutArea;
+
+        return {
+          id, answer: totalArea, unit: 'cm²',
+          text: `下の形の面積は？（単位：cm²）`,
+          textEn: `What is the area of the shape below? (Unit: cm²)`,
+          explanation: `大きい長方形から切り取った部分を引きます：${outerWidth}×${outerHeight}=${outerArea} から ${cutoutWidth}×${cutoutHeight}=${cutoutArea} を引く → ${totalArea}cm²`,
+          explanationEn: `Subtract the cutout from the large rectangle: ${outerWidth}×${outerHeight}=${outerArea} minus ${cutoutWidth}×${cutoutHeight}=${cutoutArea} → ${totalArea}cm²`,
+          diagram: { type: 'area-composite-cshape', params: { outerWidth, outerHeight, cutoutWidth, cutoutHeight, cutoutY, outerArea, cutoutArea, totalArea } },
+        };
+      } else {
+        // L-shape: existing implementation
+        const outerWidth = Math.floor(Math.random() * 8) + 8; // 8-15
+        const outerHeight = Math.floor(Math.random() * 8) + 8; // 8-15
+        const cutoutWidth = Math.floor(Math.random() * (outerWidth - 6)) + 3; // 3 to outerWidth-3
+        const cutoutHeight = Math.floor(Math.random() * (outerHeight - 6)) + 3; // 3 to outerHeight-3
+        const rect1Width = outerWidth - cutoutWidth;
+        const rect1Height = outerHeight;
+        const rect1Area = rect1Width * rect1Height;
+        const rect2Width = cutoutWidth;
+        const rect2Height = outerHeight - cutoutHeight;
+        const rect2Area = rect2Width * rect2Height;
+        const totalArea = rect1Area + rect2Area;
+        return {
+          id, answer: totalArea, unit: 'cm²',
+          text: `下のL字の形の面積は？（単位：cm²）`,
+          textEn: `What is the area of the L-shape below? (Unit: cm²)`,
+          explanation: `方法1：${rect1Width}×${rect1Height}=${rect1Area} と ${rect2Width}×${rect2Height}=${rect2Area} → 合計 ${totalArea}cm²`,
+          explanationEn: `Method 1: ${rect1Width}×${rect1Height}=${rect1Area} and ${rect2Width}×${rect2Height}=${rect2Area} → Total ${totalArea}cm²`,
+          diagram: { type: 'area-composite-lshape', params: { outerWidth, outerHeight, cutoutWidth, cutoutHeight, rect1Area, rect2Area, totalArea } },
+        };
+      }
     }
     case 'lines': {
       const type = Math.floor(Math.random() * 4);

@@ -51,6 +51,14 @@ function renderDiagram(type: string, params: Record<string, number>) {
       return <PolygonDiagonals sides={params.sides} />;
     case 'count-right-angles':
       return <CountRightAngles count={params.count} />;
+    case 'area-composite-cshape':
+      return <CShapeArea
+        outerWidth={params.outerWidth}
+        outerHeight={params.outerHeight}
+        cutoutWidth={params.cutoutWidth}
+        cutoutHeight={params.cutoutHeight}
+        cutoutY={params.cutoutY}
+      />;
     default:
       return null;
   }
@@ -473,6 +481,94 @@ function CountRightAngles({ count }: { count: number }) {
       </g>
     );
   }
+}
+
+/* ===== C-SHAPE COMPOSITE AREA ===== */
+
+function CShapeArea({
+  outerWidth,
+  outerHeight,
+  cutoutWidth,
+  cutoutHeight,
+  cutoutY,
+}: {
+  outerWidth: number;
+  outerHeight: number;
+  cutoutWidth: number;
+  cutoutHeight: number;
+  cutoutY: number;
+}) {
+  // Scale to fit viewBox
+  const maxW = 220;
+  const maxH = 160;
+  const scale = Math.min(maxW / outerWidth, maxH / outerHeight);
+  const ow = outerWidth * scale;
+  const oh = outerHeight * scale;
+  const cw = cutoutWidth * scale;
+  const ch = cutoutHeight * scale;
+  const cy = cutoutY * scale;
+
+  const cx = (280 - ow) / 2;
+  const cy0 = (180 - oh) / 2;
+
+  // C-shape points: outer rect with right-side cutout
+  // Starting from top-left, go clockwise
+  const pts = [
+    [cx, cy0],                    // Top-left
+    [cx + ow, cy0],               // Top-right
+    [cx + ow, cy0 + cy],          // Cutout top-right
+    [cx + ow - cw, cy0 + cy],     // Cutout top-left
+    [cx + ow - cw, cy0 + cy + ch], // Cutout bottom-left
+    [cx + ow, cy0 + cy + ch],     // Cutout bottom-right
+    [cx + ow, cy0 + oh],          // Bottom-right
+    [cx, cy0 + oh],               // Bottom-left
+  ];
+
+  return (
+    <g>
+      <ArrowDefs />
+      {/* C-shape */}
+      <polygon
+        points={pts.map((p) => p.join(',')).join(' ')}
+        fill="hsl(150, 50%, 45%, 0.1)"
+        stroke={STROKE}
+        strokeWidth={2.5}
+        strokeLinejoin="round"
+      />
+
+      {/* Dimension labels */}
+      {/* Outer width */}
+      <text x={cx + ow / 2} y={cy0 - 8} textAnchor="middle" fontSize={12} fontWeight="bold" fill={STROKE}>
+        {outerWidth}cm
+      </text>
+      <line x1={cx} y1={cy0 - 4} x2={cx + ow} y2={cy0 - 4} stroke={STROKE} strokeWidth={1.5} markerStart="url(#arrowL)" markerEnd="url(#arrowR)" />
+
+      {/* Outer height */}
+      <text x={cx - 12} y={cy0 + oh / 2 + 4} textAnchor="middle" fontSize={12} fontWeight="bold" fill={STROKE} transform={`rotate(-90, ${cx - 12}, ${cy0 + oh / 2 + 4})`}>
+        {outerHeight}cm
+      </text>
+      <line x1={cx - 6} y1={cy0} x2={cx - 6} y2={cy0 + oh} stroke={STROKE} strokeWidth={1.5} markerStart="url(#arrowU)" markerEnd="url(#arrowD)" />
+
+      {/* Cutout width */}
+      <text x={cx + ow - cw / 2} y={cy0 + cy + ch / 2 + 4} textAnchor="middle" fontSize={11} fontWeight="bold" fill={PINK}>
+        {cutoutWidth}cm
+      </text>
+
+      {/* Cutout height (right side) */}
+      <text x={cx + ow + 18} y={cy0 + cy + ch / 2 + 4} textAnchor="middle" fontSize={11} fontWeight="bold" fill={PINK} transform={`rotate(90, ${cx + ow + 18}, ${cy0 + cy + ch / 2 + 4})`}>
+        {cutoutHeight}cm
+      </text>
+      <line x1={cx + ow + 8} y1={cy0 + cy} x2={cx + ow + 8} y2={cy0 + cy + ch} stroke={PINK} strokeWidth={1.5} markerStart="url(#arrowU)" markerEnd="url(#arrowD)" />
+
+      {/* Labels for sections */}
+      <text x={cx + (ow - cw) / 2} y={cy0 + oh / 2} textAnchor="middle" fontSize={14} fontWeight="bold" fill={STROKE}>
+        A
+      </text>
+      <text x={cx + ow - cw / 2} y={cy0 + cy + ch / 2} textAnchor="middle" fontSize={14} fontWeight="bold" fill={STROKE}>
+        B
+      </text>
+    </g>
+  );
 }
 
 export default GeometryDiagram;
