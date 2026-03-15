@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 interface IntersectingLinesExerciseProps {
   givenAngle: number;
@@ -31,8 +31,9 @@ const IntersectingLinesExercise = ({
     return { A: angleA, B: angleB, C: angleC, D: angleD };
   }, [givenAngle]);
 
-  const handleSubmit = () => {
-    if (angleBInput && comparison) {
+  // Submit answer when graded becomes true
+  useEffect(() => {
+    if (graded && !hasSubmitted && angleBInput && comparison) {
       const userAngleB = parseInt(angleBInput);
       const correct = userAngleB === angles.B && comparison === 'eq';
       setLocalIsCorrect(correct);
@@ -42,7 +43,7 @@ const IntersectingLinesExercise = ({
         comparison
       });
     }
-  };
+  }, [graded, hasSubmitted, angleBInput, comparison, angles.B, onAnswerSubmit]);
 
   const svgSize = 280;
   const center = svgSize / 2;
@@ -181,17 +182,6 @@ const IntersectingLinesExercise = ({
             ))}
           </div>
         </div>
-
-        {/* Submit button (only shown when not graded/submitted) */}
-        {!graded && !hasSubmitted && (
-          <button
-            onClick={handleSubmit}
-            disabled={!angleBInput || !comparison}
-            className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-kid disabled:opacity-50 disabled:shadow-none hover:scale-[1.02] active:scale-[0.98] transition-transform"
-          >
-            こたえをかくにん / Check Answer
-          </button>
-        )}
 
         {/* Feedback */}
         {(graded || hasSubmitted) && (
