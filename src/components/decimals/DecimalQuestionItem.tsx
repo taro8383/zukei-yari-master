@@ -123,23 +123,19 @@ const DecimalQuestionItem = ({
         };
       case 'decimal-multiply-divide':
         if (question.operation === 'multiply') {
-          // Get decimal places from the question
-          const decimalStr = question.decimalNumber?.toString() || '';
-          const decimalPlaces = decimalStr.includes('.') ? decimalStr.split('.')[1].length : 0;
-
           return {
             ja: (
               <>
                 💡 <strong>かけ算のコツ：</strong><br />
-                ① {question.decimalNumber} → {decimalStr.replace('.', '')} としてかける（小数点を一時的に消す）<br />
-                ② かけ算の答えに、小数点を{decimalPlaces}つ左から入れる
+                ① まず小数点を無視して、整数としてかけ算する<br />
+                ② 元の数の小数点の位置を思い出して、答えに小数点を入れる
               </>
             ),
             en: (
               <>
                 <strong>Multiplication Tip:</strong><br />
-                1. Multiply {decimalStr.replace('.', '')} × {question.wholeNumber} (temporarily remove decimal)<br />
-                2. Place decimal {decimalPlaces} place{decimalPlaces > 1 ? 's' : ''} from the right in your answer
+                1. First ignore the decimal and multiply as whole numbers<br />
+                2. Remember the original decimal position and place the decimal in your answer
               </>
             ),
           };
@@ -148,17 +144,15 @@ const DecimalQuestionItem = ({
             ja: (
               <>
                 💡 <strong>わり算のコツ：</strong><br />
-                ① 小数点を一時的に無視して、{question.decimalNumber?.toString().replace('.', '')} ÷ {question.wholeNumber} と考える<br />
-                ② {question.decimalNumber?.toString().replace('.', '')} ÷ {question.wholeNumber} = {parseInt(question.decimalNumber?.toString().replace('.', '') || '0') / (question.wholeNumber || 1)}<br />
-                ③ 元の数の小数点の位置に合わせて、答えに小数点を入れる（{question.decimalNumber?.toString().includes('.') ? question.decimalNumber?.toString().split('.')[1].length : 1}つ左から）
+                ① まず小数点を無視して、整数としてわり算する<br />
+                ② 元の数の小数点の位置を思い出して、答えに小数点を入れる
               </>
             ),
             en: (
               <>
                 <strong>Division Tip:</strong><br />
-                1. Temporarily ignore the decimal: divide {question.decimalNumber?.toString().replace('.', '')} ÷ {question.wholeNumber}<br />
-                2. {question.decimalNumber?.toString().replace('.', '')} ÷ {question.wholeNumber} = {parseInt(question.decimalNumber?.toString().replace('.', '') || '0') / (question.wholeNumber || 1)}<br />
-                3. Match the original decimal position: place decimal {question.decimalNumber?.toString().includes('.') ? question.decimalNumber?.toString().split('.')[1].length : 1} place{question.decimalNumber?.toString().includes('.') && question.decimalNumber?.toString().split('.')[1].length > 1 ? 's' : ''} from the right
+                1. First ignore the decimal and divide as whole numbers<br />
+                2. Remember the original decimal position and place the decimal in your answer
               </>
             ),
           };
@@ -211,10 +205,9 @@ const DecimalQuestionItem = ({
             <span className="text-muted-foreground">=</span>
             <span className="text-foreground">?</span>
           </div>
+          {/* Generic hint - students figure out the decimal placement themselves */}
           <p className="text-xs text-muted-foreground text-center mt-3">
-            {isMultiply
-              ? 'ヒント：' + question.decimalNumber?.toString().replace('.', '') + ' × ' + question.wholeNumber + ' を計算して、小数点を' + (question.decimalNumber?.toString().includes('.') ? question.decimalNumber?.toString().split('.')[1].length : 2) + 'つ左から入れる / Hint: Calculate ' + question.decimalNumber?.toString().replace('.', '') + ' × ' + question.wholeNumber + ', then place decimal ' + (question.decimalNumber?.toString().includes('.') ? question.decimalNumber?.toString().split('.')[1].length : 2) + ' place' + ((question.decimalNumber?.toString().includes('.') ? question.decimalNumber?.toString().split('.')[1].length : 2) > 1 ? 's' : '') + ' from the right'
-              : 'ヒント：' + question.decimalNumber?.toString().replace('.', '') + ' ÷ ' + question.wholeNumber + ' を計算して、小数点を' + (question.decimalNumber?.toString().includes('.') ? question.decimalNumber?.toString().split('.')[1].length : 1) + 'つ左から入れる / Hint: Calculate ' + question.decimalNumber?.toString().replace('.', '') + ' ÷ ' + question.wholeNumber + ', then place decimal ' + (question.decimalNumber?.toString().includes('.') ? question.decimalNumber?.toString().split('.')[1].length : 1) + ' place' + ((question.decimalNumber?.toString().includes('.') ? question.decimalNumber?.toString().split('.')[1].length : 1) > 1 ? 's' : '') + ' from the right'}
+            まず小数点を無視して計算しよう / First calculate ignoring the decimal
           </p>
         </div>
       );
