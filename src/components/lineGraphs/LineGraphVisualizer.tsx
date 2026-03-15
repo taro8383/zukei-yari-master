@@ -327,27 +327,41 @@ const LineGraphVisualizer = ({
           {yAxisLabelEn}
         </text>
 
-        {/* Y-axis ticks and labels */}
-        {gridLines.map((line, i) => (
-          <g key={`y-tick-${i}`}>
-            <line
-              x1={margin.left - 5}
-              y1={margin.top + line.y}
-              x2={margin.left}
-              y2={margin.top + line.y}
-              stroke="#334155"
-              strokeWidth="2"
-            />
-            <text
-              x={margin.left - 10}
-              y={margin.top + line.y + 4}
-              textAnchor="end"
-              className="fill-foreground text-xs"
-            >
-              {line.value.toFixed(tickInterval < 1 ? 1 : 0)}
-            </text>
-          </g>
-        ))}
+        {/* Y-axis ticks and labels - smart label skipping to prevent crowding */}
+        {(() => {
+          // Determine label interval based on number of ticks to prevent crowding
+          // Show fewer labels when there are many ticks
+          const totalTicks = gridLines.length;
+          let labelInterval = 1;
+          if (totalTicks > 20) labelInterval = 5;
+          else if (totalTicks > 12) labelInterval = 3;
+          else if (totalTicks > 8) labelInterval = 2;
+
+          return gridLines.map((line, i) => (
+            <g key={`y-tick-${i}`}>
+              {/* Always show tick mark */}
+              <line
+                x1={margin.left - 5}
+                y1={margin.top + line.y}
+                x2={margin.left}
+                y2={margin.top + line.y}
+                stroke="#334155"
+                strokeWidth="2"
+              />
+              {/* Only show label at intervals, plus first and last */}
+              {(i % labelInterval === 0 || i === gridLines.length - 1) && (
+                <text
+                  x={margin.left - 10}
+                  y={margin.top + line.y + 4}
+                  textAnchor="end"
+                  className="fill-foreground text-xs"
+                >
+                  {line.value.toFixed(tickInterval < 1 ? 1 : 0)}
+                </text>
+              )}
+            </g>
+          ));
+        })()}
 
         {/* X-axis */}
         <line
