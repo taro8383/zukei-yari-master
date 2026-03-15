@@ -94,11 +94,17 @@ export function generateTest(config: TestConfig): TestQuestion[] {
       for (let i = 0; i < minPerTopic; i++) {
         const generated = topic.generator();
         if (generated && generated.length > 0) {
-          questions.push({
-            ...generated[0],
+          const q = generated[0];
+          // Normalize question properties - some question types use different property names
+          const normalizedQuestion = {
+            ...q,
+            // LargeNumberQuestion uses questionText/questionTextEn, others use text/textEn
+            text: (q as any).text || (q as any).questionText || '',
+            textEn: (q as any).textEn || (q as any).questionTextEn || '',
             topicId: topic.id,
             tabName: topic.tabName,
-          } as TestQuestion);
+          };
+          questions.push(normalizedQuestion as TestQuestion);
         }
       }
     }
@@ -127,11 +133,17 @@ export function generateTest(config: TestConfig): TestQuestion[] {
       for (let i = 0; i < minPerTopic; i++) {
         const generated = topic.generator();
         if (generated && generated.length > 0) {
-          questions.push({
-            ...generated[0],
+          const q = generated[0];
+          // Normalize question properties - some question types use different property names
+          const normalizedQuestion = {
+            ...q,
+            // LargeNumberQuestion uses questionText/questionTextEn, others use text/textEn
+            text: (q as any).text || (q as any).questionText || '',
+            textEn: (q as any).textEn || (q as any).questionTextEn || '',
             topicId: topic.id,
             tabName: topic.tabName,
-          } as TestQuestion);
+          };
+          questions.push(normalizedQuestion as TestQuestion);
         }
       }
     }
