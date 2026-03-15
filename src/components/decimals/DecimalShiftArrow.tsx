@@ -55,7 +55,7 @@ const DecimalShiftArrow = ({
         </defs>
       </svg>
 
-      <!-- Hint text is now generic - students must figure out direction and spaces from the operation -->
+      {/* Hint text is now generic - students must figure out direction and spaces from the operation */}
       <p className="text-xs text-center text-muted-foreground mt-2">
         小数点を動かして答えを求めよう / Shift the decimal point to find the answer
       </p>
