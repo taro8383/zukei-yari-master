@@ -10,6 +10,8 @@ import HistoryModal, { HistoryEntry } from '@/components/HistoryModal';
 import HeaderBar from '@/components/HeaderBar';
 import ChallengeModeSelector, { ChallengeModes } from '@/components/ChallengeModeSelector';
 import ShopModal from '@/components/ShopModal';
+import VocabularyModal from '@/components/VocabularyModal';
+import MiniGameModal from '@/components/MiniGameModal';
 import AdventureMap from '@/components/AdventureMap';
 import DailyQuests from '@/components/DailyQuests';
 import LearningInsights from '@/components/LearningInsights';
@@ -35,7 +37,10 @@ import { FractionsExplanationCard, FractionsQuestionItem } from '@/components/fr
 import { AreaExplanationCard, AreaQuestionItem } from '@/components/area';
 import { InvestigatingChangesExplanationCard, InvestigatingChangesQuestionItem } from '@/components/investigatingChanges';
 import { saveHistoryEntry, getHistory, clearHistory, TAB_NAMES } from '@/lib/historyStorage';
-import { getGameData, saveGameData, getThemeColors, updateQuestProgress, recordMistake, getLearningInsights } from '@/lib/gameState';
+import { getGameData, saveGameData, getThemeColors, updateQuestProgress, recordMistake, getLearningInsights, completeChapter } from '@/lib/gameState';
+import { StoryChapter, STORY_CHAPTERS, getChapterByRegionId, calculateChapterStars } from '@/lib/storyMode';
+import { addAnsweredQuestions, isMiniGameAvailable, MiniGameProgress, getMiniGameProgress, skipMiniGame } from '@/lib/miniGames';
+import { ChapterIntroModal, ChapterCompleteModal, DailyEpisodeModal, StoryProgressPanel } from '@/components/story';
 
 const topicKeys: Topic[] = ['lines', 'angles', 'intersecting', 'quadrilaterals', 'diagonals', 'calculating-area', 'choosing-units', 'large-area-units', 'composite-shapes'];
 const ratioTopicKeys: RatioTopic[] = ['finding-ratio', 'finding-compared', 'finding-base', 'difference-vs-multiple'];
@@ -165,13 +170,115 @@ const Index = () => {
   const [currentTabName, setCurrentTabName] = useState('');
   const [currentTopicName, setCurrentTopicName] = useState('');
 
+  // Helper to get current questions based on active tab (for solution modal)
+  const getCurrentQuestions = () => {
+    switch (activeTab) {
+      case 'geometry':
+        return geometryQuestions.map(q => ({
+          text: q.text,
+          textEn: q.textEn,
+          answer: q.answer,
+          unit: q.unit,
+          explanation: q.explanation,
+          explanationEn: q.explanationEn,
+        }));
+      case 'ratios':
+        return ratioQuestions.map(q => ({
+          text: q.text,
+          textEn: q.textEn,
+          answer: q.answer,
+          unit: q.unit,
+          explanation: q.explanation,
+          explanationEn: q.explanationEn,
+        }));
+      case 'accuracy-rate':
+        return accuracyRateQuestions.map(q => ({
+          text: q.text,
+          textEn: q.textEn,
+          answer: q.answer,
+          unit: q.unit,
+          explanation: q.explanation,
+          explanationEn: q.explanationEn,
+        }));
+      case 'large-numbers':
+        return largeNumberQuestions.map(q => ({
+          text: q.text,
+          textEn: q.textEn,
+          answer: q.answer,
+          unit: q.unit,
+          explanation: q.explanation,
+          explanationEn: q.explanationEn,
+        }));
+      case 'calculation-rules':
+        return calculationRulesQuestions.map(q => ({
+          text: q.text,
+          textEn: q.textEn,
+          answer: q.answer,
+          unit: q.unit,
+          explanation: q.explanation,
+          explanationEn: q.explanationEn,
+        }));
+      case 'division':
+        return divisionQuestions.map(q => ({
+          text: q.text,
+          textEn: q.textEn,
+          answer: q.answer,
+          unit: q.unit,
+          explanation: q.explanation,
+          explanationEn: q.explanationEn,
+        }));
+      case 'decimals':
+        return decimalQuestions.map(q => ({
+          text: q.text,
+          textEn: q.textEn,
+          answer: q.answer,
+          unit: q.unit,
+          explanation: q.explanation,
+          explanationEn: q.explanationEn,
+        }));
+      case 'line-graphs':
+        return lineGraphQuestions.map(q => ({
+          text: q.text,
+          textEn: q.textEn,
+          answer: q.answer,
+          unit: q.unit,
+          explanation: q.explanation,
+          explanationEn: q.explanationEn,
+        }));
+      case 'fractions':
+        return fractionQuestions.map(q => ({
+          text: q.text,
+          textEn: q.textEn,
+          answer: q.answer,
+          unit: q.unit,
+          explanation: q.explanation,
+          explanationEn: q.explanationEn,
+        }));
+      case 'investigating-changes':
+        return investigatingChangesQuestions.map(q => ({
+          text: q.text,
+          textEn: q.textEn,
+          answer: q.answer,
+          unit: q.unit,
+          explanation: q.explanation,
+          explanationEn: q.explanationEn,
+        }));
+      default:
+        return [];
+    }
+  };
+
   // History modal state
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [shopModalOpen, setShopModalOpen] = useState(false);
   const [questsModalOpen, setQuestsModalOpen] = useState(false);
   const [insightsModalOpen, setInsightsModalOpen] = useState(false);
+  const [vocabularyModalOpen, setVocabularyModalOpen] = useState(false);
+  const [miniGameModalOpen, setMiniGameModalOpen] = useState(false);
   const [unacknowledgedInsights, setUnacknowledgedInsights] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [showMiniGameUnlock, setShowMiniGameUnlock] = useState(false);
+  const [miniGameProgress, setMiniGameProgress] = useState<MiniGameProgress>(getMiniGameProgress());
 
   // End-of-session summary state
   const [sessionSummaryOpen, setSessionSummaryOpen] = useState(false);
@@ -190,6 +297,18 @@ const Index = () => {
 
   // Adventure map state
   const [showAdventureMap, setShowAdventureMap] = useState(true);
+
+  // Story mode state
+  const [chapterIntroOpen, setChapterIntroOpen] = useState(false);
+  const [chapterCompleteOpen, setChapterCompleteOpen] = useState(false);
+  const [currentChapter, setCurrentChapter] = useState<StoryChapter | null>(null);
+  const [chapterStars, setChapterStars] = useState(0);
+  const [chapterCorrectCount, setChapterCorrectCount] = useState(0);
+  const [chapterTotalQuestions, setChapterTotalQuestions] = useState(0);
+  const [showStoryPanel, setShowStoryPanel] = useState(false);
+  const [dailyEpisodeModalOpen, setDailyEpisodeModalOpen] = useState(false);
+  const [isDailyEpisodeActive, setIsDailyEpisodeActive] = useState(false);
+  const [dailyEpisodeTopics, setDailyEpisodeTopics] = useState<string[]>([]);
 
   // Game data for particle settings
   const [gameData, setGameData] = useState(getGameData());
@@ -443,6 +562,12 @@ const Index = () => {
 
   // Handle region selection from adventure map
   const handleRegionSelect = (regionId: string, tabId: string) => {
+    // Check if there's a story chapter for this region
+    const chapter = getChapterByRegionId(regionId);
+    if (chapter) {
+      setCurrentChapter(chapter);
+      setChapterIntroOpen(true);
+    }
     setShowAdventureMap(false);
     handleTabChange(tabId);
   };
@@ -604,6 +729,14 @@ const Index = () => {
     // Update quest progress
     updateQuestProgress('answer-questions', 5);
     updateQuestProgress('answer-correct', correct);
+
+    // Check for mini-game unlock (every 20 questions)
+    const { shouldUnlock, newTotal } = addAnsweredQuestions(5);
+    if (shouldUnlock) {
+      setShowMiniGameUnlock(true);
+      // Update mini-game progress state
+      setMiniGameProgress(getMiniGameProgress());
+    }
 
     // Record mistakes for incorrect answers
     results.forEach((result) => {
@@ -1801,9 +1934,55 @@ const Index = () => {
           onOpenShop={() => setShopModalOpen(true)}
           onOpenQuests={() => setQuestsModalOpen(true)}
           onOpenInsights={() => setInsightsModalOpen(true)}
+          onOpenStoryMode={() => setShowStoryPanel(true)}
+          onOpenVocabulary={() => setVocabularyModalOpen(true)}
+          onOpenMiniGames={() => setMiniGameModalOpen(true)}
           unacknowledgedInsights={unacknowledgedInsights}
         />
       </div>
+
+      {/* Mini Game Unlock Notification */}
+      {showMiniGameUnlock && (
+        <div className="container max-w-3xl mx-auto px-4 mt-4">
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-4 animate-in slide-in-from-top-4">
+            <div className="flex items-center gap-3">
+              <span className="text-4xl">🎮</span>
+              <div className="flex-1">
+                <h3 className="font-bold text-purple-800">
+                  ミニゲームがひらけた！
+                </h3>
+                <p className="text-sm text-purple-600">
+                  Mini-games unlocked! Take a break and play!
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    skipMiniGame();
+                    setShowMiniGameUnlock(false);
+                  }}
+                >
+                  スキップ / Skip
+                </Button>
+                <Button
+                  onClick={() => setMiniGameModalOpen(true)}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500"
+                >
+                  あそぶ / Play
+                </Button>
+                <button
+                  onClick={() => setShowMiniGameUnlock(false)}
+                  className="p-1 hover:bg-purple-100 rounded-full"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Adventure Map */}
       {showAdventureMap && (
@@ -1816,7 +1995,11 @@ const Index = () => {
               エリアを選んで冒険を始めよう！/ Choose an area to start your adventure!
             </p>
           </div>
-          <AdventureMap onSelectRegion={handleRegionSelect} activeTab={activeTab} />
+          <AdventureMap
+            onSelectRegion={handleRegionSelect}
+            activeTab={activeTab}
+            onOpenStoryMode={() => setShowStoryPanel(true)}
+          />
         </div>
       )}
 
@@ -3069,6 +3252,7 @@ const Index = () => {
         score={currentScore}
         totalQuestions={5}
         results={currentResults}
+        questions={getCurrentQuestions()}
         onTryAgain={() => {
           setScoreModalOpen(false);
           // Call the appropriate try again function based on active tab
@@ -3113,7 +3297,22 @@ const Index = () => {
         }}
         onContinue={() => {
           setScoreModalOpen(false);
-          setSessionSummaryOpen(true);
+          // Check if we're completing a chapter
+          if (currentChapter && !chapterCompleteOpen) {
+            const correctCount = currentResults.filter(r => r.isCorrect).length;
+            const total = currentResults.length;
+            const stars = calculateChapterStars(correctCount, total);
+            setChapterStars(stars);
+            setChapterCorrectCount(correctCount);
+            setChapterTotalQuestions(total);
+            setChapterCompleteOpen(true);
+          } else if (isDailyEpisodeActive) {
+            // Complete daily episode
+            // (logic handled separately)
+            setSessionSummaryOpen(true);
+          } else {
+            setSessionSummaryOpen(true);
+          }
         }}
         tabName={currentTabName}
         topicName={currentTopicName}
@@ -3138,6 +3337,27 @@ const Index = () => {
       <ShopModal
         isOpen={shopModalOpen}
         onClose={() => setShopModalOpen(false)}
+      />
+
+      {/* Vocabulary Modal */}
+      <VocabularyModal
+        isOpen={vocabularyModalOpen}
+        onClose={() => setVocabularyModalOpen(false)}
+      />
+
+      {/* Mini Game Modal */}
+      <MiniGameModal
+        isOpen={miniGameModalOpen}
+        onClose={() => {
+          setMiniGameModalOpen(false);
+          setShowMiniGameUnlock(false);
+        }}
+        onCoinsEarned={(coins) => {
+          const data = getGameData();
+          data.player.coins += coins;
+          saveGameData(data);
+          window.dispatchEvent(new CustomEvent('coins-changed'));
+        }}
       />
 
       {/* Daily Quests Modal */}
@@ -3229,6 +3449,129 @@ const Index = () => {
         topic={selectedTopic}
         questionType={activeTab}
       />
+
+      {/* Chapter Intro Modal */}
+      <ChapterIntroModal
+        isOpen={chapterIntroOpen}
+        onClose={() => setChapterIntroOpen(false)}
+        onStart={() => {
+          setChapterIntroOpen(false);
+          // Questions will be generated automatically by the tab's useEffect
+        }}
+        chapter={currentChapter}
+      />
+
+      {/* Chapter Complete Modal */}
+      <ChapterCompleteModal
+        isOpen={chapterCompleteOpen}
+        onClose={() => {
+          setChapterCompleteOpen(false);
+          setCurrentChapter(null);
+        }}
+        onContinue={() => {
+          setChapterCompleteOpen(false);
+          // Complete the chapter and award coins
+          if (currentChapter) {
+            completeChapter(currentChapter.id, chapterStars, currentChapter.completion.rewardCoins);
+          }
+          setCurrentChapter(null);
+          setShowAdventureMap(true);
+        }}
+        onRetry={() => {
+          setChapterCompleteOpen(false);
+          // Retry the same chapter
+          // Questions will be regenerated
+          switch (activeTab) {
+            case 'geometry':
+              handleGenerateGeometry();
+              break;
+            case 'ratios':
+              handleGenerateRatios();
+              break;
+            case 'accuracy-rate':
+              handleGenerateAccuracyRate();
+              break;
+            case 'large-numbers':
+              handleGenerateLargeNumbers();
+              break;
+            case 'calculation-rules':
+              handleGenerateCalculationRules();
+              break;
+            case 'division':
+              handleGenerateDivision();
+              break;
+            case 'decimals':
+              handleGenerateDecimals();
+              break;
+            case 'line-graphs':
+              handleGenerateLineGraphs();
+              break;
+            case 'fractions':
+              handleGenerateFractions();
+              break;
+            case 'investigating-changes':
+              handleGenerateInvestigatingChanges();
+              break;
+          }
+        }}
+        chapter={currentChapter}
+        stars={chapterStars}
+        correctCount={chapterCorrectCount}
+        totalQuestions={chapterTotalQuestions}
+      />
+
+      {/* Daily Episode Modal */}
+      <DailyEpisodeModal
+        isOpen={dailyEpisodeModalOpen}
+        onClose={() => setDailyEpisodeModalOpen(false)}
+        onStart={() => {
+          setDailyEpisodeModalOpen(false);
+          setIsDailyEpisodeActive(true);
+          // Start the daily episode with selected topics
+          if (dailyEpisodeTopics.length > 0) {
+            handleTabChange(dailyEpisodeTopics[0]);
+          }
+        }}
+        episode={null} // Will be populated from gameState
+        isCompleted={false}
+      />
+
+      {/* Story Progress Panel */}
+      {showStoryPanel && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="max-w-md w-full max-h-[90vh] overflow-auto">
+            <StoryProgressPanel
+              chapters={STORY_CHAPTERS}
+              progress={gameData?.storyProgress || { completedChapters: [], chapterStars: {}, currentChapterId: null, sideQuestsCompleted: [], dailyEpisodesCompleted: [], totalStoryCoins: 0 }}
+              onSelectChapter={(chapter) => {
+                setCurrentChapter(chapter);
+                setChapterIntroOpen(true);
+                setShowStoryPanel(false);
+                // Navigate to the region
+                const regionToTabs: { [key: string]: string } = {
+                  'number-castle': 'large-numbers',
+                  'geometry-mountains': 'geometry',
+                  'ratio-ocean': 'division',
+                  'decimal-forest': 'decimals',
+                  'fraction-volcano': 'fractions',
+                  'graph-island': 'line-graphs',
+                  'accuracy-peaks': 'accuracy-rate',
+                };
+                const tabId = regionToTabs[chapter.regionId];
+                if (tabId) {
+                  handleTabChange(tabId);
+                }
+              }}
+            />
+            <button
+              onClick={() => setShowStoryPanel(false)}
+              className="w-full mt-4 py-3 bg-gray-200 hover:bg-gray-300 rounded-xl font-bold text-gray-700"
+            >
+              閉じる / Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Particle Effects Manager */}
       <ParticleManager enabled={gameData?.settings?.animationsEnabled ?? true} />

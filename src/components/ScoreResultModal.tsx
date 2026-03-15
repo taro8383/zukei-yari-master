@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, RotateCcw, XCircle, ChevronRight, Coins, Sparkles, Target, Lock, Zap, EyeOff, ArrowRight } from 'lucide-react';
+import { Trophy, RotateCcw, XCircle, ChevronRight, Coins, Sparkles, Target, Lock, Zap, EyeOff, ArrowRight, Lightbulb } from 'lucide-react';
 import { celebrateAchievement, celebrateCoin } from '@/components/ParticleEffects';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { Achievement, calculateSessionCoins, unlockAchievement, recordQuestionAnswered, getGameData } from '@/lib/gameState';
+import SolutionModal, { SolutionData } from './SolutionModal';
+import generateSolution from '@/lib/solutionGenerator';
 
 interface QuestionResult {
   index: number;
@@ -19,12 +21,23 @@ interface QuestionResult {
   correctAnswer: string | number;
 }
 
+// Extended question interface for solution generation
+interface QuestionData {
+  text: string;
+  textEn: string;
+  answer: number | string;
+  unit?: string;
+  explanation?: string;
+  explanationEn?: string;
+}
+
 interface ScoreResultModalProps {
   isOpen: boolean;
   onClose: () => void;
   score: number;
   totalQuestions: number;
   results: QuestionResult[];
+  questions?: QuestionData[]; // Questions data for solution generation
   onTryAgain: () => void;
   onScrollToQuestion: (index: number) => void;
   onContinue?: () => void; // New prop to proceed to session summary
@@ -45,6 +58,7 @@ const ScoreResultModal = ({
   score,
   totalQuestions,
   results,
+  questions = [],
   onTryAgain,
   onScrollToQuestion,
   onContinue,
@@ -61,6 +75,29 @@ const ScoreResultModal = ({
   const [coinBreakdown, setCoinBreakdown] = useState<{ baseCoins: number; bonuses: { name: string; amount: number }[]; total: number } | null>(null);
   const [newAchievements, setNewAchievements] = useState<Achievement[]>([]);
   const [previousCoins, setPreviousCoins] = useState(0);
+
+  // Solution modal state
+  const [solutionModalOpen, setSolutionModalOpen] = useState(false);
+  const [currentSolution, setCurrentSolution] = useState<SolutionData | null>(null);
+  const [currentUserAnswer, setCurrentUserAnswer] = useState<string>('');
+
+  // Handle showing solution for a wrong answer
+  const handleShowSolution = (result: QuestionResult) => {
+    const question = questions[result.index];
+    if (question) {
+      const solution = generateSolution({
+        text: question.text,
+        textEn: question.textEn,
+        answer: question.answer,
+        unit: question.unit,
+        explanation: question.explanation,
+        explanationEn: question.explanationEn,
+      });
+      setCurrentSolution(solution);
+      setCurrentUserAnswer(result.userAnswer);
+      setSolutionModalOpen(true);
+    }
+  };
 
   // Record session and calculate rewards when modal opens
   useEffect(() => {
@@ -305,37 +342,67 @@ const ScoreResultModal = ({
             </p>
             <div className="space-y-2">
               {wrongAnswers.map((result) => (
-                <button
+                <div
                   key={result.index}
-                  onClick={() => {
-                    onScrollToQuestion(result.index);
-                    onClose();
-                  }}
-                  className="w-full flex items-center justify-between p-3 bg-background rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-all text-left group"
+                  className="w-full p-3 bg-background rounded-lg border border-border"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-sm">
-                      {result.index + 1}
-                    </span>
-                    <div>
-                      <p className="text-sm font-medium">
-                        こたえ: {result.userAnswer || '(なし / none)'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        せいかい: {result.correctAnswer}
-                      </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-sm">
+                        {result.index + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium">
+                          こたえ: {result.userAnswer || '(なし / none)'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          せいかい: {result.correctAnswer}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
-                </button>
+
+                  {/* Action buttons for wrong answer */}
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        onScrollToQuestion(result.index);
+                        onClose();
+                      }}
+                      className="flex-1 text-xs"
+                    >
+                      <ChevronRight className="w-3 h-3 mr-1" />
+                      もんだいへ / Go to Question
+                    </Button>
+                    <Button
+                      variant="generate"
+                      size="sm"
+                      onClick={() => handleShowSolution(result)}
+                      className="flex-1 text-xs bg-blue-500 hover:bg-blue-600"
+                    >
+                      <Lightbulb className="w-3 h-3 mr-1" />
+                      とけかた / Solution
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
             <p className="text-xs text-center text-muted-foreground mt-3">
-              クリックするとそのもんだいへジャンプ！<br />
-              Click to jump to that question!
+              「とけかた」をクリックして、ステップバイステップの解説を見よう！<br />
+              Click "Solution" for step-by-step explanation!
             </p>
           </div>
         )}
+
+        {/* Solution Modal */}
+        <SolutionModal
+          isOpen={solutionModalOpen}
+          onClose={() => setSolutionModalOpen(false)}
+          solution={currentSolution}
+          userAnswer={currentUserAnswer}
+        />
 
         {/* Action Buttons */}
         <div className="flex gap-3">

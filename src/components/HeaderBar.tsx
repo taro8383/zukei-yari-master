@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Coins, Flame, Trophy, User, ShoppingBag, Target, Brain } from 'lucide-react';
+import { Coins, Flame, Trophy, User, ShoppingBag, Target, Brain, BookOpen, Gamepad2 } from 'lucide-react';
 import { getGameData, getStreakStatus, updateStreak, GameData } from '@/lib/gameState';
 import { cn } from '@/lib/utils';
 
@@ -8,10 +8,13 @@ interface HeaderBarProps {
   onOpenShop?: () => void;
   onOpenQuests?: () => void;
   onOpenInsights?: () => void;
+  onOpenStoryMode?: () => void;
+  onOpenVocabulary?: () => void;
+  onOpenMiniGames?: () => void;
   unacknowledgedInsights?: number;
 }
 
-const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, unacknowledgedInsights = 0 }: HeaderBarProps) => {
+const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, onOpenStoryMode, onOpenVocabulary, onOpenMiniGames, unacknowledgedInsights = 0 }: HeaderBarProps) => {
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [showCoinsAnimation, setShowCoinsAnimation] = useState(false);
 
@@ -115,6 +118,17 @@ const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, unackn
 
       {/* Right - Quests + Insights + Shop + XP Bar */}
       <div className="flex items-center gap-2">
+        {/* Story Mode Button */}
+        {onOpenStoryMode && (
+          <button
+            onClick={onOpenStoryMode}
+            className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200 hover:scale-105 transition-transform"
+            title="ストーリーモード / Story Mode"
+          >
+            <BookOpen className="w-5 h-5 text-amber-600" />
+          </button>
+        )}
+
         {/* Learning Insights Button */}
         {onOpenInsights && (
           <button
@@ -152,6 +166,28 @@ const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, unackn
             title="ショップ / Shop"
           >
             <ShoppingBag className="w-5 h-5 text-purple-600" />
+          </button>
+        )}
+
+        {/* Vocabulary Button */}
+        {onOpenVocabulary && (
+          <button
+            onClick={onOpenVocabulary}
+            className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 border border-indigo-200 hover:scale-105 transition-transform"
+            title="算数のことば / Math Vocabulary"
+          >
+            <span className="text-xl">📖</span>
+          </button>
+        )}
+
+        {/* Mini Games Button */}
+        {onOpenMiniGames && (
+          <button
+            onClick={onOpenMiniGames}
+            className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-purple-100 to-pink-100 border border-purple-200 hover:scale-105 transition-transform"
+            title="ミニゲーム / Mini Games"
+          >
+            <Gamepad2 className="w-5 h-5 text-purple-600" />
           </button>
         )}
 

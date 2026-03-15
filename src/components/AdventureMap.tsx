@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lock, Star, MapPin, ChevronRight, RotateCcw, Trophy } from 'lucide-react';
+import { Lock, Star, MapPin, ChevronRight, RotateCcw, Trophy, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGameData, GameData } from '@/lib/gameState';
 
@@ -106,6 +106,7 @@ const REGION_TO_TABS: Record<string, string[]> = {
 interface AdventureMapProps {
   onSelectRegion: (regionId: string, tabId: string) => void;
   activeTab?: string;
+  onOpenStoryMode?: () => void;
 }
 
 interface RegionProgress {
@@ -116,7 +117,7 @@ interface RegionProgress {
   isLocked: boolean;
 }
 
-const AdventureMap = ({ onSelectRegion, activeTab }: AdventureMapProps) => {
+const AdventureMap = ({ onSelectRegion, activeTab, onOpenStoryMode }: AdventureMapProps) => {
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
@@ -406,8 +407,19 @@ const AdventureMap = ({ onSelectRegion, activeTab }: AdventureMapProps) => {
               <span className="text-gray-600">3星: マスター! / Mastered!</span>
             </div>
           </div>
-          <div className="text-xs text-gray-500">
-            エリアをクリックしてスタート! / Click an area to start!
+          <div className="flex items-center gap-2">
+            {onOpenStoryMode && (
+              <button
+                onClick={onOpenStoryMode}
+                className="flex items-center gap-1 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-full text-sm font-medium transition-colors"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>ストーリー / Story</span>
+              </button>
+            )}
+            <div className="text-xs text-gray-500">
+              エリアをクリックしてスタート! / Click an area to start!
+            </div>
           </div>
         </div>
       </div>

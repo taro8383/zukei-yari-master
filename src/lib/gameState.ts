@@ -1,5 +1,7 @@
 // Game State Management - Gamification System
-// Coins, Streaks, Achievements, XP, Daily Quests
+// Coins, Streaks, Achievements, XP, Daily Quests, Story Mode
+
+import { StoryProgress, DailyEpisode, getDefaultStoryProgress, generateDailyEpisode } from './storyMode';
 
 // Shop item types
 export type ShopItemType = 'theme' | 'avatarColor' | 'powerup';
@@ -117,6 +119,10 @@ export interface GameData {
   mistakes: MistakeEntry[];
   errorPatterns: ErrorPattern[];
   learningInsights: LearningInsight[];
+  // Story mode progress
+  storyProgress: StoryProgress;
+  // Daily episode
+  currentDailyEpisode: DailyEpisode | null;
 }
 
 export interface TopicProgress {
@@ -317,6 +323,8 @@ const defaultGameData: GameData = {
   mistakes: [],
   errorPatterns: [],
   learningInsights: [],
+  storyProgress: getDefaultStoryProgress(),
+  currentDailyEpisode: null,
 };
 
 // Achievement definitions
@@ -435,6 +443,13 @@ export const getGameData = (): GameData => {
     }
     if (!parsed.learningInsights) {
       merged.learningInsights = [];
+    }
+    // Story mode (v3+ fields)
+    if (!parsed.storyProgress) {
+      merged.storyProgress = getDefaultStoryProgress();
+    }
+    if (!parsed.currentDailyEpisode) {
+      merged.currentDailyEpisode = null;
     }
 
     return merged;
@@ -1591,5 +1606,123 @@ export const getTopicAccuracyTrend = (topic: string): { improving: boolean; accu
   return {
     improving: recentErrors < olderErrors,
     accuracy: Math.max(0, 100 - (recentErrors * 20)),
+  };
+};
+
+// ============================================
+// STORY MODE FUNCTIONS
+// ============================================
+
+// Get or generate daily episode
+export const getDailyEpisode = (): DailyEpisode => {
+  const data = getGameData();
+  const today = new Date().toISOString().split('T')[0];
+
+  // Check if we have an episode for today
+  if (data.currentDailyEpisode?.date === today) {
+    return data.currentDailyEpisode;
+  }
+
+  // Generate new episode for today
+  const newEpisode = generateDailyEpisode();
+  data.currentDailyEpisode = newEpisode;
+  saveGameData(data);
+
+  return newEpisode;
+};
+
+// Complete a chapter
+export const completeChapter = (
+  chapterId: string,
+  stars: number,
+  earnedCoins: number
+): void => {
+  const data = getGameData();
+
+  // Mark chapter as completed
+  if (!data.storyProgress.completedChapters.includes(chapterId)) {
+    data.storyProgress.completedChapters.push(chapterId);
+  }
+
+  // Update stars (keep the best score)
+  const currentStars = data.storyProgress.chapterStars[chapterId] || 0;
+  if (stars > currentStars) {
+    data.storyProgress.chapterStars[chapterId] = stars;
+  }
+
+  // Add story coins
+  data.storyProgress.totalStoryCoins += earnedCoins;
+
+  // Update current chapter to next available
+  const availableChapters = require('./storyMode').getAvailableChapters(data.storyProgress.completedChapters);
+  if (availableChapters.length > 0) {
+    data.storyProgress.currentChapterId = availableChapters[0];
+  } else {
+    data.storyProgress.currentChapterId = null; // All chapters completed
+  }
+
+  // Also add to regular coins
+  data.player.coins += earnedCoins;
+
+  saveGameData(data);
+  window.dispatchEvent(new CustomEvent('coins-changed'));
+};
+
+// Complete a side quest
+export const completeSideQuest = (sideQuestId: string, rewardCoins: number): void => {
+  const data = getGameData();
+
+  if (!data.storyProgress.sideQuestsCompleted.includes(sideQuestId)) {
+    data.storyProgress.sideQuestsCompleted.push(sideQuestId);
+    data.storyProgress.totalStoryCoins += rewardCoins;
+    data.player.coins += rewardCoins;
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+  }
+};
+
+// Complete daily episode
+export const completeDailyEpisode = (episodeId: string, rewardCoins: number): void => {
+  const data = getGameData();
+
+  if (!data.storyProgress.dailyEpisodesCompleted.includes(episodeId)) {
+    data.storyProgress.dailyEpisodesCompleted.push(episodeId);
+    data.storyProgress.totalStoryCoins += rewardCoins;
+    data.player.coins += rewardCoins;
+
+    // Mark episode as completed
+    if (data.currentDailyEpisode?.id === episodeId) {
+      data.currentDailyEpisode.completed = true;
+    }
+
+    saveGameData(data);
+    window.dispatchEvent(new CustomEvent('coins-changed'));
+  }
+};
+
+// Set current chapter
+export const setCurrentChapter = (chapterId: string): void => {
+  const data = getGameData();
+  data.storyProgress.currentChapterId = chapterId;
+  saveGameData(data);
+};
+
+// Get story progress summary
+export const getStoryProgressSummary = () => {
+  const data = getGameData();
+  const { storyProgress } = data;
+
+  const totalStars = Object.values(storyProgress.chapterStars).reduce(
+    (sum, stars) => sum + stars,
+    0
+  );
+
+  return {
+    completedChapters: storyProgress.completedChapters.length,
+    totalChapters: 7, // Total chapters in story
+    totalStars,
+    maxStars: 21, // 7 chapters * 3 stars
+    totalStoryCoins: storyProgress.totalStoryCoins,
+    currentChapterId: storyProgress.currentChapterId,
   };
 };
