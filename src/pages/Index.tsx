@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Sparkles, RotateCcw, CheckCircle2, Compass, Circle, Shapes, Percent, Hash, Calculator, Divide, Dot, TrendingUp, History, Pizza } from 'lucide-react';
+import TestModeModal from '@/components/TestModeModal';
+import TestMode from '@/components/TestMode';
+import { generateTest, TestQuestion } from '@/lib/testMode';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ExplanationCard from '@/components/ExplanationCard';
@@ -151,6 +154,12 @@ const Index = () => {
   const [investigatingChangesAnswers, setInvestigatingChangesAnswers] = useState<string[]>([]);
   const [investigatingChangesGraded, setInvestigatingChangesGraded] = useState(false);
   const [investigatingChangesScore, setInvestigatingChangesScore] = useState(0);
+
+  // Test Mode state
+  const [testModeOpen, setTestModeOpen] = useState(false);
+  const [isTestMode, setIsTestMode] = useState(false);
+  const [testQuestions, setTestQuestions] = useState<TestQuestion[]>([]);
+  const [testModeType, setTestModeType] = useState<'general' | 'tab-specific'>('general');
 
   // Gamification state
   const [challengeModes, setChallengeModes] = useState<ChallengeModes>({
@@ -1862,6 +1871,72 @@ const Index = () => {
 
   const themeColors = getThemeColors(currentTheme);
 
+  // Test Mode handlers
+  const handleStartGeneralTest = () => {
+    const questions = generateTest({ type: 'general', questionCount: 100 });
+    setTestQuestions(questions);
+    setTestModeType('general');
+    setIsTestMode(true);
+    setTestModeOpen(false);
+  };
+
+  const handleStartTabTest = () => {
+    const tabMap: Record<AppTab, string> = {
+      'geometry': 'geometry',
+      'ratios': 'ratios',
+      'accuracy-rate': 'accuracy-rate',
+      'large-numbers': 'large-numbers',
+      'calculation-rules': 'calculation-rules',
+      'division': 'division',
+      'decimals': 'decimals',
+      'line-graphs': 'line-graphs',
+      'fractions': 'fractions',
+      'investigating-changes': 'investigating-changes',
+    };
+    const questions = generateTest({ type: 'tab-specific', tabId: tabMap[activeTab], questionCount: 20 });
+    setTestQuestions(questions);
+    setTestModeType('tab-specific');
+    setIsTestMode(true);
+    setTestModeOpen(false);
+  };
+
+  const handleTestComplete = (score: number, total: number) => {
+    // Save test results to history
+    saveHistoryEntry({
+      timestamp: Date.now(),
+      tab: 'test-mode',
+      topic: testModeType === 'general' ? '総合テスト / General Test' : '単元テスト / Tab Test',
+      score,
+      totalQuestions: total,
+    });
+    setHistory(getHistory());
+  };
+
+  const handleExitTestMode = () => {
+    setIsTestMode(false);
+    setTestQuestions([]);
+  };
+
+  // If in test mode, show test interface
+  if (isTestMode) {
+    return (
+      <div
+        className="min-h-screen transition-colors duration-300"
+        style={{
+          backgroundColor: themeColors.background,
+          color: themeColors.text,
+        }}
+        data-theme={currentTheme}
+      >
+        <TestMode
+          questions={testQuestions}
+          onExit={handleExitTestMode}
+          onComplete={handleTestComplete}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className="min-h-screen transition-colors duration-300"
@@ -1947,6 +2022,7 @@ const Index = () => {
           onOpenStoryMode={() => setShowStoryPanel(true)}
           onOpenVocabulary={() => setVocabularyModalOpen(true)}
           onOpenMiniGames={() => setMiniGameModalOpen(true)}
+          onOpenTestMode={() => setTestModeOpen(true)}
           unacknowledgedInsights={unacknowledgedInsights}
         />
       </div>
@@ -3589,6 +3665,15 @@ const Index = () => {
           </div>
         </div>
       )}
+
+      {/* Test Mode Modal */}
+      <TestModeModal
+        isOpen={testModeOpen}
+        onClose={() => setTestModeOpen(false)}
+        onStartGeneralTest={handleStartGeneralTest}
+        onStartTabTest={handleStartTabTest}
+        currentTabName={TAB_NAMES[activeTab]}
+      />
 
       {/* Particle Effects Manager */}
       <ParticleManager enabled={gameData?.settings?.animationsEnabled ?? true} />
