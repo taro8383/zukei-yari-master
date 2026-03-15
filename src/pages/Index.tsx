@@ -2158,7 +2158,11 @@ const Index = () => {
 
             {/* Topic Info - Always visible like Accuracy Rate tab */}
             <div className="mb-6">
-              <ExplanationCard info={TOPICS[selectedTopic]} />
+              {['calculating-area', 'choosing-units', 'large-area-units', 'composite-shapes'].includes(selectedTopic) ? (
+                <AreaExplanationCard info={{ ...TOPICS[selectedTopic], id: selectedTopic }} />
+              ) : (
+                <ExplanationCard info={TOPICS[selectedTopic]} />
+              )}
             </div>
 
             {/* Challenge Modes */}
