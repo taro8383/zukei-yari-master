@@ -339,6 +339,7 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
           explanation: `大きい長方形から切り取った部分を引きます：${outerWidth}×${outerHeight}=${outerArea} から ${cutoutWidth}×${cutoutHeight}=${cutoutArea} を引く → ${totalArea}cm²`,
           explanationEn: `Subtract the cutout from the large rectangle: ${outerWidth}×${outerHeight}=${outerArea} minus ${cutoutWidth}×${cutoutHeight}=${cutoutArea} → ${totalArea}cm²`,
           diagram: { type: 'area-composite-cshape', params: { outerWidth, outerHeight, cutoutWidth, cutoutHeight, cutoutY, outerArea, cutoutArea, totalArea } },
+          dimensions: { outerWidth, outerHeight, cutoutWidth, cutoutHeight, cutoutY, shapeType: 'c-shape' as const },
         };
       } else {
         // L-shape: existing implementation
@@ -360,6 +361,7 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
           explanation: `方法1：${rect1Width}×${rect1Height}=${rect1Area} と ${rect2Width}×${rect2Height}=${rect2Area} → 合計 ${totalArea}cm²`,
           explanationEn: `Method 1: ${rect1Width}×${rect1Height}=${rect1Area} and ${rect2Width}×${rect2Height}=${rect2Area} → Total ${totalArea}cm²`,
           diagram: { type: 'area-composite-lshape', params: { outerWidth, outerHeight, cutoutWidth, cutoutHeight, rect1Area, rect2Area, totalArea } },
+          dimensions: { outerWidth, outerHeight, cutoutWidth, cutoutHeight, shapeType: 'l-shape' as const },
         };
       }
     }

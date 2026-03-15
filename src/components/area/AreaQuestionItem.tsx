@@ -24,6 +24,8 @@ interface AreaQuestionItemProps {
       outerHeight: number;
       cutoutWidth: number;
       cutoutHeight: number;
+      cutoutY?: number; // For C-shapes
+      shapeType?: 'l-shape' | 'c-shape';
     };
   };
   index: number;
@@ -81,18 +83,29 @@ const AreaQuestionItem = ({
       case 'composite-shapes':
         const dims = question.dimensions;
         if (dims) {
-          const rect1W = dims.outerWidth - dims.cutoutWidth;
-          const rect1H = dims.outerHeight;
-          const rect2W = dims.cutoutWidth;
-          const rect2H = dims.outerHeight - dims.cutoutHeight;
-          return {
-            ja: `💡 L字の形の計算方法:\n① 長方形A：${rect1W} × ${rect1H} = ${rect1W * rect1H} cm²\n② 長方形B：${rect2W} × ${rect2H} = ${rect2W * rect2H} cm²\n③ 合計：${rect1W * rect1H} + ${rect2W * rect2H} = ${(rect1W * rect1H) + (rect2W * rect2H)} cm²`,
-            en: `L-shape calculation:\n1. Rectangle A: ${rect1W} × ${rect1H} = ${rect1W * rect1H} cm²\n2. Rectangle B: ${rect2W} × ${rect2H} = ${rect2W * rect2H} cm²\n3. Total: ${(rect1W * rect1H) + (rect2W * rect2H)} cm²`,
-          };
+          const isCShape = dims.shapeType === 'c-shape' || dims.cutoutY !== undefined;
+          if (isCShape) {
+            const outerArea = dims.outerWidth * dims.outerHeight;
+            const cutoutArea = dims.cutoutWidth * dims.cutoutHeight;
+            const totalArea = outerArea - cutoutArea;
+            return {
+              ja: `💡 C字の形の計算方法:\n① 大きい長方形：${dims.outerWidth} × ${dims.outerHeight} = ${outerArea} cm²\n② 切り取り部分：${dims.cutoutWidth} × ${dims.cutoutHeight} = ${cutoutArea} cm²\n③ 答え：${outerArea} - ${cutoutArea} = ${totalArea} cm²`,
+              en: `C-shape calculation:\n1. Large rectangle: ${dims.outerWidth} × ${dims.outerHeight} = ${outerArea} cm²\n2. Cutout area: ${dims.cutoutWidth} × ${dims.cutoutHeight} = ${cutoutArea} cm²\n3. Answer: ${outerArea} - ${cutoutArea} = ${totalArea} cm²`,
+            };
+          } else {
+            const rect1W = dims.outerWidth - dims.cutoutWidth;
+            const rect1H = dims.outerHeight;
+            const rect2W = dims.cutoutWidth;
+            const rect2H = dims.outerHeight - dims.cutoutHeight;
+            return {
+              ja: `💡 L字の形の計算方法:\n① 長方形A：${rect1W} × ${rect1H} = ${rect1W * rect1H} cm²\n② 長方形B：${rect2W} × ${rect2H} = ${rect2W * rect2H} cm²\n③ 合計：${rect1W * rect1H} + ${rect2W * rect2H} = ${(rect1W * rect1H) + (rect2W * rect2H)} cm²`,
+              en: `L-shape calculation:\n1. Rectangle A: ${rect1W} × ${rect1H} = ${rect1W * rect1H} cm²\n2. Rectangle B: ${rect2W} × ${rect2H} = ${rect2W * rect2H} cm²\n3. Total: ${(rect1W * rect1H) + (rect2W * rect2H)} cm²`,
+            };
+          }
         }
         return {
-          ja: `💡 L字の形の計算方法:\n① 2つの長方形に分ける\n② それぞれの面積を計算\n③ たし算する`,
-          en: `L-shape calculation:\n1. Split into 2 rectangles\n2. Calculate each area\n3. Add together`,
+          ja: `💡 複合形の計算方法:\n① L字：2つの長方形に分けてたし算\n② C字：大きい形から切り取りを引く`,
+          en: `Composite shape calculation:\n1. L-shape: Split into 2 rectangles and add\n2. C-shape: Subtract cutout from large shape`,
         };
       default:
         return { ja: '', en: '' };
@@ -196,11 +209,12 @@ const AreaQuestionItem = ({
     );
   };
 
-  // Render L-shape for composite shapes
-  const renderLShape = () => {
+  // Render L-shape or C-shape for composite shapes
+  const renderCompositeShape = () => {
     if (!isCompositeShapes || !question.dimensions) return null;
 
-    const { outerWidth, outerHeight, cutoutWidth, cutoutHeight } = question.dimensions;
+    const { outerWidth, outerHeight, cutoutWidth, cutoutHeight, cutoutY, shapeType } = question.dimensions;
+    const isCShape = shapeType === 'c-shape' || cutoutY !== undefined;
 
     // Scale to fit SVG
     const maxSize = 150;
@@ -208,6 +222,109 @@ const AreaQuestionItem = ({
     const svgWidth = outerWidth * scale + 80;
     const svgHeight = outerHeight * scale + 80;
 
+    if (isCShape) {
+      // C-shape: outer rectangle with a vertical cutout on the right side
+      const cy = (cutoutY || 3) * scale;
+      const ch = cutoutHeight * scale;
+      const cw = cutoutWidth * scale;
+      const ow = outerWidth * scale;
+      const oh = outerHeight * scale;
+
+      // Calculate the two filled parts
+      const leftPartWidth = outerWidth - cutoutWidth;
+
+      return (
+        <div className="flex flex-col items-center gap-2 mb-4">
+          <p className="text-sm text-muted-foreground">
+            C字の形 / C-Shape
+          </p>
+          <svg width={svgWidth} height={svgHeight} className="border rounded-lg bg-white">
+            {/* Left part (full height) */}
+            <rect
+              x="50"
+              y="30"
+              width={leftPartWidth * scale}
+              height={oh}
+              fill="#60a5fa"
+              stroke="#3b82f6"
+              strokeWidth={2}
+            />
+            <text
+              x={50 + (leftPartWidth * scale) / 2}
+              y={30 + oh / 2 + 5}
+              textAnchor="middle"
+              fontSize={14}
+              fill="white"
+              fontWeight="bold"
+            >
+              A
+            </text>
+
+            {/* Top right part */}
+            <rect
+              x={50 + leftPartWidth * scale}
+              y="30"
+              width={cw}
+              height={cy}
+              fill="#a78bfa"
+              stroke="#8b5cf6"
+              strokeWidth={2}
+            />
+
+            {/* Bottom right part */}
+            <rect
+              x={50 + leftPartWidth * scale}
+              y={30 + cy + ch}
+              width={cw}
+              height={oh - cy - ch}
+              fill="#a78bfa"
+              stroke="#8b5cf6"
+              strokeWidth={2}
+            />
+
+            {/* Cutout area (white with border) */}
+            <rect
+              x={50 + leftPartWidth * scale}
+              y={30 + cy}
+              width={cw}
+              height={ch}
+              fill="white"
+              stroke="#ef4444"
+              strokeWidth={2}
+              strokeDasharray="4"
+            />
+            <text
+              x={50 + leftPartWidth * scale + cw / 2}
+              y={30 + cy + ch / 2 + 5}
+              textAnchor="middle"
+              fontSize={10}
+              fill="#ef4444"
+            >
+              切り取り
+            </text>
+
+            {/* Dimension labels */}
+            {/* Outer width */}
+            <text x={50 + ow / 2} y="20" textAnchor="middle" fontSize={12} fill="#374151" fontWeight="bold">
+              {outerWidth} cm
+            </text>
+            {/* Outer height */}
+            <text x="30" y={30 + oh / 2 + 5} textAnchor="middle" fontSize={12} fill="#374151" fontWeight="bold">
+              {outerHeight} cm
+            </text>
+            {/* Cutout width */}
+            <text x={50 + leftPartWidth * scale + cw / 2} y={30 + oh + 25} textAnchor="middle" fontSize={12} fill="#ef4444">
+              {cutoutWidth} cm
+            </text>
+          </svg>
+          <p className="text-xs text-muted-foreground">
+            方法：大きい形 - 切り取り / Method: Large area - cutout
+          </p>
+        </div>
+      );
+    }
+
+    // L-shape rendering (original)
     const rect1Width = outerWidth - cutoutWidth;
     const rect1Height = outerHeight;
     const rect2Width = cutoutWidth;
@@ -320,7 +437,7 @@ const AreaQuestionItem = ({
 
           {/* Visual Aids - only show when graded for calculating area, always for composite shapes */}
           {isCalculatingArea && renderAreaShape()}
-          {(isCompositeShapes || graded) && renderLShape()}
+          {(isCompositeShapes || graded) && renderCompositeShape()}
 
           {/* Hint Toggle */}
           {!graded && (
