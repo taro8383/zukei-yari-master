@@ -808,12 +808,13 @@ const Index = () => {
       if (q.type === 'difference-vs-multiple') {
         const userNum = parseFloat(ratioAnswers[i]);
         const operationCorrect = ratioOperationAnswers[i] === q.correctOperation;
-        const answerCorrect = userNum === q.answer;
+        // Use tolerance for floating-point comparison
+        const answerCorrect = Math.abs(userNum - q.answer) < 0.0001;
         isCorrect = operationCorrect && answerCorrect;
       } else {
-        // Compare the numeric answer directly
+        // Compare the numeric answer with tolerance for floating-point precision
         const userNum = parseFloat(ratioAnswers[i]);
-        isCorrect = userNum === q.answer;
+        isCorrect = Math.abs(userNum - q.answer) < 0.0001;
       }
       if (isCorrect) correct++;
       return {
@@ -2339,8 +2340,8 @@ const Index = () => {
                         graded={ratioGraded}
                         isCorrect={ratioGraded ? (
                           q.type === 'difference-vs-multiple'
-                            ? parseFloat(ratioAnswers[i]) === q.answer && ratioOperationAnswers[i] === q.correctOperation
-                            : parseFloat(ratioAnswers[i]) === q.answer
+                            ? Math.abs(parseFloat(ratioAnswers[i]) - q.answer) < 0.0001 && ratioOperationAnswers[i] === q.correctOperation
+                            : Math.abs(parseFloat(ratioAnswers[i]) - q.answer) < 0.0001
                         ) : undefined}
                         noHintsMode={challengeModes.noHints}
                         onHintUsed={() => setHintsUsed(prev => prev + 1)}
