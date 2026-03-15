@@ -55,14 +55,18 @@ const LineGraphVisualizer = ({
   const width = 400;
   const height = 280;
   const margin = { top: 40, right: 40, bottom: 60, left: 60 };
+  // Add horizontal padding so first/last data points aren't on the axis edges
+  const horizontalPadding = 20;
   const graphWidth = width - margin.left - margin.right;
   const graphHeight = height - margin.top - margin.bottom;
+  // Padded width for data points (inside the grid area)
+  const paddedGraphWidth = graphWidth - (horizontalPadding * 2);
 
   // Number of data points (for drawing mode, use tableData length)
   const numPoints = isDrawing && tableData ? tableData.length : Math.max(dataPoints.length, secondDataPoints?.length || 0);
 
-  // Calculate scales
-  const xScale = (index: number) => (index / (numPoints - 1 || 1)) * graphWidth;
+  // Calculate scales - with horizontal padding for better visualization
+  const xScale = (index: number) => horizontalPadding + (index / (numPoints - 1 || 1)) * paddedGraphWidth;
   const yScale = (value: number) => {
     const effectiveMin = hasWavyLine && wavyLineBase !== undefined ? wavyLineBase : yAxisMin;
     return graphHeight - ((value - effectiveMin) / (yAxisMax - effectiveMin)) * graphHeight;
@@ -97,8 +101,8 @@ const LineGraphVisualizer = ({
     const graphX = svgPoint.x - margin.left;
     const graphY = svgPoint.y - margin.top;
 
-    // Find nearest grid intersection with tolerance
-    const xIndex = Math.round((graphX / graphWidth) * (numPoints - 1));
+    // Find nearest grid intersection with tolerance (account for horizontal padding)
+    const xIndex = Math.round(((graphX - horizontalPadding) / paddedGraphWidth) * (numPoints - 1));
     const yValue = effectiveMin + ((graphHeight - graphY) / graphHeight) * (yAxisMax - effectiveMin);
 
     // For drawing mode, snap to nearest integer (1), not tick interval
