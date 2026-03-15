@@ -2212,6 +2212,8 @@ const Index = () => {
                               outerHeight: q.diagram.params.outerHeight,
                               cutoutWidth: q.diagram.params.cutoutWidth,
                               cutoutHeight: q.diagram.params.cutoutHeight,
+                              cutoutY: q.diagram.params.cutoutY,
+                              shapeType: q.diagram.params.cutoutY !== undefined ? 'c-shape' : 'l-shape',
                             } : undefined,
                           }}
                           index={i}
