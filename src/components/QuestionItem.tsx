@@ -41,6 +41,7 @@ const QuestionItem = ({
       case 'intersecting-lines-interactive':
         return (
           <IntersectingLinesExercise
+            key={`intersecting-${index}-${diagram.params.givenAngle}-${diagram.params.rotation}`}
             givenAngle={diagram.params.givenAngle}
             rotation={diagram.params.rotation}
             onAnswerSubmit={(answers) => {
@@ -69,6 +70,7 @@ const QuestionItem = ({
         const requiredType = (typeMap[diagram.params.requiredType] || 'any') as 'rectangle' | 'square' | 'trapezoid' | 'parallelogram' | 'rhombus' | 'kite' | 'any';
         return (
           <DottedPaperQuadrilateral
+            key={`quadrilateral-${index}-${diagram.params.requiredType}`}
             onComplete={() => onAnswerChange('1')}
             graded={graded}
             requiredType={requiredType}
@@ -79,6 +81,7 @@ const QuestionItem = ({
       case 'diagonals-drawing':
         return (
           <DiagonalsDrawing
+            key={`diagonals-${index}-${diagram.params.shapeType}`}
             shapeType={diagram.params.shapeType}
             onComplete={() => onAnswerChange('1')}
             graded={graded}
