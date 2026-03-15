@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Coins, Flame, Trophy, User, ShoppingBag, Target, Brain, BookOpen, Gamepad2 } from 'lucide-react';
+import { Coins, Flame, Trophy, User, ShoppingBag, Target, Brain, BookOpen, Gamepad2, FileCheck } from 'lucide-react';
 import { getGameData, getStreakStatus, updateStreak, GameData } from '@/lib/gameState';
 import { cn } from '@/lib/utils';
 
@@ -11,10 +11,11 @@ interface HeaderBarProps {
   onOpenStoryMode?: () => void;
   onOpenVocabulary?: () => void;
   onOpenMiniGames?: () => void;
+  onOpenTestMode?: () => void;
   unacknowledgedInsights?: number;
 }
 
-const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, onOpenStoryMode, onOpenVocabulary, onOpenMiniGames, unacknowledgedInsights = 0 }: HeaderBarProps) => {
+const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, onOpenStoryMode, onOpenVocabulary, onOpenMiniGames, onOpenTestMode, unacknowledgedInsights = 0 }: HeaderBarProps) => {
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [showCoinsAnimation, setShowCoinsAnimation] = useState(false);
 
@@ -188,6 +189,17 @@ const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, onOpen
             title="ミニゲーム / Mini Games"
           >
             <Gamepad2 className="w-5 h-5 text-purple-600" />
+          </button>
+        )}
+
+        {/* Test Mode Button */}
+        {onOpenTestMode && (
+          <button
+            onClick={onOpenTestMode}
+            className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-red-100 to-orange-100 border border-red-200 hover:scale-105 transition-transform"
+            title="テストモード / Test Mode"
+          >
+            <FileCheck className="w-5 h-5 text-red-600" />
           </button>
         )}
 
