@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Sparkles, RotateCcw, CheckCircle2, Compass, Circle, Shapes, Percent, Hash, Calculator, Divide, Dot, TrendingUp, History, Pizza } from 'lucide-react';
+import { Sparkles, RotateCcw, CheckCircle2, Compass, Circle, Shapes, Percent, Hash, Calculator, Divide, Dot, TrendingUp, History, Pizza, FileCheck } from 'lucide-react';
+import TestModeModal from '@/components/TestModeModal';
+import TestMode from '@/components/TestMode';
+import { generateTest, TestQuestion } from '@/lib/testMode';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ExplanationCard from '@/components/ExplanationCard';
@@ -150,6 +153,12 @@ const Index = () => {
   // History modal state
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  // Test Mode state
+  const [testModeOpen, setTestModeOpen] = useState(false);
+  const [isTestMode, setIsTestMode] = useState(false);
+  const [testQuestions, setTestQuestions] = useState<TestQuestion[]>([]);
+  const [testModeType, setTestModeType] = useState<'general' | 'tab-specific'>('general');
 
   // Refs for scrolling to questions
   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -1286,6 +1295,69 @@ const Index = () => {
 
   const investigatingChangesScorePercent = investigatingChangesScore * 20;
 
+  // Test Mode handlers
+  const handleStartGeneralTest = () => {
+    const questions = generateTest({ type: 'general', questionCount: 100 });
+    setTestQuestions(questions);
+    setTestModeType('general');
+    setIsTestMode(true);
+    setTestModeOpen(false);
+  };
+
+  const handleStartTabTest = () => {
+    const tabMap: Record<AppTab, string> = {
+      'geometry': 'geometry',
+      'ratios': 'ratios',
+      'accuracy-rate': 'accuracy-rate',
+      'large-numbers': 'large-numbers',
+      'calculation-rules': 'calculation-rules',
+      'division': 'division',
+      'decimals': 'decimals',
+      'line-graphs': 'line-graphs',
+      'fractions': 'fractions',
+      'investigating-changes': 'investigating-changes',
+    };
+    const questions = generateTest({ type: 'tab-specific', tabId: tabMap[activeTab], questionCount: 20 });
+    setTestQuestions(questions);
+    setTestModeType('tab-specific');
+    setIsTestMode(true);
+    setTestModeOpen(false);
+  };
+
+  const handleTestComplete = (score: number, total: number) => {
+    saveHistoryEntry({
+      date: new Date().toISOString(),
+      timestamp: Date.now(),
+      tabKey: 'test-mode',
+      tabName: 'テストモード',
+      tabNameEn: 'Test Mode',
+      topicKey: testModeType,
+      topicName: testModeType === 'general' ? '総合テスト' : '単元テスト',
+      topicNameEn: testModeType === 'general' ? 'General Test' : 'Tab Test',
+      score,
+      totalQuestions: total,
+    });
+    setHistory(getHistory());
+  };
+
+  const handleExitTestMode = () => {
+    setIsTestMode(false);
+    setTestQuestions([]);
+  };
+
+  // If in test mode, show test interface
+  if (isTestMode) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TestMode
+          questions={testQuestions}
+          onExit={handleExitTestMode}
+          onComplete={handleTestComplete}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -1301,6 +1373,14 @@ const Index = () => {
                 <p className="text-muted-foreground text-sm">Kei-kun's Math App</p>
               </div>
             </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setTestModeOpen(true)}
+              title="テストモード / Test Mode"
+            >
+              <FileCheck className="w-5 h-5" />
+            </Button>
             <Button
               variant="outline"
               size="icon"
@@ -2623,6 +2703,15 @@ const Index = () => {
           clearHistory();
           setHistory([]);
         }}
+      />
+
+      {/* Test Mode Modal */}
+      <TestModeModal
+        isOpen={testModeOpen}
+        onClose={() => setTestModeOpen(false)}
+        onStartGeneralTest={handleStartGeneralTest}
+        onStartTabTest={handleStartTabTest}
+        currentTabName={TAB_NAMES[activeTab]?.ja + ' / ' + TAB_NAMES[activeTab]?.en}
       />
     </div>
   );

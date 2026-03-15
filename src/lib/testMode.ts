@@ -1,13 +1,12 @@
-import { LineGraphQuestion, generateLineGraphQuestions, LINE_GRAPH_TOPICS } from './lineGraphs';
-import { DecimalQuestion, generateDecimalQuestions, DECIMAL_TOPICS } from './decimals';
-import { CalculationRulesQuestion, generateCalculationRulesQuestions, CALCULATION_RULES_TOPICS } from './calculationRules';
-import { AreaQuestion, generateAreaQuestions, AREA_TOPICS } from './area';
-import { LargeNumberQuestion, generateLargeNumberQuestions, LARGE_NUMBER_TOPICS } from './largeNumbers';
-import { DivisionQuestion, generateDivisionQuestions, DIVISION_TOPICS } from './division';
-import { FractionQuestion, generateFractionQuestions, FRACTION_TOPICS } from './fractions';
-import { UnitQuestion, generateUnitQuestions, UNIT_TOPICS } from './units';
-import { RatioQuestion, generateRatioQuestions, RATIO_TOPICS } from './ratios';
-import { GeometryQuestion, generateGeometryQuestions, GEOMETRY_TOPICS } from './geometry';
+import { LineGraphQuestion, generateLineGraphQuestions } from './lineGraphs';
+import { DecimalQuestion, generateDecimalQuestions } from './decimals';
+import { CalculationRulesQuestion, generateCalculationRulesQuestions } from './calculationRules';
+import { AreaQuestion, generateAreaQuestions } from './area';
+import { LargeNumberQuestion, generateLargeNumberQuestions } from './largeNumbers';
+import { DivisionQuestion, generateDivisionQuestions } from './division';
+import { FractionQuestion, generateFractionQuestions } from './fractions';
+import { RatioQuestion, generateRatioQuestions } from './ratios';
+import { Question as GeometryQuestion, generateQuestions as generateGeometryQuestions } from './geometry';
 
 export type TestQuestion =
   | (LineGraphQuestion & { topicId: string; tabName: string })
@@ -17,7 +16,6 @@ export type TestQuestion =
   | (LargeNumberQuestion & { topicId: string; tabName: string })
   | (DivisionQuestion & { topicId: string; tabName: string })
   | (FractionQuestion & { topicId: string; tabName: string })
-  | (UnitQuestion & { topicId: string; tabName: string })
   | (RatioQuestion & { topicId: string; tabName: string })
   | (GeometryQuestion & { topicId: string; tabName: string });
 
@@ -70,11 +68,6 @@ const ALL_TOPICS = [
   { id: 'equivalent-fractions', tab: 'fractions', tabName: '分数 / Fractions', generator: () => generateFractionQuestions('equivalent-fractions', 1) },
   { id: 'fraction-comparison', tab: 'fractions', tabName: '分数 / Fractions', generator: () => generateFractionQuestions('fraction-comparison', 1) },
   { id: 'fraction-add-subtract', tab: 'fractions', tabName: '分数 / Fractions', generator: () => generateFractionQuestions('fraction-add-subtract', 1) },
-
-  // Units tab
-  { id: 'unit-conversion', tab: 'units', tabName: '単位 / Units', generator: () => generateUnitQuestions('unit-conversion', 1) },
-  { id: 'time-units', tab: 'units', tabName: '単位 / Units', generator: () => generateUnitQuestions('time-units', 1) },
-  { id: 'weight-length-units', tab: 'units', tabName: '単位 / Units', generator: () => generateUnitQuestions('weight-length-units', 1) },
 
   // Ratios tab
   { id: 'ratio-basics', tab: 'ratios', tabName: '比と比例 / Ratios', generator: () => generateRatioQuestions('ratio-basics', 1) },
@@ -169,7 +162,6 @@ export function getTabName(tabId: string): string {
     'calculation-rules': '計算のきまり / Calculation Rules',
     'area': '面積 / Area',
     'fractions': '分数 / Fractions',
-    'units': '単位 / Units',
     'ratios': '比と比例 / Ratios',
     'geometry': '角と図形 / Geometry',
   };
