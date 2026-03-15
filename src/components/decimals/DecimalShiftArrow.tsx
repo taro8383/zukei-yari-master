@@ -31,7 +31,7 @@ const DecimalShiftArrow = ({
           {originalNumber}
         </text>
 
-        {/* Arrow */}
+        {/* Arrow - generic, no direction indicator (student figures out from operation) */}
         <g>
           <path
             d={info.direction === 'right' ? 'M 120 45 L 180 45' : 'M 180 45 L 120 45'}
@@ -39,14 +39,6 @@ const DecimalShiftArrow = ({
             strokeWidth="3"
             markerEnd="url(#exerciseArrow)"
           />
-
-          {/* Arrow label */}
-          <text x="150" y="35" textAnchor="middle" className="fill-primary text-sm font-bold">
-            {info.direction === 'right' ? '→' : '←'}
-          </text>
-          <text x="150" y="65" textAnchor="middle" className="fill-muted-foreground text-xs">
-            {info.spaces}つ / {info.spaces} space{info.spaces > 1 ? 's' : ''}
-          </text>
         </g>
 
         {/* Result placeholder */}
@@ -63,8 +55,9 @@ const DecimalShiftArrow = ({
         </defs>
       </svg>
 
+      <!-- Hint text is now generic - students must figure out direction and spaces from the operation -->
       <p className="text-xs text-center text-muted-foreground mt-2">
-        小数点を{info.direction === 'right' ? '右' : '左'}へ{info.spaces}つ移動 / Move decimal {info.direction} {info.spaces} space{info.spaces > 1 ? 's' : ''}
+        小数点を動かして答えを求めよう / Shift the decimal point to find the answer
       </p>
     </div>
   );
