@@ -97,16 +97,20 @@ const CalculationRulesQuestionItem = ({
         return {
           ja: (
             <>
-              💡 <strong>ステップ1:</strong> むずかしい数を100に近い数に分ける<br />
-              <strong>ステップ2:</strong> かんたんなかけ算をする<br />
-              <strong>ステップ3:</strong> 最後に足すまたは引く
+              💡 <strong>分配法則の使い方:</strong><br />
+              ① むずかしい数を「100」に近いかんたんな数に分ける<br />
+              ② かっこの中をかけ算する<br />
+              ③ 最後にたす（またはひく）<br />
+              <strong>自分で数字を考えて計算してみよう！</strong>
             </>
           ),
           en: (
             <>
-              <strong>Step 1:</strong> Split the hard number into parts near 100<br />
-              <strong>Step 2:</strong> Do the easy multiplication<br />
-              <strong>Step 3:</strong> Add or subtract at the end
+              <strong>How to use distributive property:</strong><br />
+              ① Split the hard number into easy numbers near 100<br />
+              ② Multiply what's in parentheses<br />
+              ③ Add (or subtract) at the end<br />
+              <strong>Try to figure out the numbers yourself!</strong>
             </>
           ),
         };

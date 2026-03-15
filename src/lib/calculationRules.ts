@@ -311,11 +311,11 @@ export function generateDistributivePropertyQuestions(): CalculationRulesQuestio
       isMultiStep: true,
       // Step answers for intermediate inputs
       stepAnswers: [baseNum, step1Result, answer],
-      // Prompts for each step
+      // Prompts for each step - generic prompts that don't reveal the answer
       stepPrompts: [
-        { ja: `① (${hardNum} = ___ ${isAddition ? '+' : '-'} ${absAdjustment}) × ${multiplier}`, en: `① (${hardNum} = ___ ${isAddition ? '+' : '-'} ${absAdjustment}) × ${multiplier}` },
-        { ja: `② ${baseNum} × ${multiplier} = ___`, en: `② ${baseNum} × ${multiplier} = ___` },
-        { ja: `③ ${step1Result} ${isAddition ? '+' : '-'} ${step2Adjustment} = ___`, en: `③ ${step1Result} ${isAddition ? '+' : '-'} ${step2Adjustment} = ___` },
+        { ja: `① ${hardNum} を 100 に近い数に分けよう：（100 □ □）× ${multiplier}`, en: `① Split ${hardNum} into numbers near 100: (100 □ □) × ${multiplier}` },
+        { ja: `② かんたんなかけ算をしよう：□□ × ${multiplier} = □□`, en: `② Do the easy multiplication: □□ × ${multiplier} = □□` },
+        { ja: `③ 最後に計算して答えを出そう：□□ □ □□ = □□`, en: `③ Calculate the final answer: □□ □ □□ = □□` },
       ],
       expression: `${hardNum} × ${multiplier}`,
       steps: [
