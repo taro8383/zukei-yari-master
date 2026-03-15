@@ -1525,6 +1525,15 @@ const Index = () => {
     setLineGraphPlottedPoints(newPlottedPoints);
   };
 
+  const handleLineGraphUndoPoint = (index: number) => {
+    const newPlottedPoints = [...lineGraphPlottedPoints];
+    if (newPlottedPoints[index] && newPlottedPoints[index].length > 0) {
+      // Remove the last plotted point
+      newPlottedPoints[index].pop();
+      setLineGraphPlottedPoints(newPlottedPoints);
+    }
+  };
+
   const allLineGraphsAnswered = lineGraphAnswers.length === 5 && lineGraphAnswers.every((a, i) => {
     const q = lineGraphQuestions[i];
     if (q?.topic === 'change-slope') {
@@ -2975,6 +2984,7 @@ const Index = () => {
                         plottedPoints={lineGraphPlottedPoints[i]}
                         onPointPlot={(x, y) => handleLineGraphPointPlot(i, x, y)}
                         onClearPoints={() => handleLineGraphClearPoints(i)}
+                        onUndoPoint={() => handleLineGraphUndoPoint(i)}
                         graded={lineGraphGraded}
                         isCorrect={lineGraphGraded ? (
                           q.topic === 'change-slope'

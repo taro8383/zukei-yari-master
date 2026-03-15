@@ -52,6 +52,9 @@ export interface LineGraphQuestion {
   // For drawing graph
   tableData?: Array<{ x: string; y: number }>;
   correctPoints?: Array<{ x: number; y: number }>;
+  // Word problem description for students to extract data
+  problemDescription?: string;
+  problemDescriptionEn?: string;
   formula: string;
   formulaEn: string;
   explanation: string;
@@ -713,6 +716,7 @@ function generateComparingTwoGraphsQuestions(): LineGraphQuestion[] {
 }
 
 // Generate drawing graph questions
+// Now with word problems where students extract data themselves
 function generateDrawingGraphQuestions(): LineGraphQuestion[] {
   const questions: LineGraphQuestion[] = [];
 
@@ -720,6 +724,9 @@ function generateDrawingGraphQuestions(): LineGraphQuestion[] {
     {
       title: 'はなのたかさの成長',
       titleEn: 'Flower Growth',
+      // Word problem description - students extract data from text
+      problemDescription: 'けいくんははなをそだていました。1日目は2cm、2日目は4cm、3日目は5cm、4日目は7cm、5日目には8cmにのびました。',
+      problemDescriptionEn: 'Kei grew a flower. Day 1: 2cm, Day 2: 4cm, Day 3: 5cm, Day 4: 7cm, Day 5: 8cm.',
       tableData: [
         { x: '1日目', y: 2 },
         { x: '2日目', y: 4 },
@@ -734,6 +741,8 @@ function generateDrawingGraphQuestions(): LineGraphQuestion[] {
     {
       title: '50m走のタイム',
       titleEn: '50m Sprint Time',
+      problemDescription: 'けいくんは50m走のれんしゅうをしました。4月は9びょう、5月は8びょう、6月も8びょう、7月は7びょう、8月も7びょうでした。',
+      problemDescriptionEn: 'Kei practiced 50m sprint. April: 9 sec, May: 8 sec, June: 8 sec, July: 7 sec, August: 7 sec.',
       tableData: [
         { x: '4月', y: 9 },
         { x: '5月', y: 8 },
@@ -748,6 +757,8 @@ function generateDrawingGraphQuestions(): LineGraphQuestion[] {
     {
       title: '本のよんだページ数',
       titleEn: 'Pages Read',
+      problemDescription: 'けいくんは1しゅうかんでほんをよみました。げつようびは20ページ、かようびは35ページ、すいようびは45ページ、もくようびは60ページ、きんようびは70ページよみました。',
+      problemDescriptionEn: 'Kei read a book over a week. Monday: 20 pages, Tuesday: 35 pages, Wednesday: 45 pages, Thursday: 60 pages, Friday: 70 pages.',
       tableData: [
         { x: '月', y: 20 },
         { x: '火', y: 35 },
@@ -762,6 +773,8 @@ function generateDrawingGraphQuestions(): LineGraphQuestion[] {
     {
       title: 'さいころの出た目の合計',
       titleEn: 'Dice Roll Total',
+      problemDescription: 'けいくんはさいころをふりました。1回目は3、2回目は4（ごうけい7）、3回目は5（ごうけい12）、4回目は4（ごうけい16）、5回目は2（ごうけい18）でした。',
+      problemDescriptionEn: 'Kei rolled a dice. 1st roll: 3, 2nd roll: 4 (total 7), 3rd roll: 5 (total 12), 4th roll: 4 (total 16), 5th roll: 2 (total 18).',
       tableData: [
         { x: '1回目', y: 3 },
         { x: '2回目', y: 7 },
@@ -776,6 +789,8 @@ function generateDrawingGraphQuestions(): LineGraphQuestion[] {
     {
       title: 'ペットの体重',
       titleEn: 'Pet Weight',
+      problemDescription: 'けいくんのペットのたいじゅうをはかりました。1月は500g、2月は650g、3月は800g、4月は950g、5月は1100gでした。',
+      problemDescriptionEn: "Kei's pet weight was measured. January: 500g, February: 650g, March: 800g, April: 950g, May: 1100g.",
       tableData: [
         { x: '1月', y: 500 },
         { x: '2月', y: 650 },
@@ -826,8 +841,8 @@ function generateDrawingGraphQuestions(): LineGraphQuestion[] {
     questions.push({
       id: `draw-${i}`,
       topic: 'drawing-graph',
-      text: `表を見て、グラフの点をクリックして${scenario.title}のグラフを完成させましょう。${scenario.questionDay}の値はいくつですか？`,
-      textEn: `Look at the table and click points to complete the ${scenario.titleEn} graph. What is the value for ${scenario.questionDayEn}?`,
+      text: `${scenario.problemDescription}\n\n上の文章から数字を見つけて、グラフに点を打ちましょう。${scenario.questionDay}の値はいくつですか？`,
+      textEn: `${scenario.problemDescriptionEn}\n\nFind the numbers from the text above and plot points on the graph. What is the value for ${scenario.questionDayEn}?`,
       answer: scenario.correctY,
       dataPoints: [], // Will be filled by user
       tableData: scenario.tableData,
@@ -840,6 +855,8 @@ function generateDrawingGraphQuestions(): LineGraphQuestion[] {
       tickInterval,
       hasWavyLine: false,
       correctPoints,
+      problemDescription: scenario.problemDescription,
+      problemDescriptionEn: scenario.problemDescriptionEn,
       formula: `正解: ${scenario.correctY}（${scenario.questionDay}の値は${scenario.correctY}）`,
       formulaEn: `Answer: ${scenario.correctY} (The value for ${scenario.questionDayEn} is ${scenario.correctY})`,
       explanation: `${scenario.questionDay}の値は${scenario.correctY}です`,

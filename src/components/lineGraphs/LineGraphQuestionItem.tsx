@@ -18,6 +18,7 @@ interface LineGraphQuestionItemProps {
   plottedPoints?: Array<{ x: number; y: number }>;
   onPointPlot?: (x: number, y: number) => void;
   onClearPoints?: () => void;
+  onUndoPoint?: () => void;
   graded: boolean;
   isCorrect?: boolean;
   onTeachMe?: () => void;
@@ -35,6 +36,7 @@ const LineGraphQuestionItem = ({
   plottedPoints,
   onPointPlot,
   onClearPoints,
+  onUndoPoint,
   graded,
   isCorrect,
   onTeachMe,
@@ -123,17 +125,17 @@ const LineGraphQuestionItem = ({
           ja: (
             <>
               💡 <strong>グラフの書き方:</strong><br />
-              ① 表を見て、何日目の値をグラフに書くか選ぶ<br />
+              ① 文章をよんで数字を見つける<br />
               ② グラフの下の「？」をクリックする<br />
-              ③ 表の数字を思い出して入力する
+              ③ 見つけた数字を入力する
             </>
           ),
           en: (
             <>
               <strong>How to draw the graph:</strong><br />
-              1. Look at the table and decide which day to plot<br />
+              1. Read the text and find the numbers<br />
               2. Click the "?" below the graph<br />
-              3. Remember and enter the value from the table
+              3. Enter the numbers you found
             </>
           ),
         };
@@ -198,18 +200,18 @@ const LineGraphQuestionItem = ({
               />
             ) : isDrawingGraph && question.tableData ? (
               <>
-                {/* Table Display - Reference only */}
+                {/* Word Problem Display */}
                 <div className="bg-kid-blue/10 rounded-xl p-4 border border-kid-blue/30 mb-4">
                   <p className="text-sm font-bold text-foreground mb-2 text-center">
-                    📊 表 / Table (参考)
+                    📖 問題を読んで数字を見つけよう！/ Read the problem and find the numbers!
                   </p>
-                  <div className="flex justify-center gap-4 flex-wrap">
-                    {question.tableData.map((row, idx) => (
-                      <div key={idx} className="text-center bg-white rounded-lg px-3 py-2 shadow-sm">
-                        <div className="text-xs text-muted-foreground">{row.x}</div>
-                        <div className="text-lg font-bold text-primary">{row.y}</div>
-                      </div>
-                    ))}
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <p className="text-foreground text-base leading-relaxed">
+                      {question.problemDescription}
+                    </p>
+                    <p className="text-gray-500 text-sm mt-2">
+                      {question.problemDescriptionEn}
+                    </p>
                   </div>
                 </div>
 
@@ -229,9 +231,19 @@ const LineGraphQuestionItem = ({
                   />
                 </div>
 
-                {/* Clear button */}
+                {/* Undo and Clear buttons */}
                 {!graded && (
-                  <div className="flex justify-center mt-3">
+                  <div className="flex justify-center gap-3 mt-3">
+                    {/* Undo button */}
+                    <button
+                      onClick={onUndoPoint}
+                      disabled={!plottedPoints || plottedPoints.length === 0}
+                      className="px-4 py-2 bg-yellow-100 hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed text-yellow-700 rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
+                    >
+                      <span>↩️</span>
+                      <span>1つ戻す / Undo</span>
+                    </button>
+                    {/* Clear All button */}
                     <button
                       onClick={onClearPoints}
                       disabled={!plottedPoints || plottedPoints.length === 0}
