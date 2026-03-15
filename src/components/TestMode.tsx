@@ -138,7 +138,9 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
       {/* Topic Badge */}
       <div className="mb-4">
         <span className="inline-block px-3 py-1 bg-kid-blue/10 text-kid-blue rounded-full text-sm font-medium">
-          {currentQuestion?.tabName}
+          {typeof currentQuestion?.tabName === 'string'
+            ? currentQuestion.tabName
+            : JSON.stringify(currentQuestion?.tabName)}
         </span>
       </div>
 
@@ -146,8 +148,12 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
       <div className="bg-card rounded-2xl shadow-kid border-2 border-border p-6">
         {/* Question Text */}
         <div className="mb-6">
-          <p className="text-xl font-medium leading-relaxed">{currentQuestion?.text}</p>
-          <p className="text-sm text-muted-foreground mt-2">{currentQuestion?.textEn}</p>
+          <p className="text-xl font-medium leading-relaxed">
+            {typeof currentQuestion?.text === 'string' ? currentQuestion.text : JSON.stringify(currentQuestion?.text)}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            {typeof currentQuestion?.textEn === 'string' ? currentQuestion.textEn : JSON.stringify(currentQuestion?.textEn)}
+          </p>
         </div>
 
         {/* Answer Input */}
