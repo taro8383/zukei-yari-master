@@ -7,6 +7,10 @@ interface IntersectingLinesExerciseProps {
   graded: boolean;
   isCorrect?: boolean;
   correctAnswer?: number;
+  // Props for restoring saved state in test mode
+  savedAngleB?: string;
+  savedComparison?: 'gt' | 'lt' | 'eq' | null;
+  onAnswerChange?: (values: { angleB: string; comparison: 'gt' | 'lt' | 'eq' | null }) => void;
 }
 
 const IntersectingLinesExercise = ({
@@ -15,12 +19,22 @@ const IntersectingLinesExercise = ({
   onAnswerSubmit,
   graded,
   isCorrect,
-  correctAnswer
+  correctAnswer,
+  savedAngleB,
+  savedComparison,
+  onAnswerChange
 }: IntersectingLinesExerciseProps) => {
-  const [angleBInput, setAngleBInput] = useState('');
-  const [comparison, setComparison] = useState<'gt' | 'lt' | 'eq' | null>(null);
+  const [angleBInput, setAngleBInput] = useState(savedAngleB || '');
+  const [comparison, setComparison] = useState<'gt' | 'lt' | 'eq' | null>(savedComparison || null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [localIsCorrect, setLocalIsCorrect] = useState(false);
+
+  // Notify parent when values change (for test mode persistence)
+  useEffect(() => {
+    if (onAnswerChange) {
+      onAnswerChange({ angleB: angleBInput, comparison });
+    }
+  }, [angleBInput, comparison, onAnswerChange]);
 
   // Calculate all angles based on given angle A
   const angles = useMemo(() => {
@@ -45,8 +59,10 @@ const IntersectingLinesExercise = ({
     }
   }, [graded, hasSubmitted, angleBInput, comparison, angles.B, onAnswerSubmit]);
 
-  const svgSize = 280;
-  const center = svgSize / 2;
+  const svgWidth = 280;
+  const svgHeight = 200;
+  const centerX = svgWidth / 2;
+  const centerY = svgHeight / 2;
   const lineLength = 100;
 
   // Calculate line endpoints based on rotation and given angle
@@ -54,17 +70,17 @@ const IntersectingLinesExercise = ({
   const rad2 = ((rotation + givenAngle) * Math.PI) / 180;
 
   const line1 = {
-    x1: center - lineLength * Math.cos(rad1),
-    y1: center - lineLength * Math.sin(rad1),
-    x2: center + lineLength * Math.cos(rad1),
-    y2: center + lineLength * Math.sin(rad1),
+    x1: centerX - lineLength * Math.cos(rad1),
+    y1: centerY - lineLength * Math.sin(rad1),
+    x2: centerX + lineLength * Math.cos(rad1),
+    y2: centerY + lineLength * Math.sin(rad1),
   };
 
   const line2 = {
-    x1: center - lineLength * Math.cos(rad2),
-    y1: center - lineLength * Math.sin(rad2),
-    x2: center + lineLength * Math.cos(rad2),
-    y2: center + lineLength * Math.sin(rad2),
+    x1: centerX - lineLength * Math.cos(rad2),
+    y1: centerY - lineLength * Math.sin(rad2),
+    x2: centerX + lineLength * Math.cos(rad2),
+    y2: centerY + lineLength * Math.sin(rad2),
   };
 
   // Label positions (at bisectors of each angle)
@@ -72,33 +88,33 @@ const IntersectingLinesExercise = ({
   const angleBetween = ((givenAngle * Math.PI) / 180); // Convert givenAngle to radians
   const labels = [
     // A: bisector of angle between line1 (rad1) and line2 (rad2)
-    { text: 'A', x: center + labelOffset * Math.cos(rad1 + angleBetween / 2), y: center + labelOffset * Math.sin(rad1 + angleBetween / 2) },
+    { text: 'A', x: centerX + labelOffset * Math.cos(rad1 + angleBetween / 2), y: centerY + labelOffset * Math.sin(rad1 + angleBetween / 2) },
     // B: bisector of angle between line1 (rad1) and line2 opposite (rad2 + π)
-    { text: 'B', x: center + labelOffset * Math.cos(rad1 - (Math.PI - angleBetween) / 2), y: center + labelOffset * Math.sin(rad1 - (Math.PI - angleBetween) / 2) },
+    { text: 'B', x: centerX + labelOffset * Math.cos(rad1 - (Math.PI - angleBetween) / 2), y: centerY + labelOffset * Math.sin(rad1 - (Math.PI - angleBetween) / 2) },
     // C: opposite to A
-    { text: 'C', x: center + labelOffset * Math.cos(rad1 + angleBetween / 2 + Math.PI), y: center + labelOffset * Math.sin(rad1 + angleBetween / 2 + Math.PI) },
+    { text: 'C', x: centerX + labelOffset * Math.cos(rad1 + angleBetween / 2 + Math.PI), y: centerY + labelOffset * Math.sin(rad1 + angleBetween / 2 + Math.PI) },
     // D: opposite to B
-    { text: 'D', x: center + labelOffset * Math.cos(rad1 - (Math.PI - angleBetween) / 2 + Math.PI), y: center + labelOffset * Math.sin(rad1 - (Math.PI - angleBetween) / 2 + Math.PI) },
+    { text: 'D', x: centerX + labelOffset * Math.cos(rad1 - (Math.PI - angleBetween) / 2 + Math.PI), y: centerY + labelOffset * Math.sin(rad1 - (Math.PI - angleBetween) / 2 + Math.PI) },
   ];
 
   return (
-    <div className="space-y-4">
+    <div>
       {/* SVG Diagram */}
-      <svg width={svgSize} height={svgSize} className="mx-auto bg-muted/30 rounded-xl">
+      <svg width={svgWidth} height={svgHeight} className="mx-auto bg-muted/30 rounded-xl">
         {/* Grid background */}
         <defs>
           <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
             <circle cx="10" cy="10" r="1" fill="hsl(var(--muted-foreground)" opacity="0.2" />
           </pattern>
         </defs>
-        <rect width={svgSize} height={svgSize} fill="url(#grid)" />
+        <rect width={svgWidth} height={svgHeight} fill="url(#grid)" />
 
         {/* Intersecting lines */}
         <line {...line1} stroke="hsl(var(--primary))" strokeWidth={3} strokeLinecap="round" />
         <line {...line2} stroke="hsl(var(--primary))" strokeWidth={3} strokeLinecap="round" />
 
         {/* Intersection point */}
-        <circle cx={center} cy={center} r={4} fill="hsl(var(--destructive))" />
+        <circle cx={centerX} cy={centerY} r={4} fill="hsl(var(--destructive))" />
 
         {/* Angle labels */}
         {labels.map((label) => (
@@ -116,15 +132,15 @@ const IntersectingLinesExercise = ({
 
         {/* Given angle arc for A */}
         <path
-          d={`M ${center + 25 * Math.cos(rad1)} ${center + 25 * Math.sin(rad1)}
-              A 25 25 0 0 1 ${center + 25 * Math.cos(rad2)} ${center + 25 * Math.sin(rad2)}`}
+          d={`M ${centerX + 25 * Math.cos(rad1)} ${centerY + 25 * Math.sin(rad1)}
+              A 25 25 0 0 1 ${centerX + 25 * Math.cos(rad2)} ${centerY + 25 * Math.sin(rad2)}`}
           fill="none"
           stroke="hsl(var(--kid-yellow))"
           strokeWidth={2}
         />
         <text
-          x={center + 40 * Math.cos((rad1 + rad2) / 2)}
-          y={center + 40 * Math.sin((rad1 + rad2) / 2)}
+          x={centerX + 40 * Math.cos((rad1 + rad2) / 2)}
+          y={centerY + 40 * Math.sin((rad1 + rad2) / 2)}
           textAnchor="middle"
           dominantBaseline="middle"
           className="font-bold fill-foreground"
@@ -134,7 +150,7 @@ const IntersectingLinesExercise = ({
       </svg>
 
       {/* Questions */}
-      <div className="space-y-4 bg-muted/30 p-4 rounded-xl">
+      <div className="space-y-4 bg-muted/30 p-4 rounded-xl mt-4">
         {/* Angle B question */}
         <div className="space-y-2">
           <p className="font-medium">
