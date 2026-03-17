@@ -4,6 +4,91 @@ import { CalculationRulesQuestion, CalculationRulesTopic, CALCULATION_RULES_TOPI
 import OrderOfOperationsTree from './OrderOfOperationsTree';
 import AreaModel from './AreaModel';
 
+// Helper function to evaluate a mathematical expression
+// Returns null if the expression is invalid
+function evaluateExpression(expr: string): number | null {
+  try {
+    // Replace Japanese operators with standard ones
+    let normalized = expr
+      .replace(/×/g, '*')
+      .replace(/÷/g, '/')
+      .replace(/＋/g, '+')
+      .replace(/ー/g, '-')
+      .replace(/−/g, '-')
+      .replace(/（/g, '(')
+      .replace(/）/g, ')');
+
+    // Remove all whitespace
+    normalized = normalized.replace(/\s/g, '');
+
+    // Validate: only allow numbers, operators, and parentheses
+    if (!/^[\d+\-*/().]+$/.test(normalized)) {
+      return null;
+    }
+
+    // Evaluate using Function constructor (safer than eval)
+    // eslint-disable-next-line no-new-func
+    const result = new Function('return ' + normalized)();
+
+    // Check if result is a valid number
+    if (typeof result !== 'number' || !isFinite(result)) {
+      return null;
+    }
+
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+// Helper function to check if equation is mathematically correct
+function isEquationValid(
+  userEquation: string,
+  correctEquation: string,
+  expectedAnswer: number,
+  problemNumbers: number[]
+): boolean {
+  // First, try exact match (for formatting consistency)
+  const normalizedUser = userEquation.replace(/\s/g, '');
+  const normalizedCorrect = correctEquation.replace(/\s/g, '');
+
+  // If exact match, it's correct
+  if (normalizedUser === normalizedCorrect) {
+    return true;
+  }
+
+  // Otherwise, check if it evaluates to the correct answer
+  const userResult = evaluateExpression(userEquation);
+
+  if (userResult === null) {
+    return false;
+  }
+
+  // Check if the result matches the expected answer
+  if (Math.abs(userResult - expectedAnswer) > 0.0001) {
+    return false;
+  }
+
+  // Additional validation: check that user used the correct numbers
+  // Extract numbers from user's equation
+  const userNumbers = normalizedUser.match(/\d+/g)?.map(Number) || [];
+  const sortedUserNumbers = [...userNumbers].sort((a, b) => a - b);
+  const sortedProblemNumbers = [...problemNumbers].sort((a, b) => a - b);
+
+  // Check if the same numbers are used (allowing for duplicates)
+  if (sortedUserNumbers.length !== sortedProblemNumbers.length) {
+    return false;
+  }
+
+  for (let i = 0; i < sortedUserNumbers.length; i++) {
+    if (sortedUserNumbers[i] !== sortedProblemNumbers[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 interface CalculationRulesQuestionItemProps {
   question: CalculationRulesQuestion;
   index: number;
@@ -258,8 +343,18 @@ const CalculationRulesQuestionItem = ({
 
               {/* Feedback when graded */}
               {graded && (
-                <div className={`mb-3 text-sm font-bold ${equationAnswer.replace(/\s/g, '') === question.correctEquation?.replace(/\s/g, '') ? 'text-green-600' : 'text-red-500'}`}>
-                  {equationAnswer.replace(/\s/g, '') === question.correctEquation?.replace(/\s/g, '')
+                <div className={`mb-3 text-sm font-bold ${isEquationValid(
+                  equationAnswer,
+                  question.correctEquation || '',
+                  question.answer,
+                  question.numbers || []
+                ) ? 'text-green-600' : 'text-red-500'}`}>
+                  {isEquationValid(
+                    equationAnswer,
+                    question.correctEquation || '',
+                    question.answer,
+                    question.numbers || []
+                  )
                     ? '✓ 正しい式です！ / Correct equation!'
                     : `✗ 正しい式: ${question.correctEquation}`}
                 </div>

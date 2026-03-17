@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Sparkles, RotateCcw, CheckCircle2, Compass, Circle, Shapes, Percent, Hash, Calculator, Divide, Dot, TrendingUp, History, Pizza } from 'lucide-react';
 import TestModeModal from '@/components/TestModeModal';
+import TabSelectionModal from '@/components/TabSelectionModal';
 import TestMode from '@/components/TestMode';
 import { generateTest, TestQuestion } from '@/lib/testMode';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,85 @@ import { getGameData, saveGameData, getThemeColors, updateQuestProgress, recordM
 import { StoryChapter, STORY_CHAPTERS, getChapterByRegionId, calculateChapterStars } from '@/lib/storyMode';
 import { addAnsweredQuestions, isMiniGameAvailable, MiniGameProgress, getMiniGameProgress, skipMiniGame } from '@/lib/miniGames';
 import { ChapterIntroModal, ChapterCompleteModal, DailyEpisodeModal, StoryProgressPanel } from '@/components/story';
+
+// Helper function to evaluate a mathematical expression for equation validation
+function evaluateExpression(expr: string): number | null {
+  try {
+    // Replace Japanese operators with standard ones
+    let normalized = expr
+      .replace(/×/g, '*')
+      .replace(/÷/g, '/')
+      .replace(/＋/g, '+')
+      .replace(/ー/g, '-')
+      .replace(/−/g, '-')
+      .replace(/（/g, '(')
+      .replace(/）/g, ')');
+
+    // Remove all whitespace
+    normalized = normalized.replace(/\s/g, '');
+
+    // Validate: only allow numbers, operators, and parentheses
+    if (!/^[\d+\-*/().]+$/.test(normalized)) {
+      return null;
+    }
+
+    // Evaluate using Function constructor
+    // eslint-disable-next-line no-new-func
+    const result = new Function('return ' + normalized)();
+
+    if (typeof result !== 'number' || !isFinite(result)) {
+      return null;
+    }
+
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+// Helper function to check if equation is mathematically correct
+function isEquationValid(
+  userEquation: string,
+  correctEquation: string,
+  expectedAnswer: number,
+  problemNumbers: number[]
+): boolean {
+  // First, try exact match
+  const normalizedUser = userEquation.replace(/\s/g, '');
+  const normalizedCorrect = correctEquation.replace(/\s/g, '');
+
+  if (normalizedUser === normalizedCorrect) {
+    return true;
+  }
+
+  // Otherwise, check if it evaluates to the correct answer
+  const userResult = evaluateExpression(userEquation);
+
+  if (userResult === null) {
+    return false;
+  }
+
+  if (Math.abs(userResult - expectedAnswer) > 0.0001) {
+    return false;
+  }
+
+  // Additional validation: check that user used the correct numbers
+  const userNumbers = normalizedUser.match(/\d+/g)?.map(Number) || [];
+  const sortedUserNumbers = [...userNumbers].sort((a, b) => a - b);
+  const sortedProblemNumbers = [...problemNumbers].sort((a, b) => a - b);
+
+  if (sortedUserNumbers.length !== sortedProblemNumbers.length) {
+    return false;
+  }
+
+  for (let i = 0; i < sortedUserNumbers.length; i++) {
+    if (sortedUserNumbers[i] !== sortedProblemNumbers[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 const topicKeys: Topic[] = ['lines', 'angles', 'intersecting', 'quadrilaterals', 'diagonals', 'calculating-area', 'choosing-units', 'large-area-units', 'composite-shapes'];
 const ratioTopicKeys: RatioTopic[] = ['finding-ratio', 'finding-compared', 'finding-base', 'difference-vs-multiple'];
@@ -157,6 +237,7 @@ const Index = () => {
 
   // Test Mode state
   const [testModeOpen, setTestModeOpen] = useState(false);
+  const [tabSelectionOpen, setTabSelectionOpen] = useState(false);
   const [isTestMode, setIsTestMode] = useState(false);
   const [testQuestions, setTestQuestions] = useState<TestQuestion[]>([]);
   const [testModeType, setTestModeType] = useState<'general' | 'tab-specific'>('general');
@@ -1159,7 +1240,12 @@ const Index = () => {
       // For combining-into-one-equation, check both equation and answer
       if (q.topic === 'combining-into-one-equation') {
         const userNum = parseInt(calculationRulesAnswers[i]);
-        const equationCorrect = calculationRulesEquationAnswers[i]?.replace(/\s/g, '') === q.correctEquation?.replace(/\s/g, '');
+        const equationCorrect = isEquationValid(
+          calculationRulesEquationAnswers[i] || '',
+          q.correctEquation || '',
+          q.answer,
+          q.numbers || []
+        );
         const answerCorrect = userNum === q.answer;
         isCorrect = equationCorrect && answerCorrect;
       } else {
@@ -1881,23 +1967,22 @@ const Index = () => {
   };
 
   const handleStartTabTest = () => {
-    const tabMap: Record<AppTab, string> = {
-      'geometry': 'geometry',
-      'ratios': 'ratios',
-      'accuracy-rate': 'accuracy-rate',
-      'large-numbers': 'large-numbers',
-      'calculation-rules': 'calculation-rules',
-      'division': 'division',
-      'decimals': 'decimals',
-      'line-graphs': 'line-graphs',
-      'fractions': 'fractions',
-      'investigating-changes': 'investigating-changes',
-    };
-    const questions = generateTest({ type: 'tab-specific', tabId: tabMap[activeTab], questionCount: 20 });
+    // Open tab selection modal instead of starting immediately
+    setTestModeOpen(false);
+    setTabSelectionOpen(true);
+  };
+
+  const handleTabSelectionConfirm = (selectedTabs: string[]) => {
+    // Generate test for selected tabs
+    const questions = generateTest({
+      type: 'tab-specific',
+      tabIds: selectedTabs,
+      questionCount: selectedTabs.length * 20,
+    });
     setTestQuestions(questions);
     setTestModeType('tab-specific');
     setIsTestMode(true);
-    setTestModeOpen(false);
+    setTabSelectionOpen(false);
   };
 
   const handleTestComplete = (score: number, total: number) => {
@@ -2630,7 +2715,12 @@ const Index = () => {
                         isCorrect={calculationRulesGraded ? (
                           q.topic === 'combining-into-one-equation'
                             ? parseInt(calculationRulesAnswers[i]) === q.answer &&
-                              calculationRulesEquationAnswers[i]?.replace(/\s/g, '') === q.correctEquation?.replace(/\s/g, '')
+                              isEquationValid(
+                                calculationRulesEquationAnswers[i] || '',
+                                q.correctEquation || '',
+                                q.answer,
+                                q.numbers || []
+                              )
                             : parseInt(calculationRulesAnswers[i]) === q.answer
                         ) : undefined}
                         stepAnswers={calculationRulesStepAnswers[i] || []}
@@ -3672,7 +3762,15 @@ const Index = () => {
         onClose={() => setTestModeOpen(false)}
         onStartGeneralTest={handleStartGeneralTest}
         onStartTabTest={handleStartTabTest}
-        currentTabName={TAB_NAMES[activeTab]}
+        currentTabName={TAB_NAMES[activeTab] ? `${TAB_NAMES[activeTab].ja} / ${TAB_NAMES[activeTab].en}` : ''}
+      />
+
+      {/* Tab Selection Modal */}
+      <TabSelectionModal
+        isOpen={tabSelectionOpen}
+        onClose={() => setTabSelectionOpen(false)}
+        onConfirm={handleTabSelectionConfirm}
+        currentTab={activeTab}
       />
 
       {/* Particle Effects Manager */}

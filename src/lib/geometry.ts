@@ -368,13 +368,26 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
     case 'lines': {
       const type = Math.floor(Math.random() * 4);
       if (type === 0) {
-        // Simple right angle counting exercise
-        const rightAngleCount = Math.floor(Math.random() * 3) + 2; // 2 to 4 right angles
+        // Right angle counting exercise - shapes with actual geometric right angles to count
+        const shapeType = Math.floor(Math.random() * 3);
+        let rightAngleCount: number;
+        let shapeName: string;
+        // 0 = rectangle (4 right angles), 1 = L-shape (5 right angles), 2 = stepped shape (6 right angles)
+        if (shapeType === 0) {
+          rightAngleCount = 4;
+          shapeName = 'rectangle';
+        } else if (shapeType === 1) {
+          rightAngleCount = 5;
+          shapeName = 'l-shape';
+        } else {
+          rightAngleCount = 6;
+          shapeName = 'stepped';
+        }
         return {
           id, answer: rightAngleCount, unit: '個',
           text: '下の図の直角（90°の角）は全部でいくつありますか？',
           textEn: 'How many right angles (90° angles) are in the figure below?',
-          diagram: { type: 'count-right-angles', params: { count: rightAngleCount } },
+          diagram: { type: 'count-right-angles', params: { count: rightAngleCount, shape: shapeName } },
         };
       } else if (type === 1) {
         return {

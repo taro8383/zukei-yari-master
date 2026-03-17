@@ -99,10 +99,10 @@ const TestModeModal = ({
                   単元テスト / Tab Test
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  20問 / 20 questions
+                  20問 per tab / 20 questions per tab
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {currentTabName || '現在の単元から / From current tab'}
+                  単元を選んでテスト / Select tabs to test
                 </p>
               </div>
             </div>

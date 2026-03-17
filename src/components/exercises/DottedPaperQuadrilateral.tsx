@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Undo, RotateCcw } from 'lucide-react';
 
 interface Point {
@@ -12,6 +12,12 @@ interface DottedPaperQuadrilateralProps {
   onComplete: () => void;
   graded: boolean;
   requiredType?: 'rectangle' | 'square' | 'trapezoid' | 'parallelogram' | 'rhombus' | 'kite' | 'any';
+  // Props for restoring saved state in test mode
+  savedVertices?: Point[];
+  savedAllPoints?: Point[];
+  savedIsClosed?: boolean;
+  savedIsComplete?: boolean;
+  onStateChange?: (state: { vertices: Point[]; allPoints: Point[]; isClosed: boolean; isComplete: boolean }) => void;
 }
 
 // Check if three points are collinear (on the same horizontal, vertical, or diagonal line)
@@ -170,16 +176,32 @@ const validateQuadrilateral = (vertices: Point[], type: 'rectangle' | 'square' |
   return { isValid: true, message: 'OK' };
 };
 
-const DottedPaperQuadrilateral = ({ onComplete, graded, requiredType = 'any' }: DottedPaperQuadrilateralProps) => {
-  const [vertices, setVertices] = useState<Point[]>([]); // The 4 corner vertices
-  const [allPoints, setAllPoints] = useState<Point[]>([]); // All clicked points including intermediate
-  const [isClosed, setIsClosed] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
+const DottedPaperQuadrilateral = ({
+  onComplete,
+  graded,
+  requiredType = 'any',
+  savedVertices,
+  savedAllPoints,
+  savedIsClosed,
+  savedIsComplete,
+  onStateChange
+}: DottedPaperQuadrilateralProps) => {
+  const [vertices, setVertices] = useState<Point[]>(savedVertices || []); // The 4 corner vertices
+  const [allPoints, setAllPoints] = useState<Point[]>(savedAllPoints || []); // All clicked points including intermediate
+  const [isClosed, setIsClosed] = useState(savedIsClosed || false);
+  const [isComplete, setIsComplete] = useState(savedIsComplete || false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const gridSize = 12;
-  const dotSpacing = 25;
-  const padding = 30;
+  // Notify parent when state changes (for test mode persistence)
+  useEffect(() => {
+    if (onStateChange) {
+      onStateChange({ vertices, allPoints, isClosed, isComplete });
+    }
+  }, [vertices, allPoints, isClosed, isComplete, onStateChange]);
+
+  const gridSize = 10;
+  const dotSpacing = 22;
+  const padding = 25;
   const svgSize = gridSize * dotSpacing + padding * 2;
 
   // Generate grid points
@@ -345,7 +367,7 @@ const DottedPaperQuadrilateral = ({ onComplete, graded, requiredType = 'any' }: 
   };
 
   return (
-    <div className="space-y-4">
+    <div>
       {/* SVG Canvas */}
       <svg
         width={svgSize}
@@ -441,7 +463,7 @@ const DottedPaperQuadrilateral = ({ onComplete, graded, requiredType = 'any' }: 
       </svg>
 
       {/* Controls */}
-      <div className="flex gap-2 justify-center">
+      <div className="flex gap-2 justify-center mt-4">
         <button
           onClick={handleUndo}
           disabled={allPoints.length === 0 || graded}
@@ -461,7 +483,7 @@ const DottedPaperQuadrilateral = ({ onComplete, graded, requiredType = 'any' }: 
       </div>
 
       {/* Instructions */}
-      <div className="bg-muted/30 p-4 rounded-xl space-y-3">
+      <div className="bg-muted/30 p-4 rounded-xl space-y-3 mt-4">
         {/* Required type explanation */}
         {requiredType !== 'any' && (
           <div className="bg-primary/10 p-3 rounded-lg">

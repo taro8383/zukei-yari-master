@@ -108,7 +108,8 @@ export function generateCompletingTableQuestions(): InvestigatingChangesQuestion
   const questions: InvestigatingChangesQuestion[] = [];
   const usedKeys = new Set<string>();
 
-  for (let i = 0; i < 5; i++) {
+  // Generate 7 questions for test mode (need at least 7 per topic for 20 total)
+  for (let i = 0; i < 7; i++) {
     // Generate a linear relationship: y = multiplier * x + addend
     // Ensure variety by tracking used combinations
     let multiplier: number;
@@ -168,7 +169,8 @@ export function generateFindingRuleQuestions(): InvestigatingChangesQuestion[] {
   const questions: InvestigatingChangesQuestion[] = [];
   const usedKeys = new Set<string>();
 
-  for (let i = 0; i < 5; i++) {
+  // Generate 7 questions for test mode (need at least 7 per topic for 20 total)
+  for (let i = 0; i < 7; i++) {
     // Generate a simple multiplication relationship with variety
     let multiplier: number;
     let addend: number;
@@ -248,7 +250,8 @@ export function generateWritingEquationQuestions(): InvestigatingChangesQuestion
   const questions: InvestigatingChangesQuestion[] = [];
   const usedKeys = new Set<string>();
 
-  for (let i = 0; i < 5; i++) {
+  // Generate 7 questions for test mode (need at least 7 per topic for 20 total)
+  for (let i = 0; i < 7; i++) {
     // Randomly select operator: multiply (50%), add (30%), subtract (20%)
     const rand = Math.random();
     const operator: '×' | '+' | '-' = rand < 0.5 ? '×' : rand < 0.8 ? '+' : '-';
@@ -298,7 +301,8 @@ export function generateWritingEquationQuestions(): InvestigatingChangesQuestion
       ruleValue: constant,
       correctOperator: operator,
       correctConstant: constant,
-      answer: key,
+      // Store answer with '|' delimiter to avoid conflict with minus operator
+      answer: `${operator}|${constant}`,
     });
   }
 
