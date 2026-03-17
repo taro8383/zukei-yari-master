@@ -14,15 +14,46 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [isGraded, setIsGraded] = useState(false);
   const [startTime] = useState(Date.now());
+  const [showUnansweredModal, setShowUnansweredModal] = useState(false);
+  const [unansweredQuestions, setUnansweredQuestions] = useState<number[]>([]);
 
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
+
+  const getQuestionType = (q: TestQuestion): string => {
+    return (q as any).topicId || '';
+  };
 
   const handleAnswerChange = (value: string) => {
     setAnswers((prev) => ({ ...prev, [currentIndex]: value }));
   };
 
+  const isQuestionAnswered = (idx: number): boolean => {
+    return !!(answers[idx] && answers[idx].trim() !== '');
+  };
+
+  const getUnansweredQuestions = (): number[] => {
+    const unanswered: number[] = [];
+    for (let i = 0; i < questions.length; i++) {
+      if (!isQuestionAnswered(i)) {
+        unanswered.push(i);
+      }
+    }
+    return unanswered;
+  };
+
+  const handleGradeClick = () => {
+    const unanswered = getUnansweredQuestions();
+    if (unanswered.length > 0) {
+      setUnansweredQuestions(unanswered);
+      setShowUnansweredModal(true);
+    } else {
+      handleGrade();
+    }
+  };
+
   const handleGrade = () => {
+    setShowUnansweredModal(false);
     setIsGraded(true);
     let correct = 0;
     questions.forEach((q, idx) => {
@@ -180,7 +211,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
 
         {currentIndex === questions.length - 1 ? (
           <button
-            onClick={handleGrade}
+            onClick={handleGradeClick}
             className="px-8 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-colors flex items-center gap-2"
           >
             <CheckCircle className="w-5 h-5" />
@@ -213,6 +244,57 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
           />
         ))}
       </div>
+
+      {/* Unanswered Questions Modal */}
+      {showUnansweredModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl shadow-kid border-2 border-border p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-2 text-foreground">
+              未回答の問題があります / Unanswered Questions
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              以下の問題にまだ答えていません。確認してください。/
+              You haven&apos;t answered these questions yet. Please check them.
+            </p>
+
+            <div className="space-y-2 mb-6">
+              {unansweredQuestions.map((idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setCurrentIndex(idx);
+                    setShowUnansweredModal(false);
+                  }}
+                  className="w-full flex items-center justify-between p-3 rounded-xl bg-kid-yellow/10 hover:bg-kid-yellow/20 border border-kid-yellow/30 transition-colors text-left"
+                >
+                  <span className="font-medium">
+                    問 {idx + 1} / Question {idx + 1}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {questions[idx]?.tabName || ''}
+                  </span>
+                  <span className="text-kid-blue font-bold">→</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => setShowUnansweredModal(false)}
+                className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors"
+              >
+                戻る / Go Back
+              </button>
+              <button
+                onClick={handleGrade}
+                className="w-full px-6 py-3 bg-muted text-muted-foreground rounded-xl font-medium hover:bg-muted/80 transition-colors"
+              >
+                このまま採点する / Grade Anyway ({unansweredQuestions.length} unanswered)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
