@@ -1,7 +1,93 @@
 import { useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 import { CalculationRulesQuestion, CalculationRulesTopic, CALCULATION_RULES_TOPICS } from '@/lib/calculationRules';
 import OrderOfOperationsTree from './OrderOfOperationsTree';
 import AreaModel from './AreaModel';
+
+// Helper function to evaluate a mathematical expression
+// Returns null if the expression is invalid
+function evaluateExpression(expr: string): number | null {
+  try {
+    // Replace Japanese operators with standard ones
+    let normalized = expr
+      .replace(/×/g, '*')
+      .replace(/÷/g, '/')
+      .replace(/＋/g, '+')
+      .replace(/ー/g, '-')
+      .replace(/−/g, '-')
+      .replace(/（/g, '(')
+      .replace(/）/g, ')');
+
+    // Remove all whitespace
+    normalized = normalized.replace(/\s/g, '');
+
+    // Validate: only allow numbers, operators, and parentheses
+    if (!/^[\d+\-*/().]+$/.test(normalized)) {
+      return null;
+    }
+
+    // Evaluate using Function constructor (safer than eval)
+    // eslint-disable-next-line no-new-func
+    const result = new Function('return ' + normalized)();
+
+    // Check if result is a valid number
+    if (typeof result !== 'number' || !isFinite(result)) {
+      return null;
+    }
+
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+// Helper function to check if equation is mathematically correct
+function isEquationValid(
+  userEquation: string,
+  correctEquation: string,
+  expectedAnswer: number,
+  problemNumbers: number[]
+): boolean {
+  // First, try exact match (for formatting consistency)
+  const normalizedUser = userEquation.replace(/\s/g, '');
+  const normalizedCorrect = correctEquation.replace(/\s/g, '');
+
+  // If exact match, it's correct
+  if (normalizedUser === normalizedCorrect) {
+    return true;
+  }
+
+  // Otherwise, check if it evaluates to the correct answer
+  const userResult = evaluateExpression(userEquation);
+
+  if (userResult === null) {
+    return false;
+  }
+
+  // Check if the result matches the expected answer
+  if (Math.abs(userResult - expectedAnswer) > 0.0001) {
+    return false;
+  }
+
+  // Additional validation: check that user used the correct numbers
+  // Extract numbers from user's equation
+  const userNumbers = normalizedUser.match(/\d+/g)?.map(Number) || [];
+  const sortedUserNumbers = [...userNumbers].sort((a, b) => a - b);
+  const sortedProblemNumbers = [...problemNumbers].sort((a, b) => a - b);
+
+  // Check if the same numbers are used (allowing for duplicates)
+  if (sortedUserNumbers.length !== sortedProblemNumbers.length) {
+    return false;
+  }
+
+  for (let i = 0; i < sortedUserNumbers.length; i++) {
+    if (sortedUserNumbers[i] !== sortedProblemNumbers[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 interface CalculationRulesQuestionItemProps {
   question: CalculationRulesQuestion;
@@ -10,6 +96,7 @@ interface CalculationRulesQuestionItemProps {
   onAnswerChange: (value: string) => void;
   graded: boolean;
   isCorrect?: boolean;
+  onTeachMe?: () => void;
   // For multi-step questions
   stepAnswers?: string[];
   onStepAnswerChange?: (stepIndex: number, value: string) => void;
@@ -25,6 +112,7 @@ const CalculationRulesQuestionItem = ({
   onAnswerChange,
   graded,
   isCorrect,
+  onTeachMe,
   stepAnswers = [],
   onStepAnswerChange,
   equationAnswer = '',
@@ -94,16 +182,20 @@ const CalculationRulesQuestionItem = ({
         return {
           ja: (
             <>
-              💡 <strong>ステップ1:</strong> むずかしい数を100に近い数に分ける<br />
-              <strong>ステップ2:</strong> かんたんなかけ算をする<br />
-              <strong>ステップ3:</strong> 最後に足すまたは引く
+              💡 <strong>分配法則の使い方:</strong><br />
+              ① むずかしい数を「100」に近いかんたんな数に分ける<br />
+              ② かっこの中をかけ算する<br />
+              ③ 最後にたす（またはひく）<br />
+              <strong>自分で数字を考えて計算してみよう！</strong>
             </>
           ),
           en: (
             <>
-              <strong>Step 1:</strong> Split the hard number into parts near 100<br />
-              <strong>Step 2:</strong> Do the easy multiplication<br />
-              <strong>Step 3:</strong> Add or subtract at the end
+              <strong>How to use distributive property:</strong><br />
+              ① Split the hard number into easy numbers near 100<br />
+              ② Multiply what's in parentheses<br />
+              ③ Add (or subtract) at the end<br />
+              <strong>Try to figure out the numbers yourself!</strong>
             </>
           ),
         };
@@ -251,8 +343,18 @@ const CalculationRulesQuestionItem = ({
 
               {/* Feedback when graded */}
               {graded && (
-                <div className={`mb-3 text-sm font-bold ${equationAnswer.replace(/\s/g, '') === question.correctEquation?.replace(/\s/g, '') ? 'text-green-600' : 'text-red-500'}`}>
-                  {equationAnswer.replace(/\s/g, '') === question.correctEquation?.replace(/\s/g, '')
+                <div className={`mb-3 text-sm font-bold ${isEquationValid(
+                  equationAnswer,
+                  question.correctEquation || '',
+                  question.answer,
+                  question.numbers || []
+                ) ? 'text-green-600' : 'text-red-500'}`}>
+                  {isEquationValid(
+                    equationAnswer,
+                    question.correctEquation || '',
+                    question.answer,
+                    question.numbers || []
+                  )
                     ? '✓ 正しい式です！ / Correct equation!'
                     : `✗ 正しい式: ${question.correctEquation}`}
                 </div>
@@ -441,6 +543,17 @@ const CalculationRulesQuestionItem = ({
                 {question.formulaEn}
               </span>
             </div>
+          )}
+
+          {/* Teach Me Button for incorrect answers */}
+          {graded && !isCorrect && onTeachMe && (
+            <button
+              onClick={onTeachMe}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors mt-3"
+            >
+              <Lightbulb className="w-4 h-4" />
+              <span>おしえて / Teach Me</span>
+            </button>
           )}
         </div>
       </div>

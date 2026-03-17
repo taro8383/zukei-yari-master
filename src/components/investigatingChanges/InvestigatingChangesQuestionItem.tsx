@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { InvestigatingChangesQuestion } from '@/lib/investigatingChanges';
 
@@ -9,6 +10,7 @@ interface InvestigatingChangesQuestionItemProps {
   onAnswerChange: (value: string) => void;
   graded: boolean;
   isCorrect?: boolean;
+  onTeachMe?: () => void;
 }
 
 const InvestigatingChangesQuestionItem = ({
@@ -18,6 +20,7 @@ const InvestigatingChangesQuestionItem = ({
   onAnswerChange,
   graded,
   isCorrect,
+  onTeachMe,
 }: InvestigatingChangesQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -150,8 +153,8 @@ const InvestigatingChangesQuestionItem = ({
     // Show all constants 2-10 for all operators
     const constants = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-    // Parse current answer
-    const [selectedOp, selectedConst] = userAnswer ? userAnswer.split('-') : ['', ''];
+    // Parse current answer - use '|' as delimiter to avoid conflict with minus operator
+    const [selectedOp, selectedConst] = userAnswer ? userAnswer.split('|') : ['', ''];
 
     return (
       <div className="flex flex-col items-center gap-4 mb-4">
@@ -166,7 +169,7 @@ const InvestigatingChangesQuestionItem = ({
               {operators.map((op) => (
                 <button
                   key={op}
-                  onClick={() => !graded && onAnswerChange(`${op}-${selectedConst || ''}`)}
+                  onClick={() => !graded && onAnswerChange(`${op}|${selectedConst || ''}`)}
                   disabled={graded}
                   className={cn(
                     'w-10 h-10 rounded-lg border-2 font-bold text-lg transition-all',
@@ -192,7 +195,7 @@ const InvestigatingChangesQuestionItem = ({
               {constants.map((num) => (
                 <button
                   key={num}
-                  onClick={() => !graded && onAnswerChange(`${selectedOp || question.correctOperator}-${num}`)}
+                  onClick={() => !graded && onAnswerChange(`${selectedOp || question.correctOperator}|${num}`)}
                   disabled={graded}
                   className={cn(
                     'w-10 h-10 rounded-lg border-2 font-bold text-sm transition-all',
@@ -320,6 +323,16 @@ const InvestigatingChangesQuestionItem = ({
               <span className="text-xs text-red-400 block">
                 Correct: {question.explanationEn.split('\n')[0]}
               </span>
+              {/* Teach Me Button */}
+              {onTeachMe && (
+                <button
+                  onClick={onTeachMe}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors mt-3"
+                >
+                  <Lightbulb className="w-4 h-4" />
+                  <span>おしえて / Teach Me</span>
+                </button>
+              )}
             </div>
           )}
         </div>

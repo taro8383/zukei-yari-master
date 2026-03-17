@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { RotateCcw } from 'lucide-react';
 
 interface Point {
@@ -15,50 +15,70 @@ interface DiagonalsDrawingProps {
   shapeType: 'parallelogram' | 'trapezoid' | 'kite';
   onComplete: () => void;
   graded: boolean;
+  // Props for restoring saved state in test mode
+  savedDiagonals?: Diagonal[];
+  savedIsComplete?: boolean;
+  onStateChange?: (state: { diagonals: Diagonal[]; isComplete: boolean }) => void;
 }
 
-const DiagonalsDrawing = ({ shapeType, onComplete, graded }: DiagonalsDrawingProps) => {
+const DiagonalsDrawing = ({
+  shapeType,
+  onComplete,
+  graded,
+  savedDiagonals,
+  savedIsComplete,
+  onStateChange
+}: DiagonalsDrawingProps) => {
   const [selectedVertex, setSelectedVertex] = useState<number | null>(null);
-  const [diagonals, setDiagonals] = useState<Diagonal[]>([]);
+  const [diagonals, setDiagonals] = useState<Diagonal[]>(savedDiagonals || []);
   const [flashError, setFlashError] = useState<number | null>(null);
-  const [isComplete, setIsComplete] = useState(false);
+  const [isComplete, setIsComplete] = useState(savedIsComplete || false);
 
-  const svgSize = 300;
-  const center = svgSize / 2;
+  // Notify parent when state changes (for test mode persistence)
+  useEffect(() => {
+    if (onStateChange) {
+      onStateChange({ diagonals, isComplete });
+    }
+  }, [diagonals, isComplete, onStateChange]);
+
+  const svgWidth = 280;
+  const svgHeight = 180;
+  const centerX = svgWidth / 2;
+  const centerY = svgHeight / 2;
 
   // Generate quadrilateral vertices based on shape type
   const vertices = useMemo((): Point[] => {
     switch (shapeType) {
       case 'parallelogram':
         return [
-          { x: center - 60, y: center - 40 },
-          { x: center + 80, y: center - 40 },
-          { x: center + 60, y: center + 60 },
-          { x: center - 80, y: center + 60 },
+          { x: centerX - 60, y: centerY - 40 },
+          { x: centerX + 80, y: centerY - 40 },
+          { x: centerX + 60, y: centerY + 50 },
+          { x: centerX - 80, y: centerY + 50 },
         ];
       case 'trapezoid':
         return [
-          { x: center - 40, y: center - 50 },
-          { x: center + 40, y: center - 50 },
-          { x: center + 80, y: center + 50 },
-          { x: center - 80, y: center + 50 },
+          { x: centerX - 40, y: centerY - 50 },
+          { x: centerX + 40, y: centerY - 50 },
+          { x: centerX + 80, y: centerY + 50 },
+          { x: centerX - 80, y: centerY + 50 },
         ];
       case 'kite':
         return [
-          { x: center, y: center - 70 },
-          { x: center + 60, y: center },
-          { x: center, y: center + 70 },
-          { x: center - 60, y: center },
+          { x: centerX, y: centerY - 65 },
+          { x: centerX + 55, y: centerY },
+          { x: centerX, y: centerY + 65 },
+          { x: centerX - 55, y: centerY },
         ];
       default:
         return [
-          { x: center - 60, y: center - 40 },
-          { x: center + 60, y: center - 40 },
-          { x: center + 60, y: center + 40 },
-          { x: center - 60, y: center + 40 },
+          { x: centerX - 60, y: centerY - 40 },
+          { x: centerX + 60, y: centerY - 40 },
+          { x: centerX + 60, y: centerY + 40 },
+          { x: centerX - 60, y: centerY + 40 },
         ];
     }
-  }, [shapeType, center]);
+  }, [shapeType, centerX, centerY]);
 
   // Calculate which vertices are adjacent
   const getAdjacentVertices = useCallback((index: number): number[] => {
@@ -127,11 +147,11 @@ const DiagonalsDrawing = ({ shapeType, onComplete, graded }: DiagonalsDrawingPro
   }, [vertices]);
 
   return (
-    <div className="space-y-4">
+    <div>
       {/* SVG Canvas */}
       <svg
-        width={svgSize}
-        height={svgSize}
+        width={svgWidth}
+        height={svgHeight}
         className="mx-auto bg-muted/30 rounded-xl border-2 border-border touch-none"
         style={{ touchAction: 'none' }}
       >
@@ -198,10 +218,9 @@ const DiagonalsDrawing = ({ shapeType, onComplete, graded }: DiagonalsDrawingPro
               {/* Vertex label */}
               <text
                 x={v.x}
-                y={v.y - 15}
+                y={v.y - 16}
                 textAnchor="middle"
-                className="font-bold fill-foreground pointer-events-none"
-                fontSize={12}
+                className="font-bold fill-foreground"
               >
                 {String.fromCharCode(65 + idx)}
               </text>
@@ -212,8 +231,8 @@ const DiagonalsDrawing = ({ shapeType, onComplete, graded }: DiagonalsDrawingPro
         {/* Instructions overlay */}
         {selectedVertex !== null && (
           <text
-            x={center}
-            y={svgSize - 20}
+            x={centerX}
+            y={svgHeight - 10}
             textAnchor="middle"
             className="fill-muted-foreground text-xs"
           >
@@ -223,7 +242,7 @@ const DiagonalsDrawing = ({ shapeType, onComplete, graded }: DiagonalsDrawingPro
       </svg>
 
       {/* Controls */}
-      <div className="flex gap-2 justify-center">
+      <div className="flex gap-2 justify-center mt-4">
         <button
           onClick={handleReset}
           disabled={diagonals.length === 0 || graded}
@@ -235,7 +254,7 @@ const DiagonalsDrawing = ({ shapeType, onComplete, graded }: DiagonalsDrawingPro
       </div>
 
       {/* Instructions */}
-      <div className="bg-muted/30 p-4 rounded-xl space-y-2">
+      <div className="bg-muted/30 p-4 rounded-xl space-y-2 mt-4">
         {!isComplete ? (
           <>
             <p className="font-medium text-center">

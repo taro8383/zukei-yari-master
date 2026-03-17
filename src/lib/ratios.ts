@@ -512,9 +512,9 @@ export function generateDecimalRatioQuestions(): AccuracyRateQuestion[] {
     [20, 25, 0.8],
   ];
 
-  // Shuffle and pick 5 unique questions
+  // Shuffle and pick 7 unique questions (need at least 7 for test mode)
   const shuffled = [...problemSets].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, 5);
+  const selected = shuffled.slice(0, 7);
 
   selected.forEach(([correctAnswers, totalQuestions, decimalRatio], index) => {
     const themes = [
@@ -523,6 +523,8 @@ export function generateDecimalRatioQuestions(): AccuracyRateQuestion[] {
       { ja: 'クイズ', en: 'a quiz' },
       { ja: '大会', en: 'a tournament' },
       { ja: '練習', en: 'practice' },
+      { ja: '特訓', en: 'training' },
+      { ja: 'チャレンジ', en: 'a challenge' },
     ];
     const theme = themes[index % themes.length];
 
@@ -574,9 +576,9 @@ export function generateConvertPercentQuestions(): AccuracyRateQuestion[] {
     [0.95, 95],
   ];
 
-  // Shuffle and pick 5 unique questions
+  // Shuffle and pick 7 unique questions (need at least 7 for test mode)
   const shuffled = [...problemSets].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, 5);
+  const selected = shuffled.slice(0, 7);
 
   selected.forEach(([decimalRatio, percentage], index) => {
     const contexts = [
@@ -585,6 +587,8 @@ export function generateConvertPercentQuestions(): AccuracyRateQuestion[] {
       { ja: 'ダウンロードの進み具合', en: 'download progress' },
       { ja: 'ゲージのたまり具合', en: 'gauge fill level' },
       { ja: '強化の成功率', en: 'upgrade success rate' },
+      { ja: 'HPの残り', en: 'remaining HP' },
+      { ja: 'MPの回復量', en: 'MP recovery amount' },
     ];
     const context = contexts[index % contexts.length];
 
@@ -661,9 +665,9 @@ export function generateCalculateAccuracyQuestions(): AccuracyRateQuestion[] {
     [45, 50, 90],
   ];
 
-  // Shuffle and pick 5 unique questions
+  // Shuffle and pick 7 unique questions (need at least 7 for test mode)
   const shuffled = [...problemSets].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, 5);
+  const selected = shuffled.slice(0, 7);
 
   selected.forEach(([correctAnswers, totalQuestions, percentage], index) => {
     const scenarios = [
@@ -672,6 +676,8 @@ export function generateCalculateAccuracyQuestions(): AccuracyRateQuestion[] {
       { ja: `${totalQuestions}回シュートをして、${correctAnswers}回ゴールに入りました`, en: `You took ${totalQuestions} shots and scored ${correctAnswers} goals` },
       { ja: `ゲームで${totalQuestions}回挑戦して、${correctAnswers}回クリアしました`, en: `You attempted a game ${totalQuestions} times and cleared it ${correctAnswers} times` },
       { ja: `${totalQuestions}個の宝を見つけて、${correctAnswers}個の宝箱を開けました`, en: `You found ${totalQuestions} treasures and opened ${correctAnswers} treasure chests` },
+      { ja: `${totalQuestions}回ガチャを引いて、${correctAnswers}回当たりが出ました`, en: `You pulled the gacha ${totalQuestions} times and got ${correctAnswers} wins` },
+      { ja: `ポケモン${totalQuestions}匹と遭遇して、${correctAnswers}匹ゲットしました`, en: `You encountered ${totalQuestions} Pokemon and caught ${correctAnswers}` },
     ];
     const scenario = scenarios[index % scenarios.length];
 

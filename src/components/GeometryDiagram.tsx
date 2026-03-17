@@ -9,11 +9,12 @@ const GeometryDiagram = ({ diagram }: GeometryDiagramProps) => {
   const { type, params } = diagram;
 
   return (
-    <div className="flex justify-center my-4">
+    <div className="flex justify-center">
       <svg
-        viewBox="-20 -20 320 240"
-        className="w-full max-w-[320px] h-auto"
-        style={{ minHeight: 180, overflow: 'visible' }}
+        viewBox="0 0 280 200"
+        className="w-full max-w-[280px] h-auto"
+        style={{ maxHeight: 200, display: 'block' }}
+        preserveAspectRatio="xMidYMid meet"
       >
         {renderDiagram(type, params)}
       </svg>
@@ -51,6 +52,14 @@ function renderDiagram(type: string, params: Record<string, number>) {
       return <PolygonDiagonals sides={params.sides} />;
     case 'count-right-angles':
       return <CountRightAngles count={params.count} />;
+    case 'area-composite-cshape':
+      return <CShapeArea
+        outerWidth={params.outerWidth}
+        outerHeight={params.outerHeight}
+        cutoutWidth={params.cutoutWidth}
+        cutoutHeight={params.cutoutHeight}
+        cutoutY={params.cutoutY}
+      />;
     default:
       return null;
   }
@@ -417,62 +426,156 @@ function PolygonDiagonals({ sides }: { sides: number }) {
 
 /* ===== COUNT RIGHT ANGLES ===== */
 
-function CountRightAngles({ count }: { count: number }) {
-  // Create a shape with the specified number of right angles
-  // We'll use combinations of rectangles and L-shapes
+function CountRightAngles({ count, shape }: { count: number; shape?: string }) {
+  // Create shapes with ACTUAL geometric right angles - NO markers shown
+  // Students must visually identify 90° angles themselves
   const cx = 140, cy = 100;
 
-  if (count === 2) {
-    // Two right angles: An L-shape
-    const pts = [
-      [cx - 60, cy - 60],
-      [cx + 20, cy - 60],
-      [cx + 20, cy + 20],
-      [cx + 60, cy + 20],
-      [cx + 60, cy + 60],
-      [cx - 60, cy + 60],
-    ];
-    return (
-      <g>
-        <polygon points={pts.map(p => p.join(',')).join(' ')} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
-        {/* Right angle markers */}
-        <RightAngleMarker cx={cx - 60} cy={cy - 60} size={14} rotation={0} />
-        <RightAngleMarker cx={cx + 60} cy={cy + 60} size={14} rotation={180} />
-      </g>
-    );
-  } else if (count === 3) {
-    // Three right angles: A rectangle with one corner extended
-    const pts = [
-      [cx - 50, cy - 50],
-      [cx + 50, cy - 50],
-      [cx + 50, cy],
-      [cx + 80, cy],
-      [cx + 80, cy + 50],
-      [cx - 50, cy + 50],
-    ];
-    return (
-      <g>
-        <polygon points={pts.map(p => p.join(',')).join(' ')} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
-        {/* Right angle markers */}
-        <RightAngleMarker cx={cx - 50} cy={cy - 50} size={14} rotation={0} />
-        <RightAngleMarker cx={cx + 50} cy={cy - 50} size={14} rotation={90} />
-        <RightAngleMarker cx={cx - 50} cy={cy + 50} size={14} rotation={270} />
-      </g>
-    );
-  } else {
-    // Four right angles: A rectangle
+  // Small dots at vertices to help students see corners clearly (but not angle indicators)
+  const VertexDots = ({ points }: { points: number[][] }) => (
+    <>
+      {points.map((p, i) => (
+        <circle key={i} cx={p[0]} cy={p[1]} r={2} fill={STROKE} opacity={0.5} />
+      ))}
+    </>
+  );
+
+  if (shape === 'rectangle' || count === 4) {
+    // Rectangle: exactly 4 right angles
     const w = 100, h = 70;
+    const pts = [
+      [cx - w/2, cy - h/2],
+      [cx + w/2, cy - h/2],
+      [cx + w/2, cy + h/2],
+      [cx - w/2, cy + h/2],
+    ];
     return (
       <g>
         <rect x={cx - w/2} y={cy - h/2} width={w} height={h} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} />
-        {/* Right angle markers at all corners */}
-        <RightAngleMarker cx={cx - w/2} cy={cy - h/2} size={14} rotation={0} />
-        <RightAngleMarker cx={cx + w/2} cy={cy - h/2} size={14} rotation={90} />
-        <RightAngleMarker cx={cx + w/2} cy={cy + h/2} size={14} rotation={180} />
-        <RightAngleMarker cx={cx - w/2} cy={cy + h/2} size={14} rotation={270} />
+        <VertexDots points={pts} />
+      </g>
+    );
+  } else if (shape === 'l-shape' || count === 5) {
+    // L-shape (concave hexagon): 5 right angles, 1 reflex (270°) angle
+    const pts = [
+      [cx - 60, cy - 60],  // top-left
+      [cx + 20, cy - 60],  // top-right
+      [cx + 20, cy + 20],  // step down-right
+      [cx + 60, cy + 20],  // inner corner (270° - NOT a right angle)
+      [cx + 60, cy + 60],  // bottom-right
+      [cx - 60, cy + 60],  // bottom-left
+    ];
+    return (
+      <g>
+        <polygon points={pts.map(p => p.join(',')).join(' ')} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
+        <VertexDots points={pts} />
+      </g>
+    );
+  } else {
+    // Stepped shape: 6 right angles
+    const pts = [
+      [cx - 60, cy - 60],  // top-left
+      [cx + 40, cy - 60],  // top-right
+      [cx + 40, cy - 10],  // step down
+      [cx + 10, cy - 10],  // step left
+      [cx + 10, cy + 60],  // bottom-right
+      [cx - 60, cy + 60],  // bottom-left
+    ];
+    return (
+      <g>
+        <polygon points={pts.map(p => p.join(',')).join(' ')} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
+        <VertexDots points={pts} />
       </g>
     );
   }
+}
+
+/* ===== C-SHAPE COMPOSITE AREA ===== */
+
+function CShapeArea({
+  outerWidth,
+  outerHeight,
+  cutoutWidth,
+  cutoutHeight,
+  cutoutY,
+}: {
+  outerWidth: number;
+  outerHeight: number;
+  cutoutWidth: number;
+  cutoutHeight: number;
+  cutoutY: number;
+}) {
+  // Scale to fit viewBox
+  const maxW = 220;
+  const maxH = 160;
+  const scale = Math.min(maxW / outerWidth, maxH / outerHeight);
+  const ow = outerWidth * scale;
+  const oh = outerHeight * scale;
+  const cw = cutoutWidth * scale;
+  const ch = cutoutHeight * scale;
+  const cy = cutoutY * scale;
+
+  const cx = (280 - ow) / 2;
+  const cy0 = (180 - oh) / 2;
+
+  // C-shape points: outer rect with right-side cutout
+  // Starting from top-left, go clockwise
+  const pts = [
+    [cx, cy0],                    // Top-left
+    [cx + ow, cy0],               // Top-right
+    [cx + ow, cy0 + cy],          // Cutout top-right
+    [cx + ow - cw, cy0 + cy],     // Cutout top-left
+    [cx + ow - cw, cy0 + cy + ch], // Cutout bottom-left
+    [cx + ow, cy0 + cy + ch],     // Cutout bottom-right
+    [cx + ow, cy0 + oh],          // Bottom-right
+    [cx, cy0 + oh],               // Bottom-left
+  ];
+
+  return (
+    <g>
+      <ArrowDefs />
+      {/* C-shape */}
+      <polygon
+        points={pts.map((p) => p.join(',')).join(' ')}
+        fill="hsl(150, 50%, 45%, 0.1)"
+        stroke={STROKE}
+        strokeWidth={2.5}
+        strokeLinejoin="round"
+      />
+
+      {/* Dimension labels */}
+      {/* Outer width */}
+      <text x={cx + ow / 2} y={cy0 - 8} textAnchor="middle" fontSize={12} fontWeight="bold" fill={STROKE}>
+        {outerWidth}cm
+      </text>
+      <line x1={cx} y1={cy0 - 4} x2={cx + ow} y2={cy0 - 4} stroke={STROKE} strokeWidth={1.5} markerStart="url(#arrowL)" markerEnd="url(#arrowR)" />
+
+      {/* Outer height */}
+      <text x={cx - 12} y={cy0 + oh / 2 + 4} textAnchor="middle" fontSize={12} fontWeight="bold" fill={STROKE} transform={`rotate(-90, ${cx - 12}, ${cy0 + oh / 2 + 4})`}>
+        {outerHeight}cm
+      </text>
+      <line x1={cx - 6} y1={cy0} x2={cx - 6} y2={cy0 + oh} stroke={STROKE} strokeWidth={1.5} markerStart="url(#arrowU)" markerEnd="url(#arrowD)" />
+
+      {/* Cutout width */}
+      <text x={cx + ow - cw / 2} y={cy0 + cy + ch / 2 + 4} textAnchor="middle" fontSize={11} fontWeight="bold" fill={PINK}>
+        {cutoutWidth}cm
+      </text>
+
+      {/* Cutout height (right side) */}
+      <text x={cx + ow + 18} y={cy0 + cy + ch / 2 + 4} textAnchor="middle" fontSize={11} fontWeight="bold" fill={PINK} transform={`rotate(90, ${cx + ow + 18}, ${cy0 + cy + ch / 2 + 4})`}>
+        {cutoutHeight}cm
+      </text>
+      <line x1={cx + ow + 8} y1={cy0 + cy} x2={cx + ow + 8} y2={cy0 + cy + ch} stroke={PINK} strokeWidth={1.5} markerStart="url(#arrowU)" markerEnd="url(#arrowD)" />
+
+      {/* Labels for sections */}
+      <text x={cx + (ow - cw) / 2} y={cy0 + oh / 2} textAnchor="middle" fontSize={14} fontWeight="bold" fill={STROKE}>
+        A
+      </text>
+      <text x={cx + ow - cw / 2} y={cy0 + cy + ch / 2} textAnchor="middle" fontSize={14} fontWeight="bold" fill={STROKE}>
+        B
+      </text>
+    </g>
+  );
 }
 
 export default GeometryDiagram;
