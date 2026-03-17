@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Sparkles, RotateCcw, CheckCircle2, Compass, Circle, Shapes, Percent, Hash, Calculator, Divide, Dot, TrendingUp, History, Pizza } from 'lucide-react';
+import { Sparkles, RotateCcw, CheckCircle2, Compass, Circle, Shapes, Percent, Hash, Calculator, Divide, Dot, TrendingUp, History, Pizza, FileCheck } from 'lucide-react';
 import TestModeModal from '@/components/TestModeModal';
-import TabSelectionModal from '@/components/TabSelectionModal';
 import TestMode from '@/components/TestMode';
 import { generateTest, TestQuestion } from '@/lib/testMode';
 import { Button } from '@/components/ui/button';
@@ -11,17 +10,6 @@ import QuestionItem from '@/components/QuestionItem';
 import Protractor from '@/components/Protractor';
 import ScoreResultModal from '@/components/ScoreResultModal';
 import HistoryModal, { HistoryEntry } from '@/components/HistoryModal';
-import HeaderBar from '@/components/HeaderBar';
-import ChallengeModeSelector, { ChallengeModes } from '@/components/ChallengeModeSelector';
-import ShopModal from '@/components/ShopModal';
-import VocabularyModal from '@/components/VocabularyModal';
-import MiniGameModal from '@/components/MiniGameModal';
-import AdventureMap from '@/components/AdventureMap';
-import DailyQuests from '@/components/DailyQuests';
-import LearningInsights from '@/components/LearningInsights';
-import EndOfSessionSummary from '@/components/EndOfSessionSummary';
-import TeachMeModal from '@/components/TeachMeModal';
-import ParticleManager, { celebrateCorrect, celebratePerfect, celebrateCoin, celebrateAchievement, celebrateLevelUp } from '@/components/ParticleEffects';
 import { Topic, TOPICS, Question, generateQuestions } from '@/lib/geometry';
 import { RatioQuestion, RatioTopic, RATIO_TOPICS, generateRatioQuestions, AccuracyRateQuestion, AccuracyRateTopic, ACCURACY_RATE_TOPICS, generateAccuracyRateQuestions } from '@/lib/ratios';
 import { LargeNumberQuestion, LargeNumberTopic, LARGE_NUMBER_TOPICS, generateLargeNumberQuestions } from '@/lib/largeNumbers';
@@ -41,89 +29,6 @@ import { FractionsExplanationCard, FractionsQuestionItem } from '@/components/fr
 import { AreaExplanationCard, AreaQuestionItem } from '@/components/area';
 import { InvestigatingChangesExplanationCard, InvestigatingChangesQuestionItem } from '@/components/investigatingChanges';
 import { saveHistoryEntry, getHistory, clearHistory, TAB_NAMES } from '@/lib/historyStorage';
-import { getGameData, saveGameData, getThemeColors, updateQuestProgress, recordMistake, getLearningInsights, completeChapter } from '@/lib/gameState';
-import { StoryChapter, STORY_CHAPTERS, getChapterByRegionId, calculateChapterStars } from '@/lib/storyMode';
-import { addAnsweredQuestions, isMiniGameAvailable, MiniGameProgress, getMiniGameProgress, skipMiniGame } from '@/lib/miniGames';
-import { ChapterIntroModal, ChapterCompleteModal, DailyEpisodeModal, StoryProgressPanel } from '@/components/story';
-
-// Helper function to evaluate a mathematical expression for equation validation
-function evaluateExpression(expr: string): number | null {
-  try {
-    // Replace Japanese operators with standard ones
-    let normalized = expr
-      .replace(/×/g, '*')
-      .replace(/÷/g, '/')
-      .replace(/＋/g, '+')
-      .replace(/ー/g, '-')
-      .replace(/−/g, '-')
-      .replace(/（/g, '(')
-      .replace(/）/g, ')');
-
-    // Remove all whitespace
-    normalized = normalized.replace(/\s/g, '');
-
-    // Validate: only allow numbers, operators, and parentheses
-    if (!/^[\d+\-*/().]+$/.test(normalized)) {
-      return null;
-    }
-
-    // Evaluate using Function constructor
-    // eslint-disable-next-line no-new-func
-    const result = new Function('return ' + normalized)();
-
-    if (typeof result !== 'number' || !isFinite(result)) {
-      return null;
-    }
-
-    return result;
-  } catch {
-    return null;
-  }
-}
-
-// Helper function to check if equation is mathematically correct
-function isEquationValid(
-  userEquation: string,
-  correctEquation: string,
-  expectedAnswer: number,
-  problemNumbers: number[]
-): boolean {
-  // First, try exact match
-  const normalizedUser = userEquation.replace(/\s/g, '');
-  const normalizedCorrect = correctEquation.replace(/\s/g, '');
-
-  if (normalizedUser === normalizedCorrect) {
-    return true;
-  }
-
-  // Otherwise, check if it evaluates to the correct answer
-  const userResult = evaluateExpression(userEquation);
-
-  if (userResult === null) {
-    return false;
-  }
-
-  if (Math.abs(userResult - expectedAnswer) > 0.0001) {
-    return false;
-  }
-
-  // Additional validation: check that user used the correct numbers
-  const userNumbers = normalizedUser.match(/\d+/g)?.map(Number) || [];
-  const sortedUserNumbers = [...userNumbers].sort((a, b) => a - b);
-  const sortedProblemNumbers = [...problemNumbers].sort((a, b) => a - b);
-
-  if (sortedUserNumbers.length !== sortedProblemNumbers.length) {
-    return false;
-  }
-
-  for (let i = 0; i < sortedUserNumbers.length; i++) {
-    if (sortedUserNumbers[i] !== sortedProblemNumbers[i]) {
-      return false;
-    }
-  }
-
-  return true;
-}
 
 const topicKeys: Topic[] = ['lines', 'angles', 'intersecting', 'quadrilaterals', 'diagonals', 'calculating-area', 'choosing-units', 'large-area-units', 'composite-shapes'];
 const ratioTopicKeys: RatioTopic[] = ['finding-ratio', 'finding-compared', 'finding-base', 'difference-vs-multiple'];
@@ -235,21 +140,6 @@ const Index = () => {
   const [investigatingChangesGraded, setInvestigatingChangesGraded] = useState(false);
   const [investigatingChangesScore, setInvestigatingChangesScore] = useState(0);
 
-  // Test Mode state
-  const [testModeOpen, setTestModeOpen] = useState(false);
-  const [tabSelectionOpen, setTabSelectionOpen] = useState(false);
-  const [isTestMode, setIsTestMode] = useState(false);
-  const [testQuestions, setTestQuestions] = useState<TestQuestion[]>([]);
-  const [testModeType, setTestModeType] = useState<'general' | 'tab-specific'>('general');
-
-  // Gamification state
-  const [challengeModes, setChallengeModes] = useState<ChallengeModes>({
-    speedMode: false,
-    noHints: false,
-  });
-  const [hintsUsed, setHintsUsed] = useState(0);
-  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
-
   // Protractor state (shared across tabs)
   const [activeProtractor, setActiveProtractor] = useState<ProtractorType>(null);
 
@@ -260,164 +150,22 @@ const Index = () => {
   const [currentTabName, setCurrentTabName] = useState('');
   const [currentTopicName, setCurrentTopicName] = useState('');
 
-  // Helper to get current questions based on active tab (for solution modal)
-  const getCurrentQuestions = () => {
-    switch (activeTab) {
-      case 'geometry':
-        return geometryQuestions.map(q => ({
-          text: q.text,
-          textEn: q.textEn,
-          answer: q.answer,
-          unit: q.unit,
-          explanation: q.explanation,
-          explanationEn: q.explanationEn,
-        }));
-      case 'ratios':
-        return ratioQuestions.map(q => ({
-          text: q.text,
-          textEn: q.textEn,
-          answer: q.answer,
-          unit: q.unit,
-          explanation: q.explanation,
-          explanationEn: q.explanationEn,
-        }));
-      case 'accuracy-rate':
-        return accuracyRateQuestions.map(q => ({
-          text: q.text,
-          textEn: q.textEn,
-          answer: q.answer,
-          unit: q.unit,
-          explanation: q.explanation,
-          explanationEn: q.explanationEn,
-        }));
-      case 'large-numbers':
-        return largeNumberQuestions.map(q => ({
-          text: q.text,
-          textEn: q.textEn,
-          answer: q.answer,
-          unit: q.unit,
-          explanation: q.explanation,
-          explanationEn: q.explanationEn,
-        }));
-      case 'calculation-rules':
-        return calculationRulesQuestions.map(q => ({
-          text: q.text,
-          textEn: q.textEn,
-          answer: q.answer,
-          unit: q.unit,
-          explanation: q.explanation,
-          explanationEn: q.explanationEn,
-        }));
-      case 'division':
-        return divisionQuestions.map(q => ({
-          text: q.text,
-          textEn: q.textEn,
-          answer: q.answer,
-          unit: q.unit,
-          explanation: q.explanation,
-          explanationEn: q.explanationEn,
-        }));
-      case 'decimals':
-        return decimalQuestions.map(q => ({
-          text: q.text,
-          textEn: q.textEn,
-          answer: q.answer,
-          unit: q.unit,
-          explanation: q.explanation,
-          explanationEn: q.explanationEn,
-        }));
-      case 'line-graphs':
-        return lineGraphQuestions.map(q => ({
-          text: q.text,
-          textEn: q.textEn,
-          answer: q.answer,
-          unit: q.unit,
-          explanation: q.explanation,
-          explanationEn: q.explanationEn,
-        }));
-      case 'fractions':
-        return fractionQuestions.map(q => ({
-          text: q.text,
-          textEn: q.textEn,
-          answer: q.answer,
-          unit: q.unit,
-          explanation: q.explanation,
-          explanationEn: q.explanationEn,
-        }));
-      case 'investigating-changes':
-        return investigatingChangesQuestions.map(q => ({
-          text: q.text,
-          textEn: q.textEn,
-          answer: q.answer,
-          unit: q.unit,
-          explanation: q.explanation,
-          explanationEn: q.explanationEn,
-        }));
-      default:
-        return [];
-    }
-  };
-
   // History modal state
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
-  const [shopModalOpen, setShopModalOpen] = useState(false);
-  const [questsModalOpen, setQuestsModalOpen] = useState(false);
-  const [insightsModalOpen, setInsightsModalOpen] = useState(false);
-  const [vocabularyModalOpen, setVocabularyModalOpen] = useState(false);
-  const [miniGameModalOpen, setMiniGameModalOpen] = useState(false);
-  const [unacknowledgedInsights, setUnacknowledgedInsights] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [showMiniGameUnlock, setShowMiniGameUnlock] = useState(false);
-  const [miniGameProgress, setMiniGameProgress] = useState<MiniGameProgress>(getMiniGameProgress());
 
-  // End-of-session summary state
-  const [sessionSummaryOpen, setSessionSummaryOpen] = useState(false);
-  const [sessionCoinsEarned, setSessionCoinsEarned] = useState(0);
-  const [sessionTopicKey, setSessionTopicKey] = useState('');
-  const [sessionTopicName, setSessionTopicName] = useState('');
-
-  // Teach Me modal state
-  const [teachMeOpen, setTeachMeOpen] = useState(false);
-  const [teachMeQuestion, setTeachMeQuestion] = useState<any>(null);
-  const [teachMeUserAnswer, setTeachMeUserAnswer] = useState('');
-  const [teachMeQuestionIndex, setTeachMeQuestionIndex] = useState(0);
-
-  // Theme state
-  const [currentTheme, setCurrentTheme] = useState('default');
-
-  // Adventure map state
-  const [showAdventureMap, setShowAdventureMap] = useState(true);
-
-  // Story mode state
-  const [chapterIntroOpen, setChapterIntroOpen] = useState(false);
-  const [chapterCompleteOpen, setChapterCompleteOpen] = useState(false);
-  const [currentChapter, setCurrentChapter] = useState<StoryChapter | null>(null);
-  const [chapterStars, setChapterStars] = useState(0);
-  const [chapterCorrectCount, setChapterCorrectCount] = useState(0);
-  const [chapterTotalQuestions, setChapterTotalQuestions] = useState(0);
-  const [showStoryPanel, setShowStoryPanel] = useState(false);
-  const [dailyEpisodeModalOpen, setDailyEpisodeModalOpen] = useState(false);
-  const [isDailyEpisodeActive, setIsDailyEpisodeActive] = useState(false);
-  const [dailyEpisodeTopics, setDailyEpisodeTopics] = useState<string[]>([]);
-
-  // Game data for particle settings
-  const [gameData, setGameData] = useState(getGameData());
-
-  // Load unacknowledged insights count
-  useEffect(() => {
-    const insights = getLearningInsights();
-    setUnacknowledgedInsights(insights.length);
-  }, [insightsModalOpen]);
+  // Test Mode state
+  const [testModeOpen, setTestModeOpen] = useState(false);
+  const [isTestMode, setIsTestMode] = useState(false);
+  const [testQuestions, setTestQuestions] = useState<TestQuestion[]>([]);
+  const [testModeType, setTestModeType] = useState<'general' | 'tab-specific'>('general');
 
   // Refs for scrolling to questions
   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Load history and theme on mount
+  // Load history on mount
   useEffect(() => {
     setHistory(getHistory());
-    const data = getGameData();
-    setGameData(data);
-    setCurrentTheme(data.settings.theme);
   }, []);
 
   // Auto-save state to localStorage every 3 seconds
@@ -427,49 +175,40 @@ const Index = () => {
       activeTab,
       // Geometry
       selectedTopic,
-      geometryQuestions,
       geometryAnswers,
       geometryGraded,
       // Ratios
       selectedRatioTopic,
-      ratioQuestions,
       ratioAnswers,
       ratioGraded,
       // Accuracy Rate
       selectedAccuracyRateTopic,
-      accuracyRateQuestions,
       accuracyRateAnswers,
       accuracyRateGraded,
       // Large Numbers
       selectedLargeNumberTopic,
-      largeNumberQuestions,
       largeNumberAnswers,
       largeNumberGraded,
       // Calculation Rules
       selectedCalculationRulesTopic,
-      calculationRulesQuestions,
       calculationRulesAnswers,
       calculationRulesGraded,
       calculationRulesStepAnswers,
       // Division
       selectedDivisionTopic,
-      divisionQuestions,
       divisionAnswers,
       divisionGraded,
       divisionStepAnswers,
       // Decimals
       selectedDecimalTopic,
-      decimalQuestions,
       decimalAnswers,
       decimalGraded,
       // Line Graphs
       selectedLineGraphTopic,
-      lineGraphQuestions,
       lineGraphAnswers,
       lineGraphGraded,
       // Fractions
       selectedFractionTopic,
-      fractionQuestions,
       fractionAnswers,
       fractionGraded,
       fractionNumeratorAnswers,
@@ -477,7 +216,6 @@ const Index = () => {
       fractionWholeNumberAnswers,
       // Investigating Changes
       selectedInvestigatingChangesTopic,
-      investigatingChangesQuestions,
       investigatingChangesAnswers,
       investigatingChangesGraded,
     };
@@ -489,16 +227,16 @@ const Index = () => {
     }
   }, [
     activeTab,
-    selectedTopic, geometryQuestions, geometryAnswers, geometryGraded,
-    selectedRatioTopic, ratioQuestions, ratioAnswers, ratioGraded,
-    selectedAccuracyRateTopic, accuracyRateQuestions, accuracyRateAnswers, accuracyRateGraded,
-    selectedLargeNumberTopic, largeNumberQuestions, largeNumberAnswers, largeNumberGraded,
-    selectedCalculationRulesTopic, calculationRulesQuestions, calculationRulesAnswers, calculationRulesGraded, calculationRulesStepAnswers,
-    selectedDivisionTopic, divisionQuestions, divisionAnswers, divisionGraded, divisionStepAnswers,
-    selectedDecimalTopic, decimalQuestions, decimalAnswers, decimalGraded,
-    selectedLineGraphTopic, lineGraphQuestions, lineGraphAnswers, lineGraphGraded,
-    selectedFractionTopic, fractionQuestions, fractionAnswers, fractionGraded, fractionNumeratorAnswers, fractionDenominatorAnswers, fractionWholeNumberAnswers,
-    selectedInvestigatingChangesTopic, investigatingChangesQuestions, investigatingChangesAnswers, investigatingChangesGraded,
+    selectedTopic, geometryAnswers, geometryGraded,
+    selectedRatioTopic, ratioAnswers, ratioGraded,
+    selectedAccuracyRateTopic, accuracyRateAnswers, accuracyRateGraded,
+    selectedLargeNumberTopic, largeNumberAnswers, largeNumberGraded,
+    selectedCalculationRulesTopic, calculationRulesAnswers, calculationRulesGraded, calculationRulesStepAnswers,
+    selectedDivisionTopic, divisionAnswers, divisionGraded, divisionStepAnswers,
+    selectedDecimalTopic, decimalAnswers, decimalGraded,
+    selectedLineGraphTopic, lineGraphAnswers, lineGraphGraded,
+    selectedFractionTopic, fractionAnswers, fractionGraded, fractionNumeratorAnswers, fractionDenominatorAnswers, fractionWholeNumberAnswers,
+    selectedInvestigatingChangesTopic, investigatingChangesAnswers, investigatingChangesGraded,
   ]);
 
   // Auto-save every 3 seconds
@@ -520,13 +258,9 @@ const Index = () => {
 
   // Restore state on mount (if saved within last 24 hours)
   useEffect(() => {
-    const restoreState = () => {
     try {
       const saved = localStorage.getItem('zukei-yari-session-state');
-        if (!saved) {
-          console.log('No saved state found');
-          return;
-        }
+      if (!saved) return;
 
       const state = JSON.parse(saved);
       const age = Date.now() - state.timestamp;
@@ -549,18 +283,6 @@ const Index = () => {
       if (state.selectedLineGraphTopic) setSelectedLineGraphTopic(state.selectedLineGraphTopic);
       if (state.selectedFractionTopic) setSelectedFractionTopic(state.selectedFractionTopic);
       if (state.selectedInvestigatingChangesTopic) setSelectedInvestigatingChangesTopic(state.selectedInvestigatingChangesTopic);
-
-      // Restore questions (so exercises are preserved)
-      if (state.geometryQuestions) setGeometryQuestions(state.geometryQuestions);
-      if (state.ratioQuestions) setRatioQuestions(state.ratioQuestions);
-      if (state.accuracyRateQuestions) setAccuracyRateQuestions(state.accuracyRateQuestions);
-      if (state.largeNumberQuestions) setLargeNumberQuestions(state.largeNumberQuestions);
-      if (state.calculationRulesQuestions) setCalculationRulesQuestions(state.calculationRulesQuestions);
-      if (state.divisionQuestions) setDivisionQuestions(state.divisionQuestions);
-      if (state.decimalQuestions) setDecimalQuestions(state.decimalQuestions);
-      if (state.lineGraphQuestions) setLineGraphQuestions(state.lineGraphQuestions);
-      if (state.fractionQuestions) setFractionQuestions(state.fractionQuestions);
-      if (state.investigatingChangesQuestions) setInvestigatingChangesQuestions(state.investigatingChangesQuestions);
 
       // Restore answers and graded status
       if (state.geometryAnswers) setGeometryAnswers(state.geometryAnswers);
@@ -591,18 +313,6 @@ const Index = () => {
     } catch (e) {
       console.warn('Failed to restore session state:', e);
     }
-    };
-
-    // Restore on mount
-    restoreState();
-
-    // Also restore when window gains focus (user returns to page)
-    const handleFocus = () => {
-      restoreState();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   // Clear saved state when graded (submitted) to avoid restoring old completed work
@@ -652,12 +362,6 @@ const Index = () => {
 
   // Handle region selection from adventure map
   const handleRegionSelect = (regionId: string, tabId: string) => {
-    // Check if there's a story chapter for this region
-    const chapter = getChapterByRegionId(regionId);
-    if (chapter) {
-      setCurrentChapter(chapter);
-      setChapterIntroOpen(true);
-    }
     setShowAdventureMap(false);
     handleTabChange(tabId);
   };
@@ -673,7 +377,6 @@ const Index = () => {
   // Handle tab switch - reset exercise states
   const handleTabChange = (value: string) => {
     setActiveTab(value as AppTab);
-    setShowAdventureMap(false);
     // Reset all exercise states when switching tabs
     setGeometryQuestions([]);
     setGeometryAnswers([]);
@@ -749,8 +452,6 @@ const Index = () => {
     setGeometryAnswers(new Array(5).fill(''));
     setGeometryGraded(false);
     setGeometryScore(0);
-    setHintsUsed(0);
-    setSessionStartTime(Date.now());
   };
 
   const handleGeometryAnswerChange = (index: number, value: string) => {
@@ -787,58 +488,12 @@ const Index = () => {
     setGeometryScore(correct);
     setGeometryGraded(true);
 
-    // Update current score for summary
+    // Show score modal
     setCurrentScore(correct);
-
-    // Calculate coins earned
-    const baseCoins = correct * 5;
-    const perfectBonus = correct === 5 ? 25 : 0;
-    const noHintBonus = hintsUsed === 0 ? 10 : 0;
-    const speedBonus =
-      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
-    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
-
-    // Update coins in game data
-    const data = getGameData();
-    data.player.coins += totalCoins;
-    saveGameData(data);
-    window.dispatchEvent(new CustomEvent('coins-changed'));
-
-    // Show end-of-session summary
-    setSessionCoinsEarned(totalCoins);
-    setSessionTopicKey(selectedTopic);
-    setSessionTopicName(TOPICS[selectedTopic].label);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES.geometry.ja);
+    setCurrentTopicName(TOPICS[selectedTopic].label);
     setScoreModalOpen(true);
-
-    // Trigger particle effects for perfect score
-    if (correct === 5) {
-      celebratePerfect();
-      updateQuestProgress('perfect-score');
-    }
-
-    // Update quest progress
-    updateQuestProgress('answer-questions', 5);
-    updateQuestProgress('answer-correct', correct);
-
-    // Check for mini-game unlock (every 20 questions)
-    const { shouldUnlock, newTotal } = addAnsweredQuestions(5);
-    if (shouldUnlock) {
-      setShowMiniGameUnlock(true);
-      // Update mini-game progress state
-      setMiniGameProgress(getMiniGameProgress());
-    }
-
-    // Record mistakes for incorrect answers
-    results.forEach((result) => {
-      if (!result.isCorrect) {
-        recordMistake(
-          selectedTopic,
-          'geometry',
-          result.userAnswer.toString(),
-          result.correctAnswer.toString()
-        );
-      }
-    });
 
     // Save to history
     saveHistoryEntry({
@@ -865,8 +520,6 @@ const Index = () => {
     setRatioOperationAnswers(new Array(5).fill(''));
     setRatioGraded(false);
     setRatioScore(0);
-    setHintsUsed(0);
-    setSessionStartTime(Date.now());
   };
 
   const handleRatioAnswerChange = (index: number, value: string) => {
@@ -898,13 +551,12 @@ const Index = () => {
       if (q.type === 'difference-vs-multiple') {
         const userNum = parseFloat(ratioAnswers[i]);
         const operationCorrect = ratioOperationAnswers[i] === q.correctOperation;
-        // Use tolerance for floating-point comparison
-        const answerCorrect = Math.abs(userNum - q.answer) < 0.0001;
+        const answerCorrect = userNum === q.answer;
         isCorrect = operationCorrect && answerCorrect;
       } else {
-        // Compare the numeric answer with tolerance for floating-point precision
+        // Compare the numeric answer directly
         const userNum = parseFloat(ratioAnswers[i]);
-        isCorrect = Math.abs(userNum - q.answer) < 0.0001;
+        isCorrect = userNum === q.answer;
       }
       if (isCorrect) correct++;
       return {
@@ -917,50 +569,12 @@ const Index = () => {
     setRatioScore(correct);
     setRatioGraded(true);
 
-    // Update current score for summary
+    // Show score modal
     setCurrentScore(correct);
-
-    // Calculate coins earned
-    const baseCoins = correct * 5;
-    const perfectBonus = correct === 5 ? 25 : 0;
-    const noHintBonus = hintsUsed === 0 ? 10 : 0;
-    const speedBonus =
-      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
-    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
-
-    // Update coins in game data
-    const data = getGameData();
-    data.player.coins += totalCoins;
-    saveGameData(data);
-    window.dispatchEvent(new CustomEvent('coins-changed'));
-
-    // Show end-of-session summary
-    setSessionCoinsEarned(totalCoins);
-    setSessionTopicKey(selectedRatioTopic);
-    setSessionTopicName(RATIO_TOPICS[selectedRatioTopic].label);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES.ratios.ja);
+    setCurrentTopicName(RATIO_TOPICS[selectedRatioTopic].label);
     setScoreModalOpen(true);
-
-    // Trigger particle effects for perfect score
-    if (correct === 5) {
-      celebratePerfect();
-      updateQuestProgress('perfect-score');
-    }
-
-    // Update quest progress
-    updateQuestProgress('answer-questions', 5);
-    updateQuestProgress('answer-correct', correct);
-
-    // Record mistakes for incorrect answers
-    results.forEach((result) => {
-      if (!result.isCorrect) {
-        recordMistake(
-          selectedRatioTopic,
-          'ratios',
-          result.userAnswer.toString(),
-          result.correctAnswer.toString()
-        );
-      }
-    });
 
     // Save to history
     saveHistoryEntry({
@@ -985,8 +599,6 @@ const Index = () => {
     setAccuracyRateAnswers(new Array(5).fill(''));
     setAccuracyRateGraded(false);
     setAccuracyRateScore(0);
-    setHintsUsed(0);
-    setSessionStartTime(Date.now());
   };
 
   const handleAccuracyRateAnswerChange = (index: number, value: string) => {
@@ -1020,50 +632,12 @@ const Index = () => {
     setAccuracyRateScore(correct);
     setAccuracyRateGraded(true);
 
-    // Update current score for summary
+    // Show score modal
     setCurrentScore(correct);
-
-    // Calculate coins earned
-    const baseCoins = correct * 5;
-    const perfectBonus = correct === 5 ? 25 : 0;
-    const noHintBonus = hintsUsed === 0 ? 10 : 0;
-    const speedBonus =
-      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
-    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
-
-    // Update coins in game data
-    const data = getGameData();
-    data.player.coins += totalCoins;
-    saveGameData(data);
-    window.dispatchEvent(new CustomEvent('coins-changed'));
-
-    // Show end-of-session summary
-    setSessionCoinsEarned(totalCoins);
-    setSessionTopicKey(selectedAccuracyRateTopic);
-    setSessionTopicName(ACCURACY_RATE_TOPICS[selectedAccuracyRateTopic].label);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES['accuracy-rate'].ja);
+    setCurrentTopicName(ACCURACY_RATE_TOPICS[selectedAccuracyRateTopic].label);
     setScoreModalOpen(true);
-
-    // Trigger particle effects for perfect score
-    if (correct === 5) {
-      celebratePerfect();
-      updateQuestProgress('perfect-score');
-    }
-
-    // Update quest progress
-    updateQuestProgress('answer-questions', 5);
-    updateQuestProgress('answer-correct', correct);
-
-    // Record mistakes for incorrect answers
-    results.forEach((result) => {
-      if (!result.isCorrect) {
-        recordMistake(
-          selectedAccuracyRateTopic,
-          'accuracy-rate',
-          result.userAnswer.toString(),
-          result.correctAnswer.toString()
-        );
-      }
-    });
 
     // Save to history
     saveHistoryEntry({
@@ -1088,8 +662,6 @@ const Index = () => {
     setLargeNumberAnswers(new Array(5).fill(''));
     setLargeNumberGraded(false);
     setLargeNumberScore(0);
-    setHintsUsed(0);
-    setSessionStartTime(Date.now());
   };
 
   const handleLargeNumberAnswerChange = (index: number, value: string) => {
@@ -1127,50 +699,12 @@ const Index = () => {
     setLargeNumberScore(correct);
     setLargeNumberGraded(true);
 
-    // Update current score for summary
+    // Show score modal
     setCurrentScore(correct);
-
-    // Calculate coins earned
-    const baseCoins = correct * 5;
-    const perfectBonus = correct === 5 ? 25 : 0;
-    const noHintBonus = hintsUsed === 0 ? 10 : 0;
-    const speedBonus =
-      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
-    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
-
-    // Update coins in game data
-    const data = getGameData();
-    data.player.coins += totalCoins;
-    saveGameData(data);
-    window.dispatchEvent(new CustomEvent('coins-changed'));
-
-    // Show end-of-session summary
-    setSessionCoinsEarned(totalCoins);
-    setSessionTopicKey(selectedLargeNumberTopic);
-    setSessionTopicName(LARGE_NUMBER_TOPICS[selectedLargeNumberTopic].label);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES['large-numbers'].ja);
+    setCurrentTopicName(LARGE_NUMBER_TOPICS[selectedLargeNumberTopic].label);
     setScoreModalOpen(true);
-
-    // Trigger particle effects for perfect score
-    if (correct === 5) {
-      celebratePerfect();
-      updateQuestProgress('perfect-score');
-    }
-
-    // Update quest progress
-    updateQuestProgress('answer-questions', 5);
-    updateQuestProgress('answer-correct', correct);
-
-    // Record mistakes for incorrect answers
-    results.forEach((result) => {
-      if (!result.isCorrect) {
-        recordMistake(
-          selectedLargeNumberTopic,
-          'large-numbers',
-          result.userAnswer.toString(),
-          result.correctAnswer.toString()
-        );
-      }
-    });
 
     // Save to history
     saveHistoryEntry({
@@ -1199,8 +733,6 @@ const Index = () => {
     setCalculationRulesEquationAnswers(new Array(5).fill(''));
     setCalculationRulesGraded(false);
     setCalculationRulesScore(0);
-    setHintsUsed(0);
-    setSessionStartTime(Date.now());
   };
 
   const handleCalculationRulesAnswerChange = (index: number, value: string) => {
@@ -1240,12 +772,7 @@ const Index = () => {
       // For combining-into-one-equation, check both equation and answer
       if (q.topic === 'combining-into-one-equation') {
         const userNum = parseInt(calculationRulesAnswers[i]);
-        const equationCorrect = isEquationValid(
-          calculationRulesEquationAnswers[i] || '',
-          q.correctEquation || '',
-          q.answer,
-          q.numbers || []
-        );
+        const equationCorrect = calculationRulesEquationAnswers[i]?.replace(/\s/g, '') === q.correctEquation?.replace(/\s/g, '');
         const answerCorrect = userNum === q.answer;
         isCorrect = equationCorrect && answerCorrect;
       } else {
@@ -1263,40 +790,12 @@ const Index = () => {
     setCalculationRulesScore(correct);
     setCalculationRulesGraded(true);
 
-    // Update current score for summary
+    // Show score modal
     setCurrentScore(correct);
-
-    // Calculate coins earned
-    const baseCoins = correct * 5;
-    const perfectBonus = correct === 5 ? 25 : 0;
-    const noHintBonus = hintsUsed === 0 ? 10 : 0;
-    const speedBonus =
-      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
-    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
-
-    // Update coins in game data
-    const data = getGameData();
-    data.player.coins += totalCoins;
-    saveGameData(data);
-    window.dispatchEvent(new CustomEvent('coins-changed'));
-
-    // Show end-of-session summary
-    setSessionCoinsEarned(totalCoins);
-    setSessionTopicKey(selectedCalculationRulesTopic);
-    setSessionTopicName(CALCULATION_RULES_TOPICS[selectedCalculationRulesTopic].label);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES['calculation-rules'].ja);
+    setCurrentTopicName(CALCULATION_RULES_TOPICS[selectedCalculationRulesTopic].label);
     setScoreModalOpen(true);
-
-    // Record mistakes for incorrect answers
-    results.forEach((result) => {
-      if (!result.isCorrect) {
-        recordMistake(
-          selectedCalculationRulesTopic,
-          'calculation-rules',
-          result.userAnswer.toString(),
-          result.correctAnswer.toString()
-        );
-      }
-    });
 
     // Save to history
     saveHistoryEntry({
@@ -1331,8 +830,6 @@ const Index = () => {
     setDivisionStepAnswers(newQuestions.map(() => new Array(2).fill('')));
     setDivisionGraded(false);
     setDivisionScore(0);
-    setHintsUsed(0);
-    setSessionStartTime(Date.now());
   };
 
   const handleDivisionAnswerChange = (index: number, value: string) => {
@@ -1403,40 +900,12 @@ const Index = () => {
     setDivisionScore(correct);
     setDivisionGraded(true);
 
-    // Update current score for summary
+    // Show score modal
     setCurrentScore(correct);
-
-    // Calculate coins earned
-    const baseCoins = correct * 5;
-    const perfectBonus = correct === 5 ? 25 : 0;
-    const noHintBonus = hintsUsed === 0 ? 10 : 0;
-    const speedBonus =
-      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
-    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
-
-    // Update coins in game data
-    const data = getGameData();
-    data.player.coins += totalCoins;
-    saveGameData(data);
-    window.dispatchEvent(new CustomEvent('coins-changed'));
-
-    // Show end-of-session summary
-    setSessionCoinsEarned(totalCoins);
-    setSessionTopicKey(selectedDivisionTopic);
-    setSessionTopicName(DIVISION_TOPICS[selectedDivisionTopic].label);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES.division.ja);
+    setCurrentTopicName(DIVISION_TOPICS[selectedDivisionTopic].label);
     setScoreModalOpen(true);
-
-    // Record mistakes for incorrect answers
-    results.forEach((result) => {
-      if (!result.isCorrect) {
-        recordMistake(
-          selectedDivisionTopic,
-          'division',
-          result.userAnswer.toString(),
-          result.correctAnswer.toString()
-        );
-      }
-    });
 
     // Save to history
     saveHistoryEntry({
@@ -1465,8 +934,6 @@ const Index = () => {
     setDecimalGridAnswers(newQuestions.map(() => new Array(10).fill('')));
     setDecimalGraded(false);
     setDecimalScore(0);
-    setHintsUsed(0);
-    setSessionStartTime(Date.now());
   };
 
   const handleDecimalAnswerChange = (index: number, value: string) => {
@@ -1504,40 +971,12 @@ const Index = () => {
     setDecimalScore(correct);
     setDecimalGraded(true);
 
-    // Update current score for summary
+    // Show score modal
     setCurrentScore(correct);
-
-    // Calculate coins earned
-    const baseCoins = correct * 5;
-    const perfectBonus = correct === 5 ? 25 : 0;
-    const noHintBonus = hintsUsed === 0 ? 10 : 0;
-    const speedBonus =
-      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
-    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
-
-    // Update coins in game data
-    const data = getGameData();
-    data.player.coins += totalCoins;
-    saveGameData(data);
-    window.dispatchEvent(new CustomEvent('coins-changed'));
-
-    // Show end-of-session summary
-    setSessionCoinsEarned(totalCoins);
-    setSessionTopicKey(selectedDecimalTopic);
-    setSessionTopicName(DECIMAL_TOPICS[selectedDecimalTopic].label);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES.decimals.ja);
+    setCurrentTopicName(DECIMAL_TOPICS[selectedDecimalTopic].label);
     setScoreModalOpen(true);
-
-    // Record mistakes for incorrect answers
-    results.forEach((result) => {
-      if (!result.isCorrect) {
-        recordMistake(
-          selectedDecimalTopic,
-          'decimals',
-          result.userAnswer.toString(),
-          result.correctAnswer.toString()
-        );
-      }
-    });
 
     // Save to history
     saveHistoryEntry({
@@ -1567,8 +1006,6 @@ const Index = () => {
     setLineGraphPlottedPoints(Array.from({ length: 5 }, () => []));
     setLineGraphGraded(false);
     setLineGraphScore(0);
-    setHintsUsed(0);
-    setSessionStartTime(Date.now());
   };
 
   const handleLineGraphAnswerChange = (index: number, value: string) => {
@@ -1620,15 +1057,6 @@ const Index = () => {
     setLineGraphPlottedPoints(newPlottedPoints);
   };
 
-  const handleLineGraphUndoPoint = (index: number) => {
-    const newPlottedPoints = [...lineGraphPlottedPoints];
-    if (newPlottedPoints[index] && newPlottedPoints[index].length > 0) {
-      // Remove the last plotted point
-      newPlottedPoints[index].pop();
-      setLineGraphPlottedPoints(newPlottedPoints);
-    }
-  };
-
   const allLineGraphsAnswered = lineGraphAnswers.length === 5 && lineGraphAnswers.every((a, i) => {
     const q = lineGraphQuestions[i];
     if (q?.topic === 'change-slope') {
@@ -1669,40 +1097,12 @@ const Index = () => {
     setLineGraphScore(correct);
     setLineGraphGraded(true);
 
-    // Update current score for summary
+    // Show score modal
     setCurrentScore(correct);
-
-    // Calculate coins earned
-    const baseCoins = correct * 5;
-    const perfectBonus = correct === 5 ? 25 : 0;
-    const noHintBonus = hintsUsed === 0 ? 10 : 0;
-    const speedBonus =
-      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
-    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
-
-    // Update coins in game data
-    const data = getGameData();
-    data.player.coins += totalCoins;
-    saveGameData(data);
-    window.dispatchEvent(new CustomEvent('coins-changed'));
-
-    // Show end-of-session summary
-    setSessionCoinsEarned(totalCoins);
-    setSessionTopicKey(selectedLineGraphTopic);
-    setSessionTopicName(LINE_GRAPH_TOPICS[selectedLineGraphTopic].label);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES['line-graphs'].ja);
+    setCurrentTopicName(LINE_GRAPH_TOPICS[selectedLineGraphTopic].label);
     setScoreModalOpen(true);
-
-    // Record mistakes for incorrect answers
-    results.forEach((result) => {
-      if (!result.isCorrect) {
-        recordMistake(
-          selectedLineGraphTopic,
-          'line-graphs',
-          result.userAnswer.toString(),
-          result.correctAnswer.toString()
-        );
-      }
-    });
 
     // Save to history
     saveHistoryEntry({
@@ -1732,8 +1132,6 @@ const Index = () => {
     setFractionWholeNumberAnswers(new Array(5).fill(''));
     setFractionGraded(false);
     setFractionScore(0);
-    setHintsUsed(0);
-    setSessionStartTime(Date.now());
   };
 
   const handleFractionAnswerChange = (index: number, value: string) => {
@@ -1808,40 +1206,12 @@ const Index = () => {
     setFractionScore(correct);
     setFractionGraded(true);
 
-    // Update current score for summary
+    // Show score modal
     setCurrentScore(correct);
-
-    // Calculate coins earned
-    const baseCoins = correct * 5;
-    const perfectBonus = correct === 5 ? 25 : 0;
-    const noHintBonus = hintsUsed === 0 ? 10 : 0;
-    const speedBonus =
-      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
-    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
-
-    // Update coins in game data
-    const data = getGameData();
-    data.player.coins += totalCoins;
-    saveGameData(data);
-    window.dispatchEvent(new CustomEvent('coins-changed'));
-
-    // Show end-of-session summary
-    setSessionCoinsEarned(totalCoins);
-    setSessionTopicKey(selectedFractionTopic);
-    setSessionTopicName(FRACTION_TOPICS[selectedFractionTopic].label);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES.fractions.ja);
+    setCurrentTopicName(FRACTION_TOPICS[selectedFractionTopic].label);
     setScoreModalOpen(true);
-
-    // Record mistakes for incorrect answers
-    results.forEach((result) => {
-      if (!result.isCorrect) {
-        recordMistake(
-          selectedFractionTopic,
-          'fractions',
-          result.userAnswer.toString(),
-          result.correctAnswer.toString()
-        );
-      }
-    });
 
     // Save to history
     saveHistoryEntry({
@@ -1868,8 +1238,6 @@ const Index = () => {
     setInvestigatingChangesAnswers(new Array(5).fill(''));
     setInvestigatingChangesGraded(false);
     setInvestigatingChangesScore(0);
-    setHintsUsed(0);
-    setSessionStartTime(Date.now());
   };
 
   const handleInvestigatingChangesAnswerChange = (index: number, value: string) => {
@@ -1902,40 +1270,12 @@ const Index = () => {
     setInvestigatingChangesScore(correct);
     setInvestigatingChangesGraded(true);
 
-    // Update current score for summary
+    // Show score modal
     setCurrentScore(correct);
-
-    // Calculate coins earned
-    const baseCoins = correct * 5;
-    const perfectBonus = correct === 5 ? 25 : 0;
-    const noHintBonus = hintsUsed === 0 ? 10 : 0;
-    const speedBonus =
-      sessionStartTime && Date.now() - sessionStartTime < 120000 ? 10 : 0;
-    const totalCoins = baseCoins + perfectBonus + noHintBonus + speedBonus;
-
-    // Update coins in game data
-    const data = getGameData();
-    data.player.coins += totalCoins;
-    saveGameData(data);
-    window.dispatchEvent(new CustomEvent('coins-changed'));
-
-    // Show end-of-session summary
-    setSessionCoinsEarned(totalCoins);
-    setSessionTopicKey(selectedInvestigatingChangesTopic);
-    setSessionTopicName(INVESTIGATING_CHANGES_TOPICS[selectedInvestigatingChangesTopic].label);
+    setCurrentResults(results);
+    setCurrentTabName(TAB_NAMES['investigating-changes'].ja);
+    setCurrentTopicName(INVESTIGATING_CHANGES_TOPICS[selectedInvestigatingChangesTopic].label);
     setScoreModalOpen(true);
-
-    // Record mistakes for incorrect answers
-    results.forEach((result) => {
-      if (!result.isCorrect) {
-        recordMistake(
-          selectedInvestigatingChangesTopic,
-          'investigating-changes',
-          result.userAnswer.toString(),
-          result.correctAnswer.toString()
-        );
-      }
-    });
 
     // Save to history
     saveHistoryEntry({
@@ -1955,8 +1295,6 @@ const Index = () => {
 
   const investigatingChangesScorePercent = investigatingChangesScore * 20;
 
-  const themeColors = getThemeColors(currentTheme);
-
   // Test Mode handlers
   const handleStartGeneralTest = () => {
     const questions = generateTest({ type: 'general', questionCount: 100 });
@@ -1967,30 +1305,35 @@ const Index = () => {
   };
 
   const handleStartTabTest = () => {
-    // Open tab selection modal instead of starting immediately
-    setTestModeOpen(false);
-    setTabSelectionOpen(true);
-  };
-
-  const handleTabSelectionConfirm = (selectedTabs: string[]) => {
-    // Generate test for selected tabs
-    const questions = generateTest({
-      type: 'tab-specific',
-      tabIds: selectedTabs,
-      questionCount: selectedTabs.length * 20,
-    });
+    const tabMap: Record<AppTab, string> = {
+      'geometry': 'geometry',
+      'ratios': 'ratios',
+      'accuracy-rate': 'accuracy-rate',
+      'large-numbers': 'large-numbers',
+      'calculation-rules': 'calculation-rules',
+      'division': 'division',
+      'decimals': 'decimals',
+      'line-graphs': 'line-graphs',
+      'fractions': 'fractions',
+      'investigating-changes': 'investigating-changes',
+    };
+    const questions = generateTest({ type: 'tab-specific', tabId: tabMap[activeTab], questionCount: 20 });
     setTestQuestions(questions);
     setTestModeType('tab-specific');
     setIsTestMode(true);
-    setTabSelectionOpen(false);
+    setTestModeOpen(false);
   };
 
   const handleTestComplete = (score: number, total: number) => {
-    // Save test results to history
     saveHistoryEntry({
+      date: new Date().toISOString(),
       timestamp: Date.now(),
-      tab: 'test-mode',
-      topic: testModeType === 'general' ? '総合テスト / General Test' : '単元テスト / Tab Test',
+      tabKey: 'test-mode',
+      tabName: 'テストモード',
+      tabNameEn: 'Test Mode',
+      topicKey: testModeType,
+      topicName: testModeType === 'general' ? '総合テスト' : '単元テスト',
+      topicNameEn: testModeType === 'general' ? 'General Test' : 'Tab Test',
       score,
       totalQuestions: total,
     });
@@ -2005,14 +1348,7 @@ const Index = () => {
   // If in test mode, show test interface
   if (isTestMode) {
     return (
-      <div
-        className="min-h-screen transition-colors duration-300"
-        style={{
-          backgroundColor: themeColors.background,
-          color: themeColors.text,
-        }}
-        data-theme={currentTheme}
-      >
+      <div className="min-h-screen bg-background">
         <TestMode
           questions={testQuestions}
           onExit={handleExitTestMode}
@@ -2023,22 +1359,9 @@ const Index = () => {
   }
 
   return (
-    <div
-      className="min-h-screen transition-colors duration-300"
-      style={{
-        backgroundColor: themeColors.background,
-        color: themeColors.text,
-      }}
-      data-theme={currentTheme}
-    >
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header
-        className="border-b shadow-kid transition-colors duration-300"
-        style={{
-          backgroundColor: themeColors.card,
-          borderColor: currentTheme === 'default' ? '' : themeColors.primary + '30',
-        }}
-      >
+      <header className="bg-card border-b border-border shadow-kid">
         <div className="container max-w-3xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -2050,6 +1373,14 @@ const Index = () => {
                 <p className="text-muted-foreground text-sm">Kei-kun's Math App</p>
               </div>
             </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setTestModeOpen(true)}
+              title="テストモード / Test Mode"
+            >
+              <FileCheck className="w-5 h-5" />
+            </Button>
             <Button
               variant="outline"
               size="icon"
@@ -2098,96 +1429,9 @@ const Index = () => {
         </div>
       )}
 
-      {/* Header Bar with Gamification Stats */}
-      <div className="container max-w-3xl mx-auto px-4 pt-4">
-        <HeaderBar
-          onOpenShop={() => setShopModalOpen(true)}
-          onOpenQuests={() => setQuestsModalOpen(true)}
-          onOpenInsights={() => setInsightsModalOpen(true)}
-          onOpenStoryMode={() => setShowStoryPanel(true)}
-          onOpenVocabulary={() => setVocabularyModalOpen(true)}
-          onOpenMiniGames={() => setMiniGameModalOpen(true)}
-          onOpenTestMode={() => setTestModeOpen(true)}
-          unacknowledgedInsights={unacknowledgedInsights}
-        />
-      </div>
-
-      {/* Mini Game Unlock Notification */}
-      {showMiniGameUnlock && (
-        <div className="container max-w-3xl mx-auto px-4 mt-4">
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-4 animate-in slide-in-from-top-4">
-            <div className="flex items-center gap-3">
-              <span className="text-4xl">🎮</span>
-              <div className="flex-1">
-                <h3 className="font-bold text-purple-800">
-                  ミニゲームがひらけた！
-                </h3>
-                <p className="text-sm text-purple-600">
-                  Mini-games unlocked! Take a break and play!
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    skipMiniGame();
-                    setShowMiniGameUnlock(false);
-                  }}
-                >
-                  スキップ / Skip
-                </Button>
-                <Button
-                  onClick={() => setMiniGameModalOpen(true)}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500"
-                >
-                  あそぶ / Play
-                </Button>
-                <button
-                  onClick={() => setShowMiniGameUnlock(false)}
-                  className="p-1 hover:bg-purple-100 rounded-full"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Adventure Map */}
-      {showAdventureMap && (
-        <div className="container max-w-4xl mx-auto px-4 py-6">
-          <div className="mb-4 text-center">
-            <h2 className="text-2xl font-black text-foreground mb-1">
-              🗺️ 冒険の地図 / Adventure Map
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              エリアを選んで冒険を始めよう！/ Choose an area to start your adventure!
-            </p>
-          </div>
-          <AdventureMap
-            onSelectRegion={handleRegionSelect}
-            activeTab={activeTab}
-            onOpenStoryMode={() => setShowStoryPanel(true)}
-          />
-        </div>
-      )}
-
       {/* Main Content with Tabs */}
       <main className="container max-w-3xl mx-auto px-4 py-8">
-        {!showAdventureMap && (
-          <button
-            onClick={() => setShowAdventureMap(true)}
-            className="mb-6 flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-xl font-medium transition-colors"
-          >
-            <span>🗺️</span>
-            <span>冒険の地図に戻る / Back to Map</span>
-          </button>
-        )}
-
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          {!showAdventureMap && (
            <TabsList className="w-full grid grid-cols-5 mb-8 h-auto p-2 bg-muted rounded-2xl gap-2">
             {/* Row 1: Numbers & Operations */}
             <TabsTrigger
@@ -2292,7 +1536,6 @@ const Index = () => {
               </div>
             </TabsTrigger>
           </TabsList>
-          )}
 
           {/* Geometry Tab */}
           <TabsContent value="geometry" className="mt-0">
@@ -2311,8 +1554,6 @@ const Index = () => {
                       setGeometryAnswers([]);
                       setGeometryGraded(false);
                       setGeometryScore(0);
-                      // Update quest progress
-                      updateQuestProgress('try-topic');
                     }}
                     className={`px-4 py-3 rounded-xl font-bold text-sm transition-all active:scale-95 flex flex-col items-center ${
                       selectedTopic === t
@@ -2335,13 +1576,6 @@ const Index = () => {
                 <ExplanationCard info={TOPICS[selectedTopic]} />
               )}
             </div>
-
-            {/* Challenge Modes */}
-            <ChallengeModeSelector
-              modes={challengeModes}
-              onChange={setChallengeModes}
-              disabled={geometryQuestions.length > 0}
-            />
 
             {/* Generate Button */}
             <Button variant="generate" size="lg" onClick={handleGenerateGeometry} className="mb-8 w-full sm:w-auto">
@@ -2383,8 +1617,6 @@ const Index = () => {
                               outerHeight: q.diagram.params.outerHeight,
                               cutoutWidth: q.diagram.params.cutoutWidth,
                               cutoutHeight: q.diagram.params.cutoutHeight,
-                              cutoutY: q.diagram.params.cutoutY,
-                              shapeType: q.diagram.params.cutoutY !== undefined ? 'c-shape' : 'l-shape',
                             } : undefined,
                           }}
                           index={i}
@@ -2397,7 +1629,6 @@ const Index = () => {
                             }
                             return parseFloat(geometryAnswers[i]) === q.answer;
                           })() : undefined}
-                          onTeachMe={() => handleTeachMe(q, geometryAnswers[i], i)}
                         />
                       ) : (
                         <QuestionItem
@@ -2407,7 +1638,6 @@ const Index = () => {
                           onAnswerChange={(v) => handleGeometryAnswerChange(i, v)}
                           graded={geometryGraded}
                           isCorrect={geometryGraded ? parseInt(geometryAnswers[i]) === q.answer : undefined}
-                          onTeachMe={() => handleTeachMe(q, geometryAnswers[i], i)}
                         />
                       )}
                     </div>
@@ -2510,12 +1740,9 @@ const Index = () => {
                         graded={ratioGraded}
                         isCorrect={ratioGraded ? (
                           q.type === 'difference-vs-multiple'
-                            ? Math.abs(parseFloat(ratioAnswers[i]) - q.answer) < 0.0001 && ratioOperationAnswers[i] === q.correctOperation
-                            : Math.abs(parseFloat(ratioAnswers[i]) - q.answer) < 0.0001
+                            ? parseFloat(ratioAnswers[i]) === q.answer && ratioOperationAnswers[i] === q.correctOperation
+                            : parseFloat(ratioAnswers[i]) === q.answer
                         ) : undefined}
-                        noHintsMode={challengeModes.noHints}
-                        onHintUsed={() => setHintsUsed(prev => prev + 1)}
-                        onTeachMe={() => handleTeachMe(q, ratioAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -2613,7 +1840,6 @@ const Index = () => {
                         onAnswerChange={(v) => handleAccuracyRateAnswerChange(i, v)}
                         graded={accuracyRateGraded}
                         isCorrect={accuracyRateGraded ? parseFloat(accuracyRateAnswers[i]) === q.answer : undefined}
-                        onTeachMe={() => handleTeachMe(q, accuracyRateAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -2715,19 +1941,13 @@ const Index = () => {
                         isCorrect={calculationRulesGraded ? (
                           q.topic === 'combining-into-one-equation'
                             ? parseInt(calculationRulesAnswers[i]) === q.answer &&
-                              isEquationValid(
-                                calculationRulesEquationAnswers[i] || '',
-                                q.correctEquation || '',
-                                q.answer,
-                                q.numbers || []
-                              )
+                              calculationRulesEquationAnswers[i]?.replace(/\s/g, '') === q.correctEquation?.replace(/\s/g, '')
                             : parseInt(calculationRulesAnswers[i]) === q.answer
                         ) : undefined}
                         stepAnswers={calculationRulesStepAnswers[i] || []}
                         onStepAnswerChange={(stepIdx, v) => handleCalculationRulesStepAnswerChange(i, stepIdx, v)}
-                        equationAnswer={calculationRulesEquationAnswers[i] || ''}
-                        onEquationChange={(eq) => handleCalculationRulesEquationChange(i, eq)}
-                        onTeachMe={() => handleTeachMe(q, calculationRulesAnswers[i], i)}
+                      equationAnswer={calculationRulesEquationAnswers[i] || ''}
+                      onEquationChange={(eq) => handleCalculationRulesEquationChange(i, eq)}
                       />
                     </div>
                   ))}
@@ -2839,7 +2059,6 @@ const Index = () => {
                               parseInt(divisionRemainderAnswers[i] || '0') === q.remainder
                             : parseInt(divisionAnswers[i]) === q.quotient
                         ) : undefined}
-                        onTeachMe={() => handleTeachMe(q, divisionAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -2942,7 +2161,6 @@ const Index = () => {
                         ) : undefined}
                         gridAnswers={decimalGridAnswers[i] || []}
                         onGridAnswerChange={(cellIdx, v) => handleDecimalGridAnswerChange(i, cellIdx, v)}
-                        onTeachMe={() => handleTeachMe(q, decimalAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -3044,7 +2262,6 @@ const Index = () => {
                             ? largeNumberAnswers[i].trim() === (q.answer as string)
                             : parseInt(largeNumberAnswers[i]) === q.answer)
                           : undefined}
-                        onTeachMe={() => handleTeachMe(q, largeNumberAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -3150,14 +2367,12 @@ const Index = () => {
                         plottedPoints={lineGraphPlottedPoints[i]}
                         onPointPlot={(x, y) => handleLineGraphPointPlot(i, x, y)}
                         onClearPoints={() => handleLineGraphClearPoints(i)}
-                        onUndoPoint={() => handleLineGraphUndoPoint(i)}
                         graded={lineGraphGraded}
                         isCorrect={lineGraphGraded ? (
                           q.topic === 'change-slope'
                             ? `${lineGraphStartTimeAnswers[i]}から${lineGraphEndTimeAnswers[i]}` === q.answer
                             : Math.abs(parseFloat(lineGraphAnswers[i] || '0') - (typeof q.answer === 'number' ? q.answer : parseFloat(q.answer))) < 0.01
                         ) : undefined}
-                        onTeachMe={() => handleTeachMe(q, lineGraphAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -3284,7 +2499,6 @@ const Index = () => {
                             }
                           })()
                         ) : undefined}
-                        onTeachMe={() => handleTeachMe(q, fractionAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -3386,7 +2600,6 @@ const Index = () => {
                             ? parseInt(investigatingChangesAnswers[i]) === q.answer
                             : investigatingChangesAnswers[i] === q.answer
                         ) : undefined}
-                        onTeachMe={() => handleTeachMe(q, investigatingChangesAnswers[i], i)}
                       />
                     </div>
                   ))}
@@ -3435,7 +2648,6 @@ const Index = () => {
         score={currentScore}
         totalQuestions={5}
         results={currentResults}
-        questions={getCurrentQuestions()}
         onTryAgain={() => {
           setScoreModalOpen(false);
           // Call the appropriate try again function based on active tab
@@ -3478,31 +2690,8 @@ const Index = () => {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }}
-        onContinue={() => {
-          setScoreModalOpen(false);
-          // Check if we're completing a chapter
-          if (currentChapter && !chapterCompleteOpen) {
-            const correctCount = currentResults.filter(r => r.isCorrect).length;
-            const total = currentResults.length;
-            const stars = calculateChapterStars(correctCount, total);
-            setChapterStars(stars);
-            setChapterCorrectCount(correctCount);
-            setChapterTotalQuestions(total);
-            setChapterCompleteOpen(true);
-          } else if (isDailyEpisodeActive) {
-            // Complete daily episode
-            // (logic handled separately)
-            setSessionSummaryOpen(true);
-          } else {
-            setSessionSummaryOpen(true);
-          }
-        }}
         tabName={currentTabName}
         topicName={currentTopicName}
-        topicId={`${activeTab}-${activeTab === 'geometry' ? selectedTopic : activeTab === 'ratios' ? selectedRatioTopic : activeTab === 'accuracy-rate' ? selectedAccuracyRateTopic : activeTab === 'large-numbers' ? selectedLargeNumberTopic : activeTab === 'calculation-rules' ? selectedCalculationRulesTopic : activeTab === 'division' ? selectedDivisionTopic : activeTab === 'decimals' ? selectedDecimalTopic : activeTab === 'line-graphs' ? selectedLineGraphTopic : activeTab === 'fractions' ? selectedFractionTopic : selectedInvestigatingChangesTopic}`}
-        hintsUsed={hintsUsed}
-        challengeModes={challengeModes}
-        timeSpentSeconds={sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0}
       />
 
       {/* History Modal */}
@@ -3516,265 +2705,14 @@ const Index = () => {
         }}
       />
 
-      {/* Shop Modal */}
-      <ShopModal
-        isOpen={shopModalOpen}
-        onClose={() => setShopModalOpen(false)}
-      />
-
-      {/* Vocabulary Modal */}
-      <VocabularyModal
-        isOpen={vocabularyModalOpen}
-        onClose={() => setVocabularyModalOpen(false)}
-      />
-
-      {/* Mini Game Modal */}
-      <MiniGameModal
-        isOpen={miniGameModalOpen}
-        onClose={() => {
-          setMiniGameModalOpen(false);
-          setShowMiniGameUnlock(false);
-        }}
-        onCoinsEarned={(coins) => {
-          const data = getGameData();
-          data.player.coins += coins;
-          saveGameData(data);
-          window.dispatchEvent(new CustomEvent('coins-changed'));
-        }}
-      />
-
-      {/* Daily Quests Modal */}
-      <DailyQuests
-        isOpen={questsModalOpen}
-        onClose={() => setQuestsModalOpen(false)}
-      />
-
-      {/* Learning Insights Modal */}
-      <LearningInsights
-        isOpen={insightsModalOpen}
-        onClose={() => setInsightsModalOpen(false)}
-        currentTopic={selectedTopic}
-      />
-
-      {/* End of Session Summary */}
-      <EndOfSessionSummary
-        isOpen={sessionSummaryOpen}
-        onClose={() => setSessionSummaryOpen(false)}
-        onPracticeMore={() => {
-          setSessionSummaryOpen(false);
-          // Regenerate questions for the same topic
-          switch (activeTab) {
-            case 'geometry':
-              handleGenerateGeometry();
-              break;
-            case 'ratios':
-              handleGenerateRatios();
-              break;
-            case 'accuracy-rate':
-              handleGenerateAccuracyRate();
-              break;
-            case 'large-numbers':
-              handleGenerateLargeNumbers();
-              break;
-            case 'calculation-rules':
-              handleGenerateCalculationRules();
-              break;
-            case 'division':
-              handleGenerateDivision();
-              break;
-            case 'decimals':
-              handleGenerateDecimals();
-              break;
-            case 'line-graphs':
-              handleGenerateLineGraphs();
-              break;
-            case 'fractions':
-              handleGenerateFractions();
-              break;
-            case 'investigating-changes':
-              handleGenerateInvestigatingChanges();
-              break;
-          }
-        }}
-        onBackToMap={() => {
-          setSessionSummaryOpen(false);
-          setShowAdventureMap(true);
-        }}
-        score={currentScore}
-        totalQuestions={5}
-        timeSpent={
-          sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0
-        }
-        coinsEarned={sessionCoinsEarned}
-        topic={sessionTopicKey}
-        topicName={sessionTopicName}
-      />
-
-      {/* Teach Me Modal */}
-      <TeachMeModal
-        isOpen={teachMeOpen}
-        onClose={() => setTeachMeOpen(false)}
-        onTrySimilar={() => {
-          setTeachMeOpen(false);
-          // Could regenerate similar question here in future
-        }}
-        onContinue={() => setTeachMeOpen(false)}
-        question={
-          teachMeQuestion
-            ? {
-                text: teachMeQuestion.text || '',
-                textEn: teachMeQuestion.textEn || '',
-                answer: teachMeQuestion.answer || '',
-              }
-            : { text: '', textEn: '', answer: '' }
-        }
-        userAnswer={teachMeUserAnswer}
-        topic={selectedTopic}
-        questionType={activeTab}
-      />
-
-      {/* Chapter Intro Modal */}
-      <ChapterIntroModal
-        isOpen={chapterIntroOpen}
-        onClose={() => setChapterIntroOpen(false)}
-        onStart={() => {
-          setChapterIntroOpen(false);
-          // Questions will be generated automatically by the tab's useEffect
-        }}
-        chapter={currentChapter}
-      />
-
-      {/* Chapter Complete Modal */}
-      <ChapterCompleteModal
-        isOpen={chapterCompleteOpen}
-        onClose={() => {
-          setChapterCompleteOpen(false);
-          setCurrentChapter(null);
-        }}
-        onContinue={() => {
-          setChapterCompleteOpen(false);
-          // Complete the chapter and award coins
-          if (currentChapter) {
-            completeChapter(currentChapter.id, chapterStars, currentChapter.completion.rewardCoins);
-          }
-          setCurrentChapter(null);
-          setShowAdventureMap(true);
-        }}
-        onRetry={() => {
-          setChapterCompleteOpen(false);
-          // Retry the same chapter
-          // Questions will be regenerated
-          switch (activeTab) {
-            case 'geometry':
-              handleGenerateGeometry();
-              break;
-            case 'ratios':
-              handleGenerateRatios();
-              break;
-            case 'accuracy-rate':
-              handleGenerateAccuracyRate();
-              break;
-            case 'large-numbers':
-              handleGenerateLargeNumbers();
-              break;
-            case 'calculation-rules':
-              handleGenerateCalculationRules();
-              break;
-            case 'division':
-              handleGenerateDivision();
-              break;
-            case 'decimals':
-              handleGenerateDecimals();
-              break;
-            case 'line-graphs':
-              handleGenerateLineGraphs();
-              break;
-            case 'fractions':
-              handleGenerateFractions();
-              break;
-            case 'investigating-changes':
-              handleGenerateInvestigatingChanges();
-              break;
-          }
-        }}
-        chapter={currentChapter}
-        stars={chapterStars}
-        correctCount={chapterCorrectCount}
-        totalQuestions={chapterTotalQuestions}
-      />
-
-      {/* Daily Episode Modal */}
-      <DailyEpisodeModal
-        isOpen={dailyEpisodeModalOpen}
-        onClose={() => setDailyEpisodeModalOpen(false)}
-        onStart={() => {
-          setDailyEpisodeModalOpen(false);
-          setIsDailyEpisodeActive(true);
-          // Start the daily episode with selected topics
-          if (dailyEpisodeTopics.length > 0) {
-            handleTabChange(dailyEpisodeTopics[0]);
-          }
-        }}
-        episode={null} // Will be populated from gameState
-        isCompleted={false}
-      />
-
-      {/* Story Progress Panel */}
-      {showStoryPanel && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="max-w-md w-full max-h-[90vh] overflow-auto">
-            <StoryProgressPanel
-              chapters={STORY_CHAPTERS}
-              progress={gameData?.storyProgress || { completedChapters: [], chapterStars: {}, currentChapterId: null, sideQuestsCompleted: [], dailyEpisodesCompleted: [], totalStoryCoins: 0 }}
-              onSelectChapter={(chapter) => {
-                setCurrentChapter(chapter);
-                setChapterIntroOpen(true);
-                setShowStoryPanel(false);
-                // Navigate to the region
-                const regionToTabs: { [key: string]: string } = {
-                  'number-castle': 'large-numbers',
-                  'geometry-mountains': 'geometry',
-                  'ratio-ocean': 'division',
-                  'decimal-forest': 'decimals',
-                  'fraction-volcano': 'fractions',
-                  'graph-island': 'line-graphs',
-                  'accuracy-peaks': 'accuracy-rate',
-                };
-                const tabId = regionToTabs[chapter.regionId];
-                if (tabId) {
-                  handleTabChange(tabId);
-                }
-              }}
-            />
-            <button
-              onClick={() => setShowStoryPanel(false)}
-              className="w-full mt-4 py-3 bg-gray-200 hover:bg-gray-300 rounded-xl font-bold text-gray-700"
-            >
-              閉じる / Close
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Test Mode Modal */}
       <TestModeModal
         isOpen={testModeOpen}
         onClose={() => setTestModeOpen(false)}
         onStartGeneralTest={handleStartGeneralTest}
         onStartTabTest={handleStartTabTest}
-        currentTabName={TAB_NAMES[activeTab] ? `${TAB_NAMES[activeTab].ja} / ${TAB_NAMES[activeTab].en}` : ''}
+        currentTabName={TAB_NAMES[activeTab]?.ja + ' / ' + TAB_NAMES[activeTab]?.en}
       />
-
-      {/* Tab Selection Modal */}
-      <TabSelectionModal
-        isOpen={tabSelectionOpen}
-        onClose={() => setTabSelectionOpen(false)}
-        onConfirm={handleTabSelectionConfirm}
-        currentTab={activeTab}
-      />
-
-      {/* Particle Effects Manager */}
-      <ParticleManager enabled={gameData?.settings?.animationsEnabled ?? true} />
     </div>
   );
 };
