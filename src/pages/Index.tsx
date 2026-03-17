@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Sparkles, RotateCcw, CheckCircle2, Compass, Circle, Shapes, Percent, Hash, Calculator, Divide, Dot, TrendingUp, History, Pizza, FileCheck } from 'lucide-react';
 import TestModeModal from '@/components/TestModeModal';
+import TabSelectionModal from '@/components/TabSelectionModal';
 import TestMode from '@/components/TestMode';
 import { generateTest, TestQuestion } from '@/lib/testMode';
 import { Button } from '@/components/ui/button';
@@ -159,6 +160,7 @@ const Index = () => {
   const [isTestMode, setIsTestMode] = useState(false);
   const [testQuestions, setTestQuestions] = useState<TestQuestion[]>([]);
   const [testModeType, setTestModeType] = useState<'general' | 'tab-specific'>('general');
+  const [tabSelectionModalOpen, setTabSelectionModalOpen] = useState(false);
 
   // Refs for scrolling to questions
   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -1305,23 +1307,16 @@ const Index = () => {
   };
 
   const handleStartTabTest = () => {
-    const tabMap: Record<AppTab, string> = {
-      'geometry': 'geometry',
-      'ratios': 'ratios',
-      'accuracy-rate': 'accuracy-rate',
-      'large-numbers': 'large-numbers',
-      'calculation-rules': 'calculation-rules',
-      'division': 'division',
-      'decimals': 'decimals',
-      'line-graphs': 'line-graphs',
-      'fractions': 'fractions',
-      'investigating-changes': 'investigating-changes',
-    };
-    const questions = generateTest({ type: 'tab-specific', tabId: tabMap[activeTab], questionCount: 20 });
+    setTestModeOpen(false);
+    setTabSelectionModalOpen(true);
+  };
+
+  const handleStartMultiTabTest = (selectedTabs: string[]) => {
+    const questions = generateTest({ type: 'multi-tab', tabIds: selectedTabs, questionCount: 20 });
     setTestQuestions(questions);
     setTestModeType('tab-specific');
     setIsTestMode(true);
-    setTestModeOpen(false);
+    setTabSelectionModalOpen(false);
   };
 
   const handleTestComplete = (score: number, total: number) => {
@@ -2712,6 +2707,14 @@ const Index = () => {
         onStartGeneralTest={handleStartGeneralTest}
         onStartTabTest={handleStartTabTest}
         currentTabName={TAB_NAMES[activeTab]?.ja + ' / ' + TAB_NAMES[activeTab]?.en}
+      />
+
+      {/* Tab Selection Modal */}
+      <TabSelectionModal
+        isOpen={tabSelectionModalOpen}
+        onClose={() => setTabSelectionModalOpen(false)}
+        onConfirm={handleStartMultiTabTest}
+        currentTab={activeTab}
       />
     </div>
   );
