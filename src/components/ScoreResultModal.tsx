@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, RotateCcw, XCircle, ChevronRight } from 'lucide-react';
+import { Trophy, RotateCcw, XCircle, ChevronRight, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -8,12 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import SolutionModal, { SolutionData } from './SolutionModal';
 
 interface QuestionResult {
   index: number;
   isCorrect: boolean;
   userAnswer: string;
   correctAnswer: string | number;
+  solution?: SolutionData;
 }
 
 interface ScoreResultModalProps {
@@ -41,6 +43,19 @@ const ScoreResultModal = ({
 }: ScoreResultModalProps) => {
   const scorePercent = Math.round((score / totalQuestions) * 100);
   const wrongAnswers = results.filter(r => !r.isCorrect);
+
+  // Solution modal state
+  const [solutionModalOpen, setSolutionModalOpen] = useState(false);
+  const [currentSolution, setCurrentSolution] = useState<SolutionData | null>(null);
+  const [currentUserAnswer, setCurrentUserAnswer] = useState<string | number>('');
+
+  const handleShowSolution = (result: QuestionResult) => {
+    if (result.solution) {
+      setCurrentSolution(result.solution);
+      setCurrentUserAnswer(result.userAnswer);
+      setSolutionModalOpen(true);
+    }
+  };
 
   const getFeedbackMessage = () => {
     if (scorePercent === 100) {
@@ -128,29 +143,44 @@ const ScoreResultModal = ({
             </p>
             <div className="space-y-2">
               {wrongAnswers.map((result) => (
-                <button
+                <div
                   key={result.index}
-                  onClick={() => {
-                    onScrollToQuestion(result.index);
-                    onClose();
-                  }}
-                  className="w-full flex items-center justify-between p-3 bg-background rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-all text-left group"
+                  className="w-full p-3 bg-background rounded-lg border border-border hover:border-primary hover:bg-primary/5 transition-all"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-sm">
-                      {result.index + 1}
-                    </span>
-                    <div>
-                      <p className="text-sm font-medium">
-                        こたえ: {result.userAnswer || '(なし / none)'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        せいかい: {result.correctAnswer}
-                      </p>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <button
+                      onClick={() => {
+                        onScrollToQuestion(result.index);
+                        onClose();
+                      }}
+                      className="flex items-center gap-3 flex-1 text-left group"
+                    >
+                      <span className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-sm">
+                        {result.index + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium">
+                          こたえ: {result.userAnswer || '(なし / none)'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          せいかい: {result.correctAnswer}
+                        </p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary ml-2" />
+                    </button>
+
+                    {/* Solution Button */}
+                    {result.solution && (
+                      <button
+                        onClick={() => handleShowSolution(result)}
+                        className="ml-2 flex items-center gap-1 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        <Lightbulb className="w-4 h-4" />
+                        <span>とけかた</span>
+                      </button>
+                    )}
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
-                </button>
+                </div>
               ))}
             </div>
             <p className="text-xs text-center text-muted-foreground mt-3">
@@ -169,6 +199,14 @@ const ScoreResultModal = ({
           </div>
         </Button>
       </DialogContent>
+
+      {/* Solution Modal */}
+      <SolutionModal
+        isOpen={solutionModalOpen}
+        onClose={() => setSolutionModalOpen(false)}
+        solution={currentSolution}
+        userAnswer={currentUserAnswer}
+      />
     </Dialog>
   );
 };
