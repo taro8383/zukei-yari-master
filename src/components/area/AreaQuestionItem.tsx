@@ -409,6 +409,16 @@ const AreaQuestionItem = ({
             A
           </text>
 
+          {/* Cutout area (white to hide grid) */}
+          <rect
+            x={50 + rect1Width * scale}
+            y="30"
+            width={cutoutWidth * scale}
+            height={cutoutHeight * scale}
+            fill="white"
+            stroke="none"
+          />
+
           {/* Rectangle 2 (bottom/right part) */}
           <rect
             x={50 + rect1Width * scale}
