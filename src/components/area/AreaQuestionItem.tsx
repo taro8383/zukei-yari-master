@@ -239,6 +239,32 @@ const AreaQuestionItem = ({
             C字の形 / C-Shape
           </p>
           <svg width={svgWidth} height={svgHeight} className="border rounded-lg bg-white">
+            {/* 1cm grid background */}
+            {Array.from({ length: outerWidth + 1 }).map((_, i) => (
+              <line
+                key={`grid-v-${i}`}
+                x1={50 + i * scale}
+                y1="30"
+                x2={50 + i * scale}
+                y2={30 + oh}
+                stroke={i % 5 === 0 ? "#9ca3af" : "#d1d5db"}
+                strokeWidth={i % 5 === 0 ? 1.5 : 0.5}
+                strokeDasharray={i % 5 === 0 ? undefined : "2 2"}
+              />
+            ))}
+            {Array.from({ length: outerHeight + 1 }).map((_, i) => (
+              <line
+                key={`grid-h-${i}`}
+                x1="50"
+                y1={30 + i * scale}
+                x2={50 + ow}
+                y2={30 + i * scale}
+                stroke={i % 5 === 0 ? "#9ca3af" : "#d1d5db"}
+                strokeWidth={i % 5 === 0 ? 1.5 : 0.5}
+                strokeDasharray={i % 5 === 0 ? undefined : "2 2"}
+              />
+            ))}
+
             {/* Left part (full height) */}
             <rect
               x="50"
@@ -282,13 +308,13 @@ const AreaQuestionItem = ({
               strokeWidth={2}
             />
 
-            {/* Cutout area (white with border) */}
+            {/* Cutout area (transparent with red border) */}
             <rect
               x={50 + leftPartWidth * scale}
               y={30 + cy}
               width={cw}
               height={ch}
-              fill="white"
+              fill="none"
               stroke="#ef4444"
               strokeWidth={2}
               strokeDasharray="4"
@@ -394,10 +420,6 @@ const AreaQuestionItem = ({
           {/* Rectangle B height (right) */}
           <text x={50 + outerWidth * scale + 20} y={30 + rect2Height * scale + (rect2Height * scale) / 2 + 5} textAnchor="middle" fontSize={12} fill="#374151" fontWeight="bold">
             {rect2Height} cm
-          </text>
-          {/* Cutout indicators (smaller, secondary) */}
-          <text x={50 + rect1Width * scale + (cutoutWidth * scale) / 2} y={30 + cutoutHeight * scale / 2 + 5} textAnchor="middle" fontSize={10} fill="#9ca3af" fontStyle="italic">
-            (くりぬき / cutout)
           </text>
         </svg>
         <p className="text-xs text-muted-foreground">
