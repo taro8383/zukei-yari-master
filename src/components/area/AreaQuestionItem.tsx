@@ -308,13 +308,13 @@ const AreaQuestionItem = ({
               strokeWidth={2}
             />
 
-            {/* Cutout area (white with border) */}
+            {/* Cutout area (transparent with red dashed border) */}
             <rect
               x={50 + leftPartWidth * scale}
               y={30 + cy}
               width={cw}
               height={ch}
-              fill="white"
+              fill="none"
               stroke="#ef4444"
               strokeWidth={2}
               strokeDasharray="4"
