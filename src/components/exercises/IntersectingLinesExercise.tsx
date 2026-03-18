@@ -29,6 +29,14 @@ const IntersectingLinesExercise = ({
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [localIsCorrect, setLocalIsCorrect] = useState(false);
 
+  // Reset state when question parameters change (new question)
+  useEffect(() => {
+    setAngleBInput(savedAngleB || '');
+    setComparison(savedComparison || null);
+    setHasSubmitted(false);
+    setLocalIsCorrect(false);
+  }, [givenAngle, rotation, savedAngleB, savedComparison]);
+
   // Notify parent when values change (for test mode persistence)
   useEffect(() => {
     if (onAnswerChange) {

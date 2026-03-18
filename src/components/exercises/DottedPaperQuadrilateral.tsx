@@ -192,6 +192,15 @@ const DottedPaperQuadrilateral = ({
   const [isComplete, setIsComplete] = useState(savedIsComplete || false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  // Reset state when requiredType changes (new question)
+  useEffect(() => {
+    setVertices(savedVertices || []);
+    setAllPoints(savedAllPoints || []);
+    setIsClosed(savedIsClosed || false);
+    setIsComplete(savedIsComplete || false);
+    setValidationError(null);
+  }, [requiredType, savedVertices, savedAllPoints, savedIsClosed, savedIsComplete]);
+
   // Notify parent when state changes (for test mode persistence)
   useEffect(() => {
     if (onStateChange) {
