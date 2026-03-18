@@ -223,6 +223,97 @@ src/components/area/AreaQuestionItem.tsx # Added Teach Me button
 
 ---
 
+## CRITICAL: Merging Stable into Gamified Without Breaking Gamification
+
+**⚠️ DANGER:** Blindly merging stable into gamified can destroy the gamification system!
+
+### The Problem
+
+`src/pages/Index.tsx` is **intentionally different** between branches:
+- **stable**: Basic imports, no gamification
+- **gamified**: Imports and integrates HeaderBar, ShopModal, AdventureMap, gameState, particles, etc.
+
+When you merge stable → gamified, git sees Index.tsx conflicts and may overwrite gamified's version.
+
+### Safe Merge Procedure
+
+```bash
+# 1. Switch to gamified and pull latest
+git checkout gamified
+git pull origin gamified
+
+# 2. Start the merge
+git merge stable
+
+# 3. If Index.tsx has conflicts, DO NOT use --theirs or accept stable's version
+#    Instead, manually edit Index.tsx to preserve gamification code:
+#
+#    KEEP (from gamified):
+#    - All gamification imports (HeaderBar, ShopModal, AdventureMap, etc.)
+#    - All gameState imports and hooks
+#    - All particle effect imports
+#    - ChallengeModeSelector, DailyQuests, etc.
+#
+#    ADD (from stable):
+#    - Bug fixes in logic that don't conflict with gamification
+#    - New components that aren't gamification-related
+#
+# 4. For other conflicted files, use judgment:
+#    - Component bug fixes: accept stable's fixes
+#    - TestMode.tsx: merge carefully to keep test features
+#    - CSS/styling: usually safe to accept stable's fixes
+
+# 5. After resolving conflicts:
+git add .
+git commit -m "Merge stable bug fixes into gamified"
+
+# 6. CRITICAL: Verify gamification still works
+grep -E "HeaderBar|ShopModal|AdventureMap|gameState" src/pages/Index.tsx
+# If no results, the merge broke gamification - REVERT AND TRY AGAIN
+
+# 7. Test locally before pushing
+npm run dev
+# Verify: Header bar with coins/XL, adventure map, shop button all appear
+
+# 8. Only then push
+git push origin gamified
+```
+
+### What NOT to Do
+
+❌ **NEVER do this during stable → gamified merge:**
+```bash
+git checkout --theirs src/pages/Index.tsx  # DESTROYS gamification!
+git checkout stable -- src/pages/Index.tsx # DESTROYS gamification!
+```
+
+❌ **NEVER blindly accept all "incoming" changes** in Index.tsx during merge
+
+### If You Accidentally Broke Gamification
+
+```bash
+# Abort the merge if still in progress
+git merge --abort
+
+# Or if already committed, restore gamified's Index.tsx
+git checkout HEAD~1 -- src/pages/Index.tsx
+git commit -m "Restore gamified Index.tsx after bad merge"
+
+# Then manually apply stable's bug fixes to the file
+```
+
+### Files to Handle With Care During Merge
+
+| File | Stable | Gamified | Merge Strategy |
+|------|--------|----------|----------------|
+| `src/pages/Index.tsx` | Basic | +Gamification | **Manual merge** - keep gamification imports/state |
+| `src/components/TestMode.tsx` | Test mode | Same | Usually safe to accept stable's fixes |
+| `src/lib/testMode.ts` | Test logic | Same | Usually safe to accept stable's fixes |
+| `src/components/QuestionItem.tsx` | Basic | +Teach Me | Keep gamified's version |
+| `src/components/ScoreResultModal.tsx` | Basic | +Coins | Keep gamified's version |
+
+---
+
 ## Version History
 
 | Version | Branch | Description |
