@@ -462,6 +462,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
         const savedIntersecting = interactiveAnswers[currentIndex] || {};
         return (
           <IntersectingLinesExercise
+            key={`test-intersecting-${q.id}-${currentIndex}`}
             givenAngle={q.diagram?.params?.givenAngle}
             rotation={q.diagram?.params?.rotation}
             onAnswerSubmit={(answers) => {
@@ -493,6 +494,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
         const savedQuadrilateral = quadrilateralAnswers[currentIndex];
         return (
           <DottedPaperQuadrilateral
+            key={`test-quadrilateral-${q.id}-${currentIndex}`}
             onComplete={() => handleAnswerChange('1')}
             graded={false}
             requiredType={requiredType}
@@ -518,6 +520,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
         const savedDiagonals = diagonalsAnswers[currentIndex];
         return (
           <DiagonalsDrawing
+            key={`test-diagonals-${q.id}-${currentIndex}`}
             shapeType={q.diagram?.params?.shapeType}
             onComplete={() => {
               handleAnswerChange('1');
@@ -1501,6 +1504,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
         {isDrawingGraphQuestion(getQuestionType(currentQuestion)) && (currentQuestion as any).tableData && (
           <div className="mb-6">
             <DrawingGraphInteractive
+              key={`test-drawing-${(currentQuestion as any).id}-${currentIndex}`}
               tableData={(currentQuestion as any).tableData}
               plottedPoints={plottedPoints[currentIndex] || []}
               onPointPlot={handlePointPlot}
