@@ -42,6 +42,64 @@ const lineGraphTopicKeys: LineGraphTopic[] = ['reading-graph', 'change-slope', '
 const fractionTopicKeys: FractionTopic[] = ['fraction-types', 'converting-fractions', 'adding-fractions', 'subtracting-fractions'];
 const investigatingChangesTopicKeys: InvestigatingChangesTopic[] = ['completing-table', 'finding-rule', 'writing-equation'];
 
+// Helper function to safely evaluate mathematical expressions
+function evaluateExpression(expr: string): number | null {
+  try {
+    let normalized = expr
+      .replace(/×/g, '*')
+      .replace(/÷/g, '/')
+      .replace(/＋/g, '+')
+      .replace(/ー/g, '-')
+      .replace(/−/g, '-')
+      .replace(/（/g, '(')
+      .replace(/）/g, ')');
+    normalized = normalized.replace(/\s/g, '');
+    if (!/^[\d+\-*/().]+$/.test(normalized)) {
+      return null;
+    }
+    const result = new Function('return ' + normalized)();
+    if (typeof result !== 'number' || !isFinite(result)) {
+      return null;
+    }
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+// Helper function to validate equations mathematically
+function isEquationValid(
+  userEquation: string,
+  correctEquation: string,
+  expectedAnswer: number,
+  problemNumbers: number[]
+): boolean {
+  const normalizedUser = userEquation.replace(/\s/g, '');
+  const normalizedCorrect = correctEquation.replace(/\s/g, '');
+  if (normalizedUser === normalizedCorrect) {
+    return true;
+  }
+  const userResult = evaluateExpression(userEquation);
+  if (userResult === null) {
+    return false;
+  }
+  if (Math.abs(userResult - expectedAnswer) > 0.0001) {
+    return false;
+  }
+  const userNumbers = normalizedUser.match(/\d+/g)?.map(Number) || [];
+  const sortedUserNumbers = [...userNumbers].sort((a, b) => a - b);
+  const sortedProblemNumbers = [...problemNumbers].sort((a, b) => a - b);
+  if (sortedUserNumbers.length !== sortedProblemNumbers.length) {
+    return false;
+  }
+  for (let i = 0; i < sortedUserNumbers.length; i++) {
+    if (sortedUserNumbers[i] !== sortedProblemNumbers[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 type ProtractorType = '180' | '360' | null;
 type AppTab = 'geometry' | 'ratios' | 'accuracy-rate' | 'large-numbers' | 'calculation-rules' | 'division' | 'decimals' | 'line-graphs' | 'fractions' | 'investigating-changes';
 
@@ -775,7 +833,12 @@ const Index = () => {
       // For combining-into-one-equation, check both equation and answer
       if (q.topic === 'combining-into-one-equation') {
         const userNum = parseInt(calculationRulesAnswers[i]);
-        const equationCorrect = calculationRulesEquationAnswers[i]?.replace(/\s/g, '') === q.correctEquation?.replace(/\s/g, '');
+        const equationCorrect = isEquationValid(
+          calculationRulesEquationAnswers[i] || '',
+          q.correctEquation || '',
+          q.answer,
+          q.numbers || []
+        );
         const answerCorrect = userNum === q.answer;
         isCorrect = equationCorrect && answerCorrect;
       } else {
@@ -1058,6 +1121,14 @@ const Index = () => {
     const newPlottedPoints = [...lineGraphPlottedPoints];
     newPlottedPoints[index] = [];
     setLineGraphPlottedPoints(newPlottedPoints);
+  };
+
+  const handleLineGraphUndoPoint = (index: number) => {
+    const newPlottedPoints = [...lineGraphPlottedPoints];
+    if (newPlottedPoints[index] && newPlottedPoints[index].length > 0) {
+      newPlottedPoints[index].pop();
+      setLineGraphPlottedPoints(newPlottedPoints);
+    }
   };
 
   const allLineGraphsAnswered = lineGraphAnswers.length === 5 && lineGraphAnswers.every((a, i) => {
@@ -1613,6 +1684,8 @@ const Index = () => {
                               outerHeight: q.diagram.params.outerHeight,
                               cutoutWidth: q.diagram.params.cutoutWidth,
                               cutoutHeight: q.diagram.params.cutoutHeight,
+                              cutoutY: q.diagram.params.cutoutY,
+                              shapeType: q.diagram.params.cutoutY !== undefined ? 'c-shape' : 'l-shape',
                             } : undefined,
                           }}
                           index={i}
@@ -1937,7 +2010,12 @@ const Index = () => {
                         isCorrect={calculationRulesGraded ? (
                           q.topic === 'combining-into-one-equation'
                             ? parseInt(calculationRulesAnswers[i]) === q.answer &&
-                              calculationRulesEquationAnswers[i]?.replace(/\s/g, '') === q.correctEquation?.replace(/\s/g, '')
+                              isEquationValid(
+                                calculationRulesEquationAnswers[i] || '',
+                                q.correctEquation || '',
+                                q.answer,
+                                q.numbers || []
+                              )
                             : parseInt(calculationRulesAnswers[i]) === q.answer
                         ) : undefined}
                         stepAnswers={calculationRulesStepAnswers[i] || []}
@@ -2363,6 +2441,7 @@ const Index = () => {
                         plottedPoints={lineGraphPlottedPoints[i]}
                         onPointPlot={(x, y) => handleLineGraphPointPlot(i, x, y)}
                         onClearPoints={() => handleLineGraphClearPoints(i)}
+                        onUndoPoint={() => handleLineGraphUndoPoint(i)}
                         graded={lineGraphGraded}
                         isCorrect={lineGraphGraded ? (
                           q.topic === 'change-slope'
