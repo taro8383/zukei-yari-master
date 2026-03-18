@@ -631,6 +631,31 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
           <div className="flex flex-col items-center gap-2 mb-4">
             <p className="text-sm text-muted-foreground">C字の形 / C-Shape</p>
             <svg width={svgWidth} height={svgHeight} className="border rounded-lg bg-white">
+              {/* 1cm grid background */}
+              {Array.from({ length: outerWidth + 1 }).map((_, i) => (
+                <line
+                  key={`grid-v-${i}`}
+                  x1={50 + i * scale}
+                  y1="30"
+                  x2={50 + i * scale}
+                  y2={30 + oh}
+                  stroke={i % 5 === 0 ? "#9ca3af" : "#d1d5db"}
+                  strokeWidth={i % 5 === 0 ? 1.5 : 0.5}
+                  strokeDasharray={i % 5 === 0 ? undefined : "2 2"}
+                />
+              ))}
+              {Array.from({ length: outerHeight + 1 }).map((_, i) => (
+                <line
+                  key={`grid-h-${i}`}
+                  x1="50"
+                  y1={30 + i * scale}
+                  x2={50 + ow}
+                  y2={30 + i * scale}
+                  stroke={i % 5 === 0 ? "#9ca3af" : "#d1d5db"}
+                  strokeWidth={i % 5 === 0 ? 1.5 : 0.5}
+                  strokeDasharray={i % 5 === 0 ? undefined : "2 2"}
+                />
+              ))}
               {/* Left part */}
               <rect x="50" y="30" width={leftPartWidth * scale} height={oh} fill="#60a5fa" stroke="#3b82f6" strokeWidth={2} />
               <text x={50 + (leftPartWidth * scale) / 2} y={30 + oh / 2 + 5} textAnchor="middle" fontSize={14} fill="white" fontWeight="bold">A</text>
@@ -638,8 +663,9 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
               <rect x={50 + leftPartWidth * scale} y="30" width={cw} height={cy} fill="#a78bfa" stroke="#8b5cf6" strokeWidth={2} />
               {/* Bottom right */}
               <rect x={50 + leftPartWidth * scale} y={30 + cy + ch} width={cw} height={oh - cy - ch} fill="#a78bfa" stroke="#8b5cf6" strokeWidth={2} />
-              {/* Cutout */}
-              <rect x={50 + leftPartWidth * scale} y={30 + cy} width={cw} height={ch} fill="white" stroke="#ef4444" strokeWidth={2} strokeDasharray="4" />
+              {/* Cutout - transparent with red border */}
+              <rect x={50 + leftPartWidth * scale} y={30 + cy} width={cw} height={ch} fill="none" stroke="#ef4444" strokeWidth={2} strokeDasharray="4" />
+              <text x={50 + leftPartWidth * scale + cw / 2} y={30 + cy + ch / 2 + 5} textAnchor="middle" fontSize={10} fill="#ef4444">切り取り</text>
               {/* Labels */}
               <text x={50 + ow / 2} y="20" textAnchor="middle" fontSize={12} fill="#374151" fontWeight="bold">{outerWidth} cm</text>
               <text x="30" y={30 + oh / 2 + 5} textAnchor="middle" fontSize={12} fill="#374151" fontWeight="bold">{outerHeight} cm</text>
@@ -665,8 +691,6 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
               {/* Rectangle B (bottom right) */}
               <rect x={50 + rect1W} y={30 + oh - rect2H} width={cw} height={rect2H} fill="#a78bfa" stroke="#8b5cf6" strokeWidth={2} />
               <text x={50 + rect1W + cw / 2} y={30 + oh - rect2H / 2 + 5} textAnchor="middle" fontSize={14} fill="white" fontWeight="bold">B</text>
-              {/* Cutout */}
-              <rect x={50 + rect1W} y="30" width={cw} height={oh - rect2H} fill="white" stroke="#ef4444" strokeWidth={2} strokeDasharray="4" />
               {/* Labels */}
               <text x={50 + ow / 2} y="20" textAnchor="middle" fontSize={12} fill="#374151" fontWeight="bold">{outerWidth} cm</text>
               <text x="30" y={30 + oh / 2 + 5} textAnchor="middle" fontSize={12} fill="#374151" fontWeight="bold">{outerHeight} cm</text>
