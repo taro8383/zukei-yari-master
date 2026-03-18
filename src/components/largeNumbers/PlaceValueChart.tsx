@@ -3,10 +3,8 @@ interface PlaceValueChartProps {
 }
 
 const PlaceValueChart = ({ number }: PlaceValueChartProps) => {
-  // Convert number to string and pad to show all place values
-  const numStr = number.toString();
-
   // Define the Japanese place value groups (4 digits each)
+  // This is now a static teaching aid, not showing the actual number
   const groups = [
     { name: '一', nameEn: 'Ones', digits: ['千', '百', '十', '一'] },
     { name: '万', nameEn: 'Ten-Thousands', digits: ['千', '百', '十', '万'] },
@@ -14,55 +12,44 @@ const PlaceValueChart = ({ number }: PlaceValueChartProps) => {
     { name: '兆', nameEn: 'Trillions', digits: ['千', '百', '十', '兆'] },
   ];
 
-  // Pad the number to 16 digits (4 groups × 4 digits)
-  const paddedNum = numStr.padStart(16, '0');
-
-  // Split into groups of 4 from right
-  const groupValues = [];
-  for (let i = 0; i < 4; i++) {
-    const start = i * 4;
-    groupValues.push(paddedNum.substring(start, start + 4));
-  }
-  groupValues.reverse(); // Reverse to get [一, 万, 億, 兆] order
-
-  // Check if a group has any non-zero digits
-  const hasValue = (groupStr: string) => groupStr !== '0000';
-
   return (
     <div className="w-full overflow-x-auto">
-      <svg viewBox="0 0 800 200" className="w-full max-w-3xl mx-auto">
+      <svg viewBox="0 0 800 220" className="w-full max-w-3xl mx-auto">
         {/* Background */}
-        <rect x="10" y="10" width="780" height="180" rx="12" fill="hsl(var(--muted))" opacity="0.3" />
+        <rect x="10" y="10" width="780" height="200" rx="12" fill="hsl(var(--muted))" opacity="0.3" />
 
         {/* Title */}
         <text x="400" y="35" textAnchor="middle" className="fill-foreground font-bold text-sm">
           位取り表 (Place Value Chart)
         </text>
 
+        {/* Instruction text */}
+        <text x="400" y="55" textAnchor="middle" className="fill-muted-foreground text-xs">
+          右から4けたずつ「一・万・億・兆」の単位に分けます
+        </text>
+
         {/* Draw groups from right to left */}
         {groups.map((group, groupIndex) => {
           const x = 760 - (groupIndex * 190); // Start from right
-          const groupValue = groupValues[groupIndex];
-          const groupHasValue = hasValue(groupValue);
 
           return (
             <g key={group.name}>
-              {/* Group background - highlight if has value */}
+              {/* Group background */}
               <rect
                 x={x - 180}
-                y="50"
+                y="65"
                 width="180"
-                height="110"
+                height="120"
                 rx="8"
-                fill={groupHasValue ? 'hsl(var(--primary) / 0.15)' : 'transparent'}
-                stroke={groupHasValue ? 'hsl(var(--primary) / 0.4)' : 'hsl(var(--border))'}
-                strokeWidth={groupHasValue ? 2 : 1}
+                fill="transparent"
+                stroke="hsl(var(--border))"
+                strokeWidth={1}
               />
 
               {/* Group label */}
               <text
                 x={x - 90}
-                y="70"
+                y="85"
                 textAnchor="middle"
                 className="fill-primary font-black text-lg"
               >
@@ -70,39 +57,50 @@ const PlaceValueChart = ({ number }: PlaceValueChartProps) => {
               </text>
               <text
                 x={x - 90}
-                y="85"
+                y="100"
                 textAnchor="middle"
                 className="fill-muted-foreground text-xs"
               >
                 {group.nameEn}
               </text>
 
-              {/* Individual digit places */}
+              {/* Individual digit places - show empty boxes for students to fill mentally */}
               {group.digits.map((digit, digitIndex) => {
                 const digitX = x - 170 + (digitIndex * 45);
-                const digitValue = groupValue[digitIndex];
-                const isZero = digitValue === '0';
 
                 return (
                   <g key={digit}>
                     {/* Place label */}
                     <text
                       x={digitX + 20}
-                      y="105"
+                      y="120"
                       textAnchor="middle"
                       className="fill-muted-foreground text-xs"
                     >
                       {digit}
                     </text>
 
-                    {/* Digit value */}
+                    {/* Empty box for digit (visual guide only) */}
+                    <rect
+                      x={digitX + 5}
+                      y="130"
+                      width="30"
+                      height="35"
+                      rx="4"
+                      fill="white"
+                      stroke="hsl(var(--border))"
+                      strokeWidth="1"
+                      opacity="0.5"
+                    />
+
+                    {/* Question mark as placeholder */}
                     <text
                       x={digitX + 20}
-                      y="140"
+                      y="155"
                       textAnchor="middle"
-                      className={`font-black text-xl ${isZero ? 'fill-muted-foreground/30' : 'fill-foreground'}`}
+                      className="fill-muted-foreground/40 text-lg"
                     >
-                      {digitValue}
+                      ?
                     </text>
                   </g>
                 );
@@ -111,40 +109,18 @@ const PlaceValueChart = ({ number }: PlaceValueChartProps) => {
           );
         })}
 
-        {/* Example label */}
-        <text x="400" y="185" textAnchor="middle" className="fill-muted-foreground text-xs">
-          例: {number.toLocaleString()} = {formatJapaneseNumber(number)}
+        {/* Visual separator lines between groups */}
+        <line x1="395" y1="65" x2="395" y2="185" stroke="hsl(var(--primary) / 0.3)" strokeWidth="2" strokeDasharray="5,3" />
+        <line x1="205" y1="65" x2="205" y2="185" stroke="hsl(var(--primary) / 0.3)" strokeWidth="2" strokeDasharray="5,3" />
+        <line x1="585" y1="65" x2="585" y2="185" stroke="hsl(var(--primary) / 0.3)" strokeWidth="2" strokeDasharray="5,3" />
+
+        {/* Grouping explanation */}
+        <text x="400" y="205" textAnchor="middle" className="fill-muted-foreground text-xs">
+          例: 12,3000,0000 → 12億3000万 → 「123億」と読みます
         </text>
       </svg>
     </div>
   );
 };
-
-// Helper function to format Japanese number
-function formatJapaneseNumber(num: number): string {
-  if (num >= 1000000000000) {
-    const cho = Math.floor(num / 1000000000000);
-    const remainder = num % 1000000000000;
-    if (remainder === 0) return `${cho}兆`;
-    const oku = Math.floor(remainder / 100000000);
-    if (oku === 0) return `${cho}兆`;
-    return `${cho}兆${oku}億`;
-  }
-  if (num >= 100000000) {
-    const oku = Math.floor(num / 100000000);
-    const remainder = num % 100000000;
-    if (remainder === 0) return `${oku}億`;
-    const man = Math.floor(remainder / 10000);
-    if (man === 0) return `${oku}億`;
-    return `${oku}億${man}万`;
-  }
-  if (num >= 10000) {
-    const man = Math.floor(num / 10000);
-    const remainder = num % 10000;
-    if (remainder === 0) return `${man}万`;
-    return `${man}万${remainder}`;
-  }
-  return num.toString();
-}
 
 export default PlaceValueChart;
