@@ -264,11 +264,84 @@ const AreaExplanationCard = ({ info }: AreaExplanationCardProps) => {
 
       {/* Composite Shapes Visual Example */}
       {info.id === 'composite-shapes' && (
-        <div className="mt-6 pt-6 border-t border-border">
-          <p className="text-center font-bold text-foreground mb-4">
-            📖 L字の形の面積 / Area of L-Shapes
-          </p>
-          <div className="bg-kid-yellow/10 rounded-xl p-4 border border-kid-yellow/30">
+        <>
+          {/* C-Shape Example */}
+          <div className="mt-6 pt-6 border-t border-border">
+            <p className="text-center font-bold text-foreground mb-4">
+              📖 Cの字の形の面積 / Area of C-Shapes
+            </p>
+            <div className="bg-kid-orange/10 rounded-xl p-4 border border-kid-orange/30">
+              <div className="bg-background rounded-lg p-4 border border-border">
+                <p className="text-sm font-bold text-center text-foreground mb-4">
+                  大きい形から切り取った部分を引く / Subtract the cutout from the large shape
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* C-Shape Diagram */}
+                  <div>
+                    <p className="text-sm font-bold text-center text-kid-blue mb-2">
+                      Cの字の形 / C-Shape
+                    </p>
+                    <svg width="220" height="180" className="mx-auto border rounded-lg bg-white">
+                      {/* C-shape: outer rect with right-side cutout */}
+                      {/* Outer rectangle */}
+                      <rect x="30" y="30" width="160" height="120" fill="#e5e7eb" stroke="#9ca3af" strokeWidth="2" strokeDasharray="5,5" />
+                      {/* Actual C-shape (filled) */}
+                      <path
+                        d="M 30 30 L 190 30 L 190 60 L 110 60 L 110 120 L 190 120 L 190 150 L 30 150 Z"
+                        fill="#60a5fa"
+                        stroke="#3b82f6"
+                        strokeWidth="2"
+                      />
+                      {/* Cutout area (white) */}
+                      <rect x="110" y="60" width="80" height="60" fill="white" stroke="#ef4444" strokeWidth="2" />
+
+                      {/* Dimension labels */}
+                      <text x="110" y="20" textAnchor="middle" fontSize="12" fill="#374151" fontWeight="bold">8cm</text>
+                      <text x="20" y="90" textAnchor="middle" fontSize="12" fill="#374151" fontWeight="bold">9cm</text>
+                      <text x="150" y="95" textAnchor="middle" fontSize="12" fill="#ef4444">切り取る</text>
+                      <text x="150" y="108" textAnchor="middle" fontSize="10" fill="#ef4444">Cut out</text>
+                    </svg>
+                    <div className="mt-2 text-center text-sm">
+                      <p className="text-foreground">大きい長方形: 8 × 9 = <span className="font-bold text-gray-600">72 cm²</span></p>
+                      <p className="text-foreground">切り取る部分: 4 × 4 = <span className="font-bold text-red-500">16 cm²</span></p>
+                      <p className="text-foreground">答え: 72 - 16 = <span className="font-bold text-kid-green">56 cm²</span></p>
+                    </div>
+                  </div>
+
+                  {/* Method Explanation */}
+                  <div className="flex flex-col justify-center">
+                    <div className="bg-kid-yellow/20 rounded-lg p-4 border border-kid-yellow/40">
+                      <p className="text-sm font-bold text-center text-foreground mb-3">
+                        💡 計算のしかた / How to Calculate
+                      </p>
+                      <ol className="space-y-2 text-sm text-foreground">
+                        <li className="flex items-start gap-2">
+                          <span className="font-bold text-kid-blue">1.</span>
+                          <span>まず大きい長方形の面積を出す<br/><span className="text-xs text-muted-foreground">First, find the area of the large rectangle</span></span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="font-bold text-kid-purple">2.</span>
+                          <span>次に切り取った部分の面積を出す<br/><span className="text-xs text-muted-foreground">Next, find the area of the cutout part</span></span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="font-bold text-kid-green">3.</span>
+                          <span>大きい方から小さい方を引く！<br/><span className="text-xs text-muted-foreground">Subtract the smaller from the larger!</span></span>
+                        </li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* L-Shape Example */}
+          <div className="mt-6 pt-6 border-t border-border">
+            <p className="text-center font-bold text-foreground mb-4">
+              📖 L字の形の面積 / Area of L-Shapes
+            </p>
+            <div className="bg-kid-yellow/10 rounded-xl p-4 border border-kid-yellow/30">
             <div className="bg-background rounded-lg p-4 border border-border">
               <p className="text-sm font-bold text-center text-foreground mb-4">
                 2つの方法で計算 / Calculate in 2 Ways
@@ -345,7 +418,8 @@ const AreaExplanationCard = ({ info }: AreaExplanationCardProps) => {
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
