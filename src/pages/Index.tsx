@@ -1312,7 +1312,7 @@ const Index = () => {
   };
 
   const handleStartMultiTabTest = (selectedTabs: string[]) => {
-    const questions = generateTest({ type: 'multi-tab', tabIds: selectedTabs, questionCount: 20 });
+    const questions = generateTest({ type: 'tab-specific', tabIds: selectedTabs, questionCount: 20 });
     setTestQuestions(questions);
     setTestModeType('tab-specific');
     setIsTestMode(true);
