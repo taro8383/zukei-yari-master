@@ -221,6 +221,7 @@ const LineGraphQuestionItem = ({
                     ✏️ グラフに点を打とう！/ Click a day below, then enter the value
                   </p>
                   <DrawingGraphInteractive
+                    key={`drawing-graph-${index}-${question.id}`}
                     tableData={question.tableData}
                     plottedPoints={plottedPoints || []}
                     onPointPlot={onPointPlot}
