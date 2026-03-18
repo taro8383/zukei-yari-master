@@ -568,11 +568,12 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
 export function generateQuestions(topic: Topic): Question[] {
   const questions: Question[] = [];
   const usedKeys = new Set<string>();
+  const baseId = Date.now(); // Unique base timestamp for this batch
 
   let attempts = 0;
   while (questions.length < 5 && attempts < 50) {
     attempts++;
-    const q = generateSingleQuestion(topic, questions.length);
+    const q = generateSingleQuestion(topic, baseId + questions.length);
     const key = JSON.stringify(q.diagram.params) + q.answer;
     if (!usedKeys.has(key)) {
       usedKeys.add(key);
@@ -581,8 +582,8 @@ export function generateQuestions(topic: Topic): Question[] {
   }
 
   while (questions.length < 5) {
-    const q = generateSingleQuestion(topic, questions.length);
-    q.id = questions.length;
+    const q = generateSingleQuestion(topic, baseId + questions.length);
+    q.id = baseId + questions.length;
     questions.push(q);
   }
 
