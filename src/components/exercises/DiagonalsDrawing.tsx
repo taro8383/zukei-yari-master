@@ -34,6 +34,14 @@ const DiagonalsDrawing = ({
   const [flashError, setFlashError] = useState<number | null>(null);
   const [isComplete, setIsComplete] = useState(savedIsComplete || false);
 
+  // Reset state when shapeType changes (new question)
+  useEffect(() => {
+    setSelectedVertex(null);
+    setDiagonals(savedDiagonals || []);
+    setFlashError(null);
+    setIsComplete(savedIsComplete || false);
+  }, [shapeType, savedDiagonals, savedIsComplete]);
+
   // Notify parent when state changes (for test mode persistence)
   useEffect(() => {
     if (onStateChange) {
