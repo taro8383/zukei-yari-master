@@ -98,6 +98,64 @@ const PINK = "hsl(340, 70%, 55%)";
 const BLUE = "hsl(210, 70%, 50%)";
 const FILL_LIGHT = "hsl(210, 70%, 50%, 0.08)";
 
+/* ===== GRID COMPONENT FOR CM MARKINGS ===== */
+
+function CmGrid({
+  startX,
+  startY,
+  width,
+  height,
+  cellSize,
+}: {
+  startX: number;
+  startY: number;
+  width: number;
+  height: number;
+  cellSize: number;
+}) {
+  const lines = [];
+  const cols = Math.floor(width / cellSize);
+  const rows = Math.floor(height / cellSize);
+
+  // Vertical lines
+  for (let i = 0; i <= cols; i++) {
+    const x = startX + i * cellSize;
+    const isMajor = i % 5 === 0;
+    lines.push(
+      <line
+        key={`v${i}`}
+        x1={x}
+        y1={startY}
+        x2={x}
+        y2={startY + height}
+        stroke={isMajor ? "hsl(220, 30%, 20%, 0.4)" : "hsl(220, 30%, 20%, 0.15)"}
+        strokeWidth={isMajor ? 1.5 : 0.5}
+        strokeDasharray={isMajor ? undefined : "2 2"}
+      />
+    );
+  }
+
+  // Horizontal lines
+  for (let i = 0; i <= rows; i++) {
+    const y = startY + i * cellSize;
+    const isMajor = i % 5 === 0;
+    lines.push(
+      <line
+        key={`h${i}`}
+        x1={startX}
+        y1={y}
+        x2={startX + width}
+        y2={y}
+        stroke={isMajor ? "hsl(220, 30%, 20%, 0.4)" : "hsl(220, 30%, 20%, 0.15)"}
+        strokeWidth={isMajor ? 1.5 : 0.5}
+        strokeDasharray={isMajor ? undefined : "2 2"}
+      />
+    );
+  }
+
+  return <g>{lines}</g>;
+}
+
 /* ===== ANGLE DIAGRAMS ===== */
 
 function StraightLineAngle({ givenAngle, rotation }: { givenAngle: number; rotation: number }) {
@@ -536,10 +594,19 @@ function LShapeArea({
   return (
     <g>
       <ArrowDefs />
+      {/* 1cm grid background */}
+      <CmGrid
+        startX={cx}
+        startY={cy0}
+        width={ow}
+        height={oh}
+        cellSize={scale}
+      />
+
       {/* L-shape */}
       <polygon
         points={pts.map((p) => p.join(',')).join(' ')}
-        fill="hsl(200, 50%, 45%, 0.1)"
+        fill="hsl(200, 50%, 45%, 0.15)"
         stroke={STROKE}
         strokeWidth={2.5}
         strokeLinejoin="round"
@@ -625,10 +692,19 @@ function CShapeArea({
   return (
     <g>
       <ArrowDefs />
+      {/* 1cm grid background */}
+      <CmGrid
+        startX={cx}
+        startY={cy0}
+        width={ow}
+        height={oh}
+        cellSize={scale}
+      />
+
       {/* C-shape */}
       <polygon
         points={pts.map((p) => p.join(',')).join(' ')}
-        fill="hsl(150, 50%, 45%, 0.1)"
+        fill="hsl(150, 50%, 45%, 0.15)"
         stroke={STROKE}
         strokeWidth={2.5}
         strokeLinejoin="round"
