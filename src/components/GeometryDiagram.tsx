@@ -33,6 +33,25 @@ function renderDiagram(type: string, params: Record<string, number>) {
       return <RectangleArea width={params.width} height={params.height} />;
     case 'square-area':
       return <SquareArea side={params.side} />;
+    case 'l-shape-area':
+      return (
+        <LShapeArea
+          outerWidth={params.outerWidth}
+          outerHeight={params.outerHeight}
+          cutoutWidth={params.cutoutWidth}
+          cutoutHeight={params.cutoutHeight}
+        />
+      );
+    case 'c-shape-area':
+      return (
+        <CShapeArea
+          outerWidth={params.outerWidth}
+          outerHeight={params.outerHeight}
+          cutoutWidth={params.cutoutWidth}
+          cutoutHeight={params.cutoutHeight}
+          cutoutY={params.cutoutY}
+        />
+      );
     case 'perpendicular':
       return <Perpendicular />;
     case 'parallel-corresponding':
@@ -203,6 +222,270 @@ function SquareArea({ side }: { side: number }) {
       ))}
       <text x={rx + s / 2} y={ry + s + 24} textAnchor="middle" fontSize={14} fontWeight="bold" fill={STROKE}>{side}cm</text>
       <line x1={rx} y1={ry + s + 14} x2={rx + s} y2={ry + s + 14} stroke={STROKE} strokeWidth={1.5} markerStart="url(#arrowL)" markerEnd="url(#arrowR)" />
+    </g>
+  );
+}
+
+/* ===== COMPOSITE SHAPE DIAGRAMS WITH CM GRID ===== */
+
+function CmGrid({ width, height, startX, startY, cellSize }: { width: number; height: number; startX: number; startY: number; cellSize: number }) {
+  // Draw cm grid lines
+  const lines = [];
+  // Vertical lines
+  for (let i = 0; i <= width; i++) {
+    lines.push(
+      <line
+        key={`v${i}`}
+        x1={startX + i * cellSize}
+        y1={startY}
+        x2={startX + i * cellSize}
+        y2={startY + height * cellSize}
+        stroke={i % 5 === 0 ? STROKE : "hsl(220, 30%, 20%, 0.2)"}
+        strokeWidth={i % 5 === 0 ? 1.5 : 0.5}
+        strokeDasharray={i % 5 === 0 ? undefined : "2 2"}
+      />
+    );
+  }
+  // Horizontal lines
+  for (let i = 0; i <= height; i++) {
+    lines.push(
+      <line
+        key={`h${i}`}
+        x1={startX}
+        y1={startY + i * cellSize}
+        x2={startX + width * cellSize}
+        y2={startY + i * cellSize}
+        stroke={i % 5 === 0 ? STROKE : "hsl(220, 30%, 20%, 0.2)"}
+        strokeWidth={i % 5 === 0 ? 1.5 : 0.5}
+        strokeDasharray={i % 5 === 0 ? undefined : "2 2"}
+      />
+    );
+  }
+  return <g>{lines}</g>;
+}
+
+function DimensionArrow({ x1, y1, x2, y2, label, vertical = false }: { x1: number; y1: number; x2: number; y2: number; label: string; vertical?: boolean }) {
+  const offset = vertical ? -25 : 25;
+  return (
+    <g>
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={STROKE} strokeWidth={2} markerStart="url(#arrowL)" markerEnd="url(#arrowR)" />
+      <text
+        x={vertical ? x1 + offset : (x1 + x2) / 2}
+        y={vertical ? (y1 + y2) / 2 : y1 + offset}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize={13}
+        fontWeight="bold"
+        fill={STROKE}
+      >
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function LShapeArea({ outerWidth, outerHeight, cutoutWidth, cutoutHeight }: { outerWidth: number; outerHeight: number; cutoutWidth: number; cutoutHeight: number }) {
+  // Grid: 1 cell = 1cm, max display size ~200px
+  const cellSize = Math.min(200 / outerWidth, 160 / outerHeight, 20);
+  const totalW = outerWidth * cellSize;
+  const totalH = outerHeight * cellSize;
+  const startX = (280 - totalW) / 2;
+  const startY = (200 - totalH) / 2;
+
+  // L-shape polygon points (going clockwise from top-left)
+  const points = [
+    [startX, startY], // top-left
+    [startX + totalW, startY], // top-right
+    [startX + totalW, startY + totalH - cutoutHeight * cellSize], // cutout top-right
+    [startX + totalW - cutoutWidth * cellSize, startY + totalH - cutoutHeight * cellSize], // cutout inner corner
+    [startX + totalW - cutoutWidth * cellSize, startY + totalH], // bottom-right of vertical part
+    [startX, startY + totalH], // bottom-left
+  ];
+
+  return (
+    <g>
+      {/* Cm grid background */}
+      <CmGrid width={outerWidth} height={outerHeight} startX={startX} startY={startY} cellSize={cellSize} />
+
+      {/* L-shape fill */}
+      <polygon
+        points={points.map(p => p.join(',')).join(' ')}
+        fill="hsl(150, 50%, 45%, 0.15)"
+        stroke={STROKE}
+        strokeWidth={2.5}
+      />
+
+      {/* Right angle markers */}
+      <RightAngleMarker cx={startX} cy={startY + 12} size={10} rotation={0} />
+      <RightAngleMarker cx={startX + totalW - cutoutWidth * cellSize} cy={startY + totalH - cutoutHeight * cellSize - 12} size={10} rotation={180} />
+
+      {/* Dimension arrows */}
+      {/* Outer width */}
+      <DimensionArrow
+        x1={startX}
+        y1={startY - 15}
+        x2={startX + totalW}
+        y2={startY - 15}
+        label={`${outerWidth}cm`}
+      />
+      {/* Outer height */}
+      <DimensionArrow
+        x1={startX - 20}
+        y1={startY}
+        x2={startX - 20}
+        y2={startY + totalH}
+        label={`${outerHeight}cm`}
+        vertical
+      />
+      {/* Cutout width (horizontal segment at bottom) */}
+      <DimensionArrow
+        x1={startX + totalW - cutoutWidth * cellSize}
+        y1={startY + totalH + 20}
+        x2={startX + totalW}
+        y2={startY + totalH + 20}
+        label={`${cutoutWidth}cm`}
+      />
+      {/* Cutout height (vertical segment on right) */}
+      <DimensionArrow
+        x1={startX + totalW + 20}
+        y1={startY + totalH - cutoutHeight * cellSize}
+        x2={startX + totalW + 20}
+        y2={startY + totalH}
+        label={`${cutoutHeight}cm`}
+        vertical
+      />
+
+      {/* Inner dimensions label */}
+      <text
+        x={startX + totalW - (cutoutWidth * cellSize) / 2}
+        y={startY + totalH - (cutoutHeight * cellSize) / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize={12}
+        fontWeight="bold"
+        fill="hsl(340, 70%, 45%)"
+      >
+        くりぬき
+      </text>
+    </g>
+  );
+}
+
+function CShapeArea({ outerWidth, outerHeight, cutoutWidth, cutoutHeight, cutoutY }: { outerWidth: number; outerHeight: number; cutoutWidth: number; cutoutHeight: number; cutoutY: number }) {
+  // Grid: 1 cell = 1cm
+  const cellSize = Math.min(200 / outerWidth, 160 / outerHeight, 20);
+  const totalW = outerWidth * cellSize;
+  const totalH = outerHeight * cellSize;
+  const startX = (280 - totalW) / 2;
+  const startY = (200 - totalH) / 2;
+
+  const cutoutTop = startY + cutoutY * cellSize;
+  const cutoutBottom = cutoutTop + cutoutHeight * cellSize;
+  const cutoutLeft = startX + totalW - cutoutWidth * cellSize;
+
+  // C-shape polygon points (going clockwise from top-left)
+  const points = [
+    [startX, startY], // top-left
+    [startX + totalW, startY], // top-right
+    [startX + totalW, cutoutTop], // cutout top-right
+    [cutoutLeft, cutoutTop], // cutout top-left
+    [cutoutLeft, cutoutBottom], // cutout bottom-left
+    [startX + totalW, cutoutBottom], // cutout bottom-right
+    [startX + totalW, startY + totalH], // bottom-right
+    [startX, startY + totalH], // bottom-left
+  ];
+
+  return (
+    <g>
+      {/* Cm grid background */}
+      <CmGrid width={outerWidth} height={outerHeight} startX={startX} startY={startY} cellSize={cellSize} />
+
+      {/* C-shape fill */}
+      <polygon
+        points={points.map(p => p.join(',')).join(' ')}
+        fill="hsl(200, 50%, 45%, 0.15)"
+        stroke={STROKE}
+        strokeWidth={2.5}
+      />
+
+      {/* Right angle markers */}
+      <RightAngleMarker cx={startX} cy={startY + 12} size={10} rotation={0} />
+      <RightAngleMarker cx={cutoutLeft} cy={cutoutTop + 12} size={10} rotation={0} />
+      <RightAngleMarker cx={cutoutLeft} cy={cutoutBottom - 12} size={10} rotation={270} />
+
+      {/* Dimension arrows */}
+      {/* Outer width */}
+      <DimensionArrow
+        x1={startX}
+        y1={startY - 15}
+        x2={startX + totalW}
+        y2={startY - 15}
+        label={`${outerWidth}cm`}
+      />
+      {/* Outer height */}
+      <DimensionArrow
+        x1={startX - 20}
+        y1={startY}
+        x2={startX - 20}
+        y2={startY + totalH}
+        label={`${outerHeight}cm`}
+        vertical
+      />
+      {/* Cutout width */}
+      <DimensionArrow
+        x1={cutoutLeft}
+        y1={startY - 35}
+        x2={startX + totalW}
+        y2={startY - 35}
+        label={`${cutoutWidth}cm`}
+      />
+      {/* Cutout height */}
+      <text
+        x={startX + totalW + 35}
+        y={cutoutTop + (cutoutBottom - cutoutTop) / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize={12}
+        fontWeight="bold"
+        fill={STROKE}
+        transform={`rotate(90, ${startX + totalW + 35}, ${cutoutTop + (cutoutBottom - cutoutTop) / 2})`}
+      >
+        {cutoutHeight}cm
+      </text>
+
+      {/* Cutout Y position indicator */}
+      <line
+        x1={startX + totalW + 15}
+        y1={startY}
+        x2={startX + totalW + 15}
+        y2={cutoutTop}
+        stroke={STROKE}
+        strokeWidth={1}
+        strokeDasharray="3 3"
+      />
+      <text
+        x={startX + totalW + 30}
+        y={startY + (cutoutTop - startY) / 2}
+        textAnchor="start"
+        dominantBaseline="middle"
+        fontSize={11}
+        fill="hsl(220, 30%, 20%, 0.7)"
+      >
+        {cutoutY}cm
+      </text>
+
+      {/* Inner dimensions label */}
+      <text
+        x={cutoutLeft + (cutoutWidth * cellSize) / 2}
+        y={cutoutTop + (cutoutBottom - cutoutTop) / 2}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize={12}
+        fontWeight="bold"
+        fill="hsl(340, 70%, 45%)"
+      >
+        くりぬき
+      </text>
     </g>
   );
 }

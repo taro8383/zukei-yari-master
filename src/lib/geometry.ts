@@ -6,6 +6,8 @@ export type DiagramType =
   | 'circle-angle'
   | 'rectangle-area'
   | 'square-area'
+  | 'l-shape-area'
+  | 'c-shape-area'
   | 'perpendicular'
   | 'parallel-corresponding'
   | 'parallel-supplementary'
@@ -164,8 +166,9 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
       }
     }
     case 'area': {
-      const isSquare = Math.random() > 0.5;
-      if (isSquare) {
+      const shapeType = Math.random();
+      if (shapeType < 0.33) {
+        // Square area (33%)
         const side = Math.floor(Math.random() * 10) + 2;
         return {
           id, answer: side * side, unit: 'cm²',
@@ -173,7 +176,8 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
           textEn: 'Find the area of the square below.',
           diagram: { type: 'square-area', params: { side } },
         };
-      } else {
+      } else if (shapeType < 0.66) {
+        // Rectangle area (33%)
         const w = Math.floor(Math.random() * 10) + 3;
         const h = Math.floor(Math.random() * 8) + 2;
         return {
@@ -181,6 +185,43 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
           text: '下の長方形の面積をもとめましょう。',
           textEn: 'Find the area of the rectangle below.',
           diagram: { type: 'rectangle-area', params: { width: w, height: h } },
+        };
+      } else if (shapeType < 0.83) {
+        // L-shape composite (17%)
+        const outerWidth = Math.floor(Math.random() * 6) + 6; // 6-12
+        const outerHeight = Math.floor(Math.random() * 5) + 5; // 5-10
+        const cutoutWidth = Math.floor(Math.random() * (outerWidth - 4)) + 2; // 2 to outerWidth-4
+        const cutoutHeight = Math.floor(Math.random() * (outerHeight - 4)) + 2; // 2 to outerHeight-4
+        // Calculate area: outer minus cutout
+        const outerArea = outerWidth * outerHeight;
+        const cutoutArea = cutoutWidth * cutoutHeight;
+        const totalArea = outerArea - cutoutArea;
+        return {
+          id, answer: totalArea, unit: 'cm²',
+          text: '下のL字の形の面積をもとめましょう。（1マス＝1cm）',
+          textEn: 'Find the area of the L-shape below. (1 grid = 1cm)',
+          explanation: `方法1：${outerWidth}×${outerHeight}=${outerArea} から ${cutoutWidth}×${cutoutHeight}=${cutoutArea} を引く → ${totalArea}cm²`,
+          explanationEn: `Method: ${outerWidth}×${outerHeight}=${outerArea} minus ${cutoutWidth}×${cutoutHeight}=${cutoutArea} → ${totalArea}cm²`,
+          diagram: { type: 'l-shape-area', params: { outerWidth, outerHeight, cutoutWidth, cutoutHeight } },
+        };
+      } else {
+        // C-shape composite (17%)
+        const outerWidth = Math.floor(Math.random() * 4) + 8; // 8-12
+        const outerHeight = Math.floor(Math.random() * 4) + 8; // 8-12
+        const cutoutWidth = Math.floor(Math.random() * (outerWidth - 5)) + 3; // 3 to outerWidth-5
+        const cutoutY = Math.floor(Math.random() * (outerHeight - 5)) + 2; // 2 to outerHeight-5
+        const cutoutHeight = Math.floor(Math.random() * (outerHeight - cutoutY - 2)) + 3; // At least 3
+        // Calculate area: outer minus cutout
+        const outerArea = outerWidth * outerHeight;
+        const cutoutArea = cutoutWidth * cutoutHeight;
+        const totalArea = outerArea - cutoutArea;
+        return {
+          id, answer: totalArea, unit: 'cm²',
+          text: '下の形の面積をもとめましょう。（1マス＝1cm）',
+          textEn: 'Find the area of the shape below. (1 grid = 1cm)',
+          explanation: `大きい長方形から切り取った部分を引きます：${outerWidth}×${outerHeight}=${outerArea} から ${cutoutWidth}×${cutoutHeight}=${cutoutArea} を引く → ${totalArea}cm²`,
+          explanationEn: `Subtract the cutout from the large rectangle: ${outerWidth}×${outerHeight}=${outerArea} minus ${cutoutWidth}×${cutoutHeight}=${cutoutArea} → ${totalArea}cm²`,
+          diagram: { type: 'c-shape-area', params: { outerWidth, outerHeight, cutoutWidth, cutoutHeight, cutoutY } },
         };
       }
     }
