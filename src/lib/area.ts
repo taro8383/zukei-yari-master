@@ -41,12 +41,13 @@ export interface AreaQuestion {
   locationNameEn?: string;
   appropriateUnit?: 'cm2' | 'm2' | 'a' | 'ha' | 'km2';
   // For composite-shapes topic
-  shapeType?: 'l-shape';
+  shapeType?: 'l-shape' | 'c-shape';
   dimensions?: {
     outerWidth: number;
     outerHeight: number;
     cutoutWidth: number;
     cutoutHeight: number;
+    cutoutY?: number; // For C-shape: vertical position of cutout
   };
   area1?: number;
   area2?: number;
@@ -254,48 +255,86 @@ export function generateChoosingUnitsQuestions(): AreaQuestion[] {
   return questions;
 }
 
-// Generate questions for composite shapes (L-shapes) - DYNAMICALLY
+// Generate questions for composite shapes (L-shapes and C-shapes) - DYNAMICALLY
 export function generateCompositeShapesQuestions(): AreaQuestion[] {
   const questions: AreaQuestion[] = [];
 
   for (let i = 0; i < 5; i++) {
-    // Create an L-shape by defining outer dimensions and cutout
-    const outerWidth = randomInt(8, 15);
-    const outerHeight = randomInt(8, 15);
-    const cutoutWidth = randomInt(3, outerWidth - 3);
-    const cutoutHeight = randomInt(3, outerHeight - 3);
+    // 50% chance for L-shape, 50% for C-shape
+    const isCShape = Math.random() > 0.5;
 
-    // Method 1: Split into two rectangles
-    // Rectangle 1: (outerWidth - cutoutWidth) × outerHeight
-    // Rectangle 2: cutoutWidth × (outerHeight - cutoutHeight)
-    const rect1Width = outerWidth - cutoutWidth;
-    const rect1Height = outerHeight;
-    const rect1Area = rect1Width * rect1Height;
+    if (isCShape) {
+      // C-shape: like a capital C, with top and bottom wider than middle
+      // Outer rectangle with a vertical cutout on one side
+      const outerWidth = randomInt(10, 15);
+      const outerHeight = randomInt(10, 15);
+      const cutoutWidth = randomInt(3, outerWidth - 5);
+      const cutoutY = randomInt(3, outerHeight - 6); // Where cutout starts vertically
+      const cutoutHeight = randomInt(3, outerHeight - cutoutY - 2); // Cutout height
 
-    const rect2Width = cutoutWidth;
-    const rect2Height = outerHeight - cutoutHeight;
-    const rect2Area = rect2Width * rect2Height;
+      // Calculate areas - C-shape is outer minus cutout
+      const outerArea = outerWidth * outerHeight;
+      const cutoutArea = cutoutWidth * cutoutHeight;
+      const totalArea = outerArea - cutoutArea;
 
-    const totalArea = rect1Area + rect2Area;
+      questions.push({
+        id: i + 1,
+        topic: 'composite-shapes',
+        shapeType: 'c-shape',
+        dimensions: {
+          outerWidth,
+          outerHeight,
+          cutoutWidth,
+          cutoutHeight,
+          cutoutY,
+        },
+        area1: outerArea,
+        area2: cutoutArea,
+        answerArea: totalArea,
+        text: `下の形の面積は？（単位：cm²）`,
+        textEn: `What is the area of the shape below? (Unit: cm²)`,
+        explanation: `大きい長方形から切り取った部分を引きます：${outerWidth}×${outerHeight}=${outerArea} から ${cutoutWidth}×${cutoutHeight}=${cutoutArea} を引く → ${totalArea}cm²`,
+        explanationEn: `Subtract the cutout from the large rectangle: ${outerWidth}×${outerHeight}=${outerArea} minus ${cutoutWidth}×${cutoutHeight}=${cutoutArea} → ${totalArea}cm²`,
+      });
+    } else {
+      // L-shape: existing implementation
+      const outerWidth = randomInt(8, 15);
+      const outerHeight = randomInt(8, 15);
+      const cutoutWidth = randomInt(3, outerWidth - 3);
+      const cutoutHeight = randomInt(3, outerHeight - 3);
 
-    questions.push({
-      id: i + 1,
-      topic: 'composite-shapes',
-      shapeType: 'l-shape',
-      dimensions: {
-        outerWidth,
-        outerHeight,
-        cutoutWidth,
-        cutoutHeight,
-      },
-      area1: rect1Area,
-      area2: rect2Area,
-      answerArea: totalArea,
-      text: `下のL字の形の面積は？（単位：cm²）`,
-      textEn: `What is the area of the L-shape below? (Unit: cm²)`,
-      explanation: `方法1：${rect1Width}×${rect1Height}=${rect1Area} と ${rect2Width}×${rect2Height}=${rect2Area} → 合計 ${totalArea}cm²\n方法2：${outerWidth}×${outerHeight}=${outerWidth * outerHeight} から ${cutoutWidth}×${cutoutHeight}=${cutoutWidth * cutoutHeight} を引く → ${totalArea}cm²`,
-      explanationEn: `Method 1: ${rect1Width}×${rect1Height}=${rect1Area} and ${rect2Width}×${rect2Height}=${rect2Area} → Total ${totalArea}cm²\nMethod 2: ${outerWidth}×${outerHeight}=${outerWidth * outerHeight} minus ${cutoutWidth}×${cutoutHeight}=${cutoutWidth * cutoutHeight} → ${totalArea}cm²`,
-    });
+      // Method 1: Split into two rectangles
+      // Rectangle 1: (outerWidth - cutoutWidth) × outerHeight
+      // Rectangle 2: cutoutWidth × (outerHeight - cutoutHeight)
+      const rect1Width = outerWidth - cutoutWidth;
+      const rect1Height = outerHeight;
+      const rect1Area = rect1Width * rect1Height;
+
+      const rect2Width = cutoutWidth;
+      const rect2Height = outerHeight - cutoutHeight;
+      const rect2Area = rect2Width * rect2Height;
+
+      const totalArea = rect1Area + rect2Area;
+
+      questions.push({
+        id: i + 1,
+        topic: 'composite-shapes',
+        shapeType: 'l-shape',
+        dimensions: {
+          outerWidth,
+          outerHeight,
+          cutoutWidth,
+          cutoutHeight,
+        },
+        area1: rect1Area,
+        area2: rect2Area,
+        answerArea: totalArea,
+        text: `下のL字の形の面積は？（単位：cm²）`,
+        textEn: `What is the area of the L-shape below? (Unit: cm²)`,
+        explanation: `方法1：${rect1Width}×${rect1Height}=${rect1Area} と ${rect2Width}×${rect2Height}=${rect2Area} → 合計 ${totalArea}cm²\n方法2：${outerWidth}×${outerHeight}=${outerWidth * outerHeight} から ${cutoutWidth}×${cutoutHeight}=${cutoutWidth * cutoutHeight} を引く → ${totalArea}cm²`,
+        explanationEn: `Method 1: ${rect1Width}×${rect1Height}=${rect1Area} and ${rect2Width}×${rect2Height}=${rect2Area} → Total ${totalArea}cm²\nMethod 2: ${outerWidth}×${outerHeight}=${outerWidth * outerHeight} minus ${cutoutWidth}×${cutoutHeight}=${cutoutWidth * cutoutHeight} → ${totalArea}cm²`,
+      });
+    }
   }
 
   return questions;
