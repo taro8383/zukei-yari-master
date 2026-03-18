@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+  <script>
+    // GitHub Pages SPA redirect for HashRouter
+    // Redirects any 404 to the hash-based route
+    var path = window.location.pathname;
+    var repo = '/zukei-yari-master';
+
+    if (path.indexOf(repo) === 0) {
+      // Remove the repo name from path
+      var route = path.substring(repo.length) || '/';
+      // Redirect to hash route
+      window.location.replace(repo + '/#' + route + window.location.search + window.location.hash);
+    }
+  </script>
+</head>
+<body>
+  Redirecting...
+</body>
+</html>
