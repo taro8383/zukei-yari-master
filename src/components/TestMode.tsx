@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, CheckCircle, XCircle, Trophy, Clock, Lightbulb } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Trophy, Clock, Lightbulb, AlertCircle } from 'lucide-react';
 import { TestQuestion } from '@/lib/testMode';
 import { cn } from '@/lib/utils';
 import { FractionInput } from './fractions/FractionInput';
@@ -64,6 +64,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
   const [showTeachMeModal, setShowTeachMeModal] = useState(false);
   const [teachMeQuestion, setTeachMeQuestion] = useState<TestQuestion | null>(null);
   const [showResultsScreen, setShowResultsScreen] = useState(false);
+  const [showGradeConfirmModal, setShowGradeConfirmModal] = useState(false);
 
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
@@ -358,7 +359,8 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
       setUnansweredQuestions(unanswered);
       setShowUnansweredModal(true);
     } else {
-      handleGrade();
+      // Always show confirmation before grading
+      setShowGradeConfirmModal(true);
     }
   };
 
@@ -1664,6 +1666,40 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
                 className="w-full px-6 py-3 bg-muted text-muted-foreground rounded-xl font-medium hover:bg-muted/80 transition-colors"
               >
                 このまま採点する / Grade Anyway ({unansweredQuestions.length} unanswered)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Grade Confirmation Modal */}
+      {showGradeConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl shadow-kid border-2 border-border p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-2 text-foreground flex items-center gap-2">
+              <AlertCircle className="w-6 h-6 text-kid-blue" />
+              採点しますか？ / Ready to Grade?
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              すべての問題に答えました。採点してもよろしいですか？まだ答えを確認したい場合は「戻る」を押してください。/
+              You have answered all questions. Are you ready to submit for grading? Press "Go Back" if you still want to review your answers.
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  setShowGradeConfirmModal(false);
+                  handleGrade();
+                }}
+                className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors"
+              >
+                はい、採点する / Yes, Grade My Test
+              </button>
+              <button
+                onClick={() => setShowGradeConfirmModal(false)}
+                className="w-full px-6 py-3 bg-muted text-muted-foreground rounded-xl font-medium hover:bg-muted/80 transition-colors"
+              >
+                戻る / Go Back
               </button>
             </div>
           </div>
