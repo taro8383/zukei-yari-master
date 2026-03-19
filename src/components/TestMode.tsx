@@ -1786,15 +1786,63 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
                       </div>
                     );
                   } else {
-                    // Generic explanation
+                    // Generic explanation - use question's explanation fields if available
+                    const explanation = (q as any).explanation;
+                    const explanationEn = (q as any).explanationEn;
+                    const formula = (q as any).formula;
+                    const formulaEn = (q as any).formulaEn;
+                    const steps = (q as any).steps;
+
                     return (
-                      <div className="space-y-2 text-foreground">
-                        <p>この問題の正しい答えは <strong>{String(q.answer || '')}</strong> です。</p>
-                        <p>もう一度計算してみましょう。</p>
-                        <p className="text-sm text-muted-foreground mt-2">
-                          The correct answer for this problem is <strong>{String(q.answer || '')}</strong>.<br/>
-                          Let's try calculating it again.
-                        </p>
+                      <div className="space-y-3 text-foreground">
+                        {/* Step-by-step explanation */}
+                        {explanation && (
+                          <div className="space-y-2">
+                            <p className="font-medium">{explanation}</p>
+                            {explanationEn && (
+                              <p className="text-sm text-muted-foreground">{explanationEn}</p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Formula showing the calculation */}
+                        {formula && (
+                          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                            <p className="text-sm text-green-700 dark:text-green-300 font-bold">
+                              式：{formula}
+                            </p>
+                            {formulaEn && (
+                              <p className="text-xs text-green-600 dark:text-green-400">
+                                Formula: {formulaEn}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Steps for order of operations */}
+                        {steps && steps.length > 0 && (
+                          <div className="space-y-2 mt-3">
+                            <p className="font-medium text-foreground">計算の順序 / Order of operations:</p>
+                            <ol className="list-decimal list-inside space-y-1 text-sm">
+                              {steps.map((step: any, idx: number) => (
+                                <li key={idx} className="text-foreground">
+                                  <span className="font-bold">{step.operation}</span> = {step.result}
+                                  <span className="text-muted-foreground text-xs ml-2">({step.description})</span>
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                        )}
+
+                        {/* Fallback if no explanation available */}
+                        {!explanation && !formula && (
+                          <div className="space-y-2">
+                            <p>この問題の正しい答えは <strong>{String(q.answer || '')}</strong> です。</p>
+                            <p className="text-sm text-muted-foreground">
+                              The correct answer is <strong>{String(q.answer || '')}</strong>.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     );
                   }
