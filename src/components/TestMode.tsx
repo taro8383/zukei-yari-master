@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, CheckCircle, XCircle, Trophy, Clock } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Trophy, Clock, Lightbulb } from 'lucide-react';
 import { TestQuestion } from '@/lib/testMode';
 import { cn } from '@/lib/utils';
 import { FractionInput } from './fractions/FractionInput';
@@ -11,6 +11,12 @@ import {
   DottedPaperQuadrilateral,
   DiagonalsDrawing,
 } from './exercises';
+import {
+  DiagonalsExplanation,
+  IntersectingLinesExplanation,
+  QuadrilateralExplanation,
+  DiagonalsDrawingExplanation,
+} from './explanations';
 import VerticalDecimalGrid from './decimals/VerticalDecimalGrid';
 import DecimalShiftArrow from './decimals/DecimalShiftArrow';
 import PlaceValueChart from './largeNumbers/PlaceValueChart';
@@ -53,6 +59,11 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
   const [startTime] = useState(Date.now());
   const [showUnansweredModal, setShowUnansweredModal] = useState(false);
   const [unansweredQuestions, setUnansweredQuestions] = useState<number[]>([]);
+  // For graded feedback
+  const [questionResults, setQuestionResults] = useState<Record<number, boolean>>({});
+  const [showTeachMeModal, setShowTeachMeModal] = useState(false);
+  const [teachMeQuestion, setTeachMeQuestion] = useState<TestQuestion | null>(null);
+  const [showResultsScreen, setShowResultsScreen] = useState(false);
 
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
@@ -351,97 +362,91 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
     }
   };
 
+  // Check if a specific question is correct
+  const checkQuestionCorrect = (q: TestQuestion, idx: number): boolean => {
+    const userAnswer = answers[idx] || '';
+    const qType = getQuestionType(q);
+
+    // Handle different answer types
+    if (isLineGraphSlopeQuestion(qType, q)) {
+      const slopeAns = lineGraphSlopeAnswers[idx];
+      const correctStart = (q as any).slopeStart;
+      const correctEnd = (q as any).slopeEnd;
+      return slopeAns?.startTime === correctStart && slopeAns?.endTime === correctEnd;
+    } else if (isFractionTypesQuestion(qType)) {
+      const userAns = userAnswer.toLowerCase().trim();
+      const correctType = (q as any).fractionType;
+      return userAns === correctType;
+    } else if (isTextAnswerQuestion(qType)) {
+      return userAnswer.trim() === String(q.answer).trim();
+    } else if (isFractionQuestion(qType)) {
+      const fractionAns = fractionAnswers[idx];
+      if (fractionAns) {
+        let answerStr = '';
+        if (fractionAns.whole && fractionAns.whole > 0) {
+          answerStr = `${fractionAns.whole}と${fractionAns.numerator}/${fractionAns.denominator}`;
+        } else {
+          answerStr = `${fractionAns.numerator}/${fractionAns.denominator}`;
+        }
+        const expectedAnswer = String(q.answer);
+        return answerStr === expectedAnswer;
+      }
+      return false;
+    } else if (isAreaChoosingUnits(qType)) {
+      return userAnswer.trim() === (q as any).appropriateUnit;
+    } else if (isDrawingGraphQuestion(qType)) {
+      const points = plottedPoints[idx] || [];
+      const correctPoints = (q as any).correctPoints || [];
+      const allCorrectPlotted = correctPoints.every((cp: { x: number; y: number }) =>
+        points.some((p: { x: number; y: number }) =>
+          Math.abs(p.x - cp.x) < 0.1 && Math.abs(p.y - cp.y) < 0.1
+        )
+      );
+      return allCorrectPlotted && points.length >= correctPoints.length;
+    } else if (isDivisionWithRemainder(qType)) {
+      const divAns = divisionAnswers[idx];
+      if (divAns) {
+        const userQuotient = parseInt(divAns.quotient);
+        const userRemainder = parseInt(divAns.remainder);
+        return userQuotient === q.quotient && userRemainder === q.remainder;
+      }
+      return false;
+    } else if (isDivisionQuestion(qType)) {
+      const numericAnswer = parseFloat(userAnswer);
+      return !isNaN(numericAnswer) && numericAnswer === q.quotient;
+    } else {
+      const numericAnswer = parseFloat(userAnswer);
+      if (!isNaN(numericAnswer)) {
+        const tolerance = 0.0001;
+        return Math.abs(numericAnswer - Number(q.answer)) < tolerance;
+      }
+      return false;
+    }
+  };
+
   const handleGrade = () => {
     setShowUnansweredModal(false);
     setIsGraded(true);
-    let correct = 0;
-    questions.forEach((q, idx) => {
-      const userAnswer = answers[idx] || '';
-      const qType = getQuestionType(q);
 
-      // Handle different answer types
-      if (isLineGraphSlopeQuestion(qType, q)) {
-        // For slope questions, check if dropdowns match
-        const slopeAns = lineGraphSlopeAnswers[idx];
-        const correctStart = (q as any).slopeStart;
-        const correctEnd = (q as any).slopeEnd;
-        if (slopeAns?.startTime === correctStart && slopeAns?.endTime === correctEnd) {
-          correct++;
-        }
-      } else if (isFractionTypesQuestion(qType)) {
-        // For fraction types, compare the type string directly
-        const userAns = userAnswer.toLowerCase().trim();
-        const correctType = (q as any).fractionType;
-        if (userAns === correctType) {
-          correct++;
-        }
-      } else if (isTextAnswerQuestion(qType)) {
-        // For text answers (large numbers with Kanji), compare strings
-        if (userAnswer.trim() === String(q.answer).trim()) {
-          correct++;
-        }
-      } else if (isFractionQuestion(qType)) {
-        // For fractions, compare string representation
-        const fractionAns = fractionAnswers[idx];
-        if (fractionAns) {
-          let answerStr = '';
-          if (fractionAns.whole && fractionAns.whole > 0) {
-            answerStr = `${fractionAns.whole}と${fractionAns.numerator}/${fractionAns.denominator}`;
-          } else {
-            answerStr = `${fractionAns.numerator}/${fractionAns.denominator}`;
-          }
-          // Compare with expected answer
-          const expectedAnswer = String(q.answer);
-          if (answerStr === expectedAnswer) {
-            correct++;
-          }
-        }
-      } else if (isAreaChoosingUnits(qType)) {
-        // For choosing units, compare the selected unit string
-        if (userAnswer.trim() === (q as any).appropriateUnit) {
-          correct++;
-        }
-      } else if (isDrawingGraphQuestion(qType)) {
-        // For drawing graph, check if plotted points match correct points
-        const points = plottedPoints[idx] || [];
-        const correctPoints = (q as any).correctPoints || [];
-        // Check if all correct points are plotted (within tolerance)
-        const allCorrectPlotted = correctPoints.every((cp: { x: number; y: number }) =>
-          points.some((p: { x: number; y: number }) =>
-            Math.abs(p.x - cp.x) < 0.1 && Math.abs(p.y - cp.y) < 0.1
-          )
-        );
-        if (allCorrectPlotted && points.length >= correctPoints.length) {
-          correct++;
-        }
-      } else if (isDivisionWithRemainder(qType)) {
-        // For division with remainder, check both quotient and remainder
-        const divAns = divisionAnswers[idx];
-        if (divAns) {
-          const userQuotient = parseInt(divAns.quotient);
-          const userRemainder = parseInt(divAns.remainder);
-          if (userQuotient === q.quotient && userRemainder === q.remainder) {
-            correct++;
-          }
-        }
-      } else if (isDivisionQuestion(qType)) {
-        // For other division questions, check the quotient only
-        const numericAnswer = parseFloat(userAnswer);
-        if (!isNaN(numericAnswer) && numericAnswer === q.quotient) {
-          correct++;
-        }
-      } else {
-        // For numeric answers
-        const numericAnswer = parseFloat(userAnswer);
-        if (!isNaN(numericAnswer)) {
-          const tolerance = 0.0001;
-          if (Math.abs(numericAnswer - Number(q.answer)) < tolerance) {
-            correct++;
-          }
-        }
-      }
+    // Calculate results for each question
+    const results: Record<number, boolean> = {};
+    let correct = 0;
+
+    questions.forEach((q, idx) => {
+      const isCorrect = checkQuestionCorrect(q, idx);
+      results[idx] = isCorrect;
+      if (isCorrect) correct++;
     });
+
+    setQuestionResults(results);
+
+    // Call onComplete to save results
     onComplete(correct, questions.length);
+  };
+
+  const handleTeachMeClick = () => {
+    setTeachMeQuestion(currentQuestion);
+    setShowTeachMeModal(true);
   };
 
   const getCurrentAnswer = () => answers[currentIndex] || '';
@@ -1276,97 +1281,12 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
     );
   };
 
-  if (isGraded) {
-    // Calculate final score
-    let correct = 0;
-    questions.forEach((q, idx) => {
-      const qType = getQuestionType(q);
-      const userAnswer = answers[idx] || '';
-
-      // Handle different answer types
-      if (isLineGraphSlopeQuestion(qType, q)) {
-        // For slope questions, check if dropdowns match
-        const slopeAns = lineGraphSlopeAnswers[idx];
-        const correctStart = (q as any).slopeStart;
-        const correctEnd = (q as any).slopeEnd;
-        if (slopeAns?.startTime === correctStart && slopeAns?.endTime === correctEnd) {
-          correct++;
-        }
-      } else if (isFractionTypesQuestion(qType)) {
-        // For fraction types, compare the type string directly
-        const userAns = userAnswer.toLowerCase().trim();
-        const correctType = (q as any).fractionType;
-        if (userAns === correctType) {
-          correct++;
-        }
-      } else if (isTextAnswerQuestion(qType)) {
-        // For text answers (large numbers with Kanji), compare strings
-        if (userAnswer.trim() === String(q.answer).trim()) {
-          correct++;
-        }
-      } else if (isFractionQuestion(qType)) {
-        // For fractions, compare string representation
-        const fractionAns = fractionAnswers[idx];
-        if (fractionAns) {
-          let answerStr = '';
-          if (fractionAns.whole && fractionAns.whole > 0) {
-            answerStr = `${fractionAns.whole}と${fractionAns.numerator}/${fractionAns.denominator}`;
-          } else {
-            answerStr = `${fractionAns.numerator}/${fractionAns.denominator}`;
-          }
-          // Compare with expected answer
-          const expectedAnswer = String(q.answer);
-          if (answerStr === expectedAnswer) {
-            correct++;
-          }
-        }
-      } else if (isAreaChoosingUnits(qType)) {
-        // For choosing units, compare the selected unit string
-        if (userAnswer.trim() === (q as any).appropriateUnit) {
-          correct++;
-        }
-      } else if (isDrawingGraphQuestion(qType)) {
-        // For drawing graph, check if plotted points match correct points
-        const points = plottedPoints[idx] || [];
-        const correctPoints = (q as any).correctPoints || [];
-        // Check if all correct points are plotted (within tolerance)
-        const allCorrectPlotted = correctPoints.every((cp: { x: number; y: number }) =>
-          points.some((p: { x: number; y: number }) =>
-            Math.abs(p.x - cp.x) < 0.1 && Math.abs(p.y - cp.y) < 0.1
-          )
-        );
-        if (allCorrectPlotted && points.length >= correctPoints.length) {
-          correct++;
-        }
-      } else if (isDivisionWithRemainder(qType)) {
-        // For division with remainder, check both quotient and remainder
-        const divAns = divisionAnswers[idx];
-        if (divAns) {
-          const userQuotient = parseInt(divAns.quotient);
-          const userRemainder = parseInt(divAns.remainder);
-          if (userQuotient === q.quotient && userRemainder === q.remainder) {
-            correct++;
-          }
-        }
-      } else if (isDivisionQuestion(qType)) {
-        // For other division questions, check the quotient only
-        const numericAnswer = parseFloat(userAnswer);
-        if (!isNaN(numericAnswer) && numericAnswer === q.quotient) {
-          correct++;
-        }
-      } else {
-        // For numeric answers
-        const numericAnswer = parseFloat(userAnswer);
-        if (!isNaN(numericAnswer)) {
-          const tolerance = 0.0001;
-          if (Math.abs(numericAnswer - Number(q.answer)) < tolerance) {
-            correct++;
-          }
-        }
-      }
-    });
+  // Show results screen when user clicks "See Results"
+  if (showResultsScreen && isGraded) {
+    const correct = Object.values(questionResults).filter(r => r).length;
     const percentage = Math.round((correct / questions.length) * 100);
     const timeElapsed = Date.now() - startTime;
+    const incorrectCount = questions.length - correct;
 
     return (
       <div className="max-w-2xl mx-auto p-4">
@@ -1398,7 +1318,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
               <div className="text-xs text-green-600">正解 / Correct</div>
             </div>
             <div className="bg-red-50 rounded-xl p-4">
-              <div className="text-2xl font-bold text-red-600">{questions.length - correct}</div>
+              <div className="text-2xl font-bold text-red-600">{incorrectCount}</div>
               <div className="text-xs text-red-600">不正解 / Incorrect</div>
             </div>
             <div className="bg-blue-50 rounded-xl p-4">
@@ -1407,12 +1327,14 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
             </div>
           </div>
 
-          <button
-            onClick={onExit}
-            className="px-8 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors"
-          >
-            終了 / Exit
-          </button>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={onExit}
+              className="w-full px-8 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors"
+            >
+              終了 / Exit
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1556,6 +1478,74 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
             )}
           </div>
         )}
+
+        {/* Graded Feedback - Show Results and Explanations */}
+        {isGraded && (
+          <div className="mt-6 space-y-4">
+            {/* Correct/Incorrect Indicator */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {questionResults[currentIndex] ? (
+                <>
+                  <span className="text-3xl font-black text-green-500">〇</span>
+                  <span className="text-green-600 font-medium">正解！ / Correct!</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-3xl font-black text-red-500">×</span>
+                  <span className="text-sm text-muted-foreground">
+                    正しいこたえ / Correct answer：
+                    <strong className="text-foreground ml-1">
+                      {String((currentQuestion as any).answer || '')}
+                      {(currentQuestion as any).unit || ''}
+                    </strong>
+                  </span>
+                  <button
+                    onClick={handleTeachMeClick}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors ml-auto"
+                  >
+                    <Lightbulb className="w-4 h-4" />
+                    <span>おしえて / Teach Me</span>
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Visual Explanations for Interactive Exercises */}
+            {!questionResults[currentIndex] && isInteractiveExercise(currentQuestion) && (() => {
+              const diagram = (currentQuestion as any).diagram;
+              if (!diagram) return null;
+
+              return (
+                <div className="mt-4">
+                  {diagram.type === 'intersecting-lines-interactive' && (
+                    <IntersectingLinesExplanation
+                      givenAngle={diagram.params.givenAngle}
+                      rotation={diagram.params.rotation}
+                    />
+                  )}
+                  {diagram.type === 'dotted-paper-quadrilateral' && (
+                    <QuadrilateralExplanation />
+                  )}
+                  {diagram.type === 'diagonals-drawing' && (
+                    <DiagonalsDrawingExplanation
+                      shapeType={diagram.params.shapeType}
+                    />
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Visual Explanation for Polygon Diagonals */}
+            {!questionResults[currentIndex] && (currentQuestion as any).diagram?.type === 'polygon-diagonals' && (
+              <div className="mt-4">
+                <DiagonalsExplanation
+                  sides={(currentQuestion as any).diagram.params.sides}
+                  correctAnswer={String((currentQuestion as any).answer || '')}
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
@@ -1568,21 +1558,42 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
           ← 前へ / Prev
         </button>
 
-        {currentIndex === questions.length - 1 ? (
-          <button
-            onClick={handleGradeClick}
-            className="px-8 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-colors flex items-center gap-2"
-          >
-            <CheckCircle className="w-5 h-5" />
-            採点 / Grade
-          </button>
+        {isGraded ? (
+          // Graded Mode - Show See Results button on last question
+          currentIndex === questions.length - 1 ? (
+            <button
+              onClick={() => setShowResultsScreen(true)}
+              className="px-8 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors flex items-center gap-2"
+            >
+              <Trophy className="w-5 h-5" />
+              結果を見る / See Results
+            </button>
+          ) : (
+            <button
+              onClick={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors"
+            >
+              次へ / Next →
+            </button>
+          )
         ) : (
-          <button
-            onClick={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors"
-          >
-            次へ / Next →
-          </button>
+          // Test Mode Navigation
+          currentIndex === questions.length - 1 ? (
+            <button
+              onClick={handleGradeClick}
+              className="px-8 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-colors flex items-center gap-2"
+            >
+              <CheckCircle className="w-5 h-5" />
+              採点 / Grade
+            </button>
+          ) : (
+            <button
+              onClick={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors"
+            >
+              次へ / Next →
+            </button>
+          )
         )}
       </div>
 
@@ -1596,6 +1607,10 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
               'w-3 h-3 rounded-full transition-all',
               idx === currentIndex
                 ? 'bg-primary w-6'
+                : isGraded
+                ? questionResults[idx]
+                  ? 'bg-green-400'
+                  : 'bg-red-400'
                 : answers[idx]
                 ? 'bg-green-400'
                 : 'bg-muted'
@@ -1649,6 +1664,150 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
                 className="w-full px-6 py-3 bg-muted text-muted-foreground rounded-xl font-medium hover:bg-muted/80 transition-colors"
               >
                 このまま採点する / Grade Anyway ({unansweredQuestions.length} unanswered)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Teach Me Modal - Shows explanation for wrong answers */}
+      {showTeachMeModal && teachMeQuestion && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl shadow-kid border-2 border-border p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4 text-foreground flex items-center gap-2">
+              <Lightbulb className="w-6 h-6 text-yellow-500" />
+              おしえて / Teach Me
+            </h3>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-muted rounded-xl">
+                <p className="font-medium text-foreground">{teachMeQuestion.question || teachMeQuestion.text}</p>
+                {(teachMeQuestion as any).textEn && (
+                  <p className="text-sm text-muted-foreground mt-1">{(teachMeQuestion as any).textEn}</p>
+                )}
+              </div>
+
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
+                <p className="text-sm text-muted-foreground mb-1">正しいこたえ / Correct Answer:</p>
+                <p className="text-lg font-bold text-green-700 dark:text-green-400">
+                  {String(teachMeQuestion.answer || '')}
+                  {(teachMeQuestion as any).unit || ''}
+                </p>
+              </div>
+
+              <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
+                <p className="text-sm text-muted-foreground mb-2">解説 / Explanation:</p>
+                {(() => {
+                  const q = teachMeQuestion;
+                  const qType = getQuestionType(q);
+
+                  // Generate explanation based on question type
+                  if ((q as any).diagram?.type === 'intersecting-lines-interactive' ||
+                      (q as any).diagram?.type === 'intersecting') {
+                    const givenAngle = (q as any).diagram?.params?.givenAngle || (q as any).givenAngle || 45;
+                    return (
+                      <div className="space-y-2 text-foreground">
+                        <p>交差する線の角度について考えてみよう。</p>
+                        <p>1. 直線の上にある角の和は 180° です。</p>
+                        <p>2. 与えられた角が {givenAngle}° のとき、隣り合う角は {180 - givenAngle}° になります。</p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Let's think about the angles of intersecting lines.<br/>
+                          1. Angles on a straight line add up to 180°.<br/>
+                          2. When the given angle is {givenAngle}°, the adjacent angle is {180 - givenAngle}°.
+                        </p>
+                      </div>
+                    );
+                  } else if ((q as any).diagram?.type === 'dotted-paper-quadrilateral') {
+                    const requiredType = (q as any).diagram?.params?.requiredType;
+                    const shapeNames: Record<number, string> = {
+                      0: '長方形 (rectangle)', 1: '正方形 (square)', 2: '台形 (trapezoid)',
+                      3: '平行四辺形 (parallelogram)', 4: 'ひし形 (rhombus)', 5: '凧 (kite)'
+                    };
+                    const shapeName = shapeNames[requiredType] || '指定された図形';
+                    return (
+                      <div className="space-y-2 text-foreground">
+                        <p>この図形は{shapeName}です。</p>
+                        <p>・対辺が平行である必要があります</p>
+                        <p>・角の大きさや辺の長さに特徴があります</p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          This shape is a {shapeName}.<br/>
+                          Opposite sides must be parallel.<br/>
+                          The angles and side lengths have specific characteristics.
+                        </p>
+                      </div>
+                    );
+                  } else if ((q as any).diagram?.type === 'diagonals-drawing') {
+                    const shapeType = (q as any).diagram?.params?.shapeType;
+                    const shapeNames: Record<string, string> = {
+                      rectangle: '長方形', square: '正方形', parallelogram: '平行四辺形',
+                      rhombus: 'ひし形', trapezoid: '台形', kite: '凧'
+                    };
+                    return (
+                      <div className="space-y-2 text-foreground">
+                        <p>{shapeNames[shapeType] || shapeType}の対角線を引きます。</p>
+                        <p>・対角線は頂点と頂点を結ぶ線です</p>
+                        <p>・{shapeNames[shapeType] || shapeType}では {(q as any).answer || 2} 本の対角線が引けます</p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Draw the diagonals of the {shapeType}.<br/>
+                          Diagonals connect opposite vertices.<br/>
+                          A {shapeType} has {(q as any).answer || 2} diagonals.
+                        </p>
+                      </div>
+                    );
+                  } else if ((q as any).diagram?.type === 'polygon-diagonals') {
+                    const sides = (q as any).diagram?.params?.sides || (q as any).sides || 5;
+                    const diagonals = (sides * (sides - 3)) / 2;
+                    return (
+                      <div className="space-y-2 text-foreground">
+                        <p>{sides}角形の対角線の数を求めます。</p>
+                        <p>公式：n角形の対角線の数 = n × (n - 3) ÷ 2</p>
+                        <p>計算：{sides} × ({sides} - 3) ÷ 2 = {sides} × {sides - 3} ÷ 2 = {diagonals}</p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Find the number of diagonals in a {sides}-sided polygon.<br/>
+                          Formula: Number of diagonals = n × (n - 3) ÷ 2<br/>
+                          Calculation: {sides} × {sides - 3} ÷ 2 = {diagonals}
+                        </p>
+                      </div>
+                    );
+                  } else if (isAreaQuestion(qType) || qType === 'calculating-area') {
+                    const width = (q as any).width || (q as any).side || 5;
+                    const height = (q as any).height || (q as any).side || 5;
+                    const area = (q as any).area || width * height;
+                    return (
+                      <div className="space-y-2 text-foreground">
+                        <p>面積を求めます。</p>
+                        <p>公式：面積 = 幅 × 高さ</p>
+                        <p>計算：{width} × {height} = {area}</p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Calculate the area.<br/>
+                          Formula: Area = width × height<br/>
+                          Calculation: {width} × {height} = {area}
+                        </p>
+                      </div>
+                    );
+                  } else {
+                    // Generic explanation
+                    return (
+                      <div className="space-y-2 text-foreground">
+                        <p>この問題の正しい答えは <strong>{String(q.answer || '')}</strong> です。</p>
+                        <p>もう一度計算してみましょう。</p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          The correct answer for this problem is <strong>{String(q.answer || '')}</strong>.<br/>
+                          Let's try calculating it again.
+                        </p>
+                      </div>
+                    );
+                  }
+                })()}
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setShowTeachMeModal(false)}
+                className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors"
+              >
+                閉じる / Close
               </button>
             </div>
           </div>
