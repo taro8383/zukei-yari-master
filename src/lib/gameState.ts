@@ -1056,6 +1056,181 @@ export const generateFractionHints = (needsCommonDenominator: boolean): Progress
   return hints;
 };
 
+// Generate progressive hints for accuracy rate (percent/ratio)
+export const generateAccuracyRateHints = (topic: string): ProgressiveHint[] => {
+  const hints: ProgressiveHint[] = [
+    { level: 1, textJa: '与えられた数値を確認しよう', textEn: 'Check the given numbers carefully', cost: 0 },
+  ];
+
+  if (topic === 'decimal-ratio') {
+    hints.push(
+      { level: 2, textJa: 'くらべる量 ÷ もとにする量 = 割合（倍）', textEn: 'Compared ÷ Base = Ratio (times)', cost: 2 },
+      { level: 3, textJa: 'わり算をして小数で答えよう', textEn: 'Divide and express as a decimal', cost: 5 }
+    );
+  } else if (topic === 'convert-percent') {
+    hints.push(
+      { level: 2, textJa: '小数の割合 × 100 = パーセント（%）', textEn: 'Decimal ratio × 100 = Percent (%)', cost: 2 },
+      { level: 3, textJa: '例：0.75 × 100 = 75%', textEn: 'Example: 0.75 × 100 = 75%', cost: 5 }
+    );
+  } else if (topic === 'calculate-accuracy') {
+    hints.push(
+      { level: 2, textJa: 'もとにする量 × 割合 = くらべる量', textEn: 'Base × Rate = Compared amount', cost: 2 },
+      { level: 3, textJa: 'パーセントを小数に直してからかけ算しよう（例：75% → 0.75）', textEn: 'Convert % to decimal first (e.g. 75% → 0.75), then multiply', cost: 5 }
+    );
+  }
+  return hints;
+};
+
+// Generate progressive hints for area
+export const generateAreaHints = (topic: string): ProgressiveHint[] => {
+  const hints: ProgressiveHint[] = [
+    {
+      level: 1,
+      textJa: '図の形と与えられた数値を確認しよう',
+      textEn: 'Check the shape and the given measurements',
+      cost: 0,
+    },
+  ];
+
+  if (topic === 'calculating-area') {
+    hints.push(
+      { level: 2, textJa: '長方形の面積 = 縦 × 横　正方形の面積 = 一辺 × 一辺', textEn: 'Rectangle area = length × width  Square area = side × side', cost: 2 },
+      { level: 3, textJa: '与えられた数値をかけ算してみよう', textEn: 'Multiply the given numbers together', cost: 5 }
+    );
+  } else if (topic === 'large-area-units') {
+    hints.push(
+      { level: 2, textJa: '1a = 100㎡　1ha = 10000㎡　1km² = 1000000㎡', textEn: '1a = 100㎡  1ha = 10,000㎡  1km² = 1,000,000㎡', cost: 2 },
+      { level: 3, textJa: '単位を変えるには、かけ算かわり算を使おう', textEn: 'Use multiplication or division to convert units', cost: 5 }
+    );
+  } else if (topic === 'composite-shapes') {
+    hints.push(
+      { level: 2, textJa: '複雑な形は、シンプルな形に分けてみよう', textEn: 'Divide the complex shape into simpler shapes', cost: 2 },
+      { level: 3, textJa: 'それぞれの面積を計算して、たし算かひき算しよう', textEn: 'Calculate each area, then add or subtract', cost: 5 }
+    );
+  } else {
+    hints.push(
+      { level: 2, textJa: '面積の単位の大きさを思い出してみよう', textEn: 'Think about which area unit fits the situation', cost: 2 },
+      { level: 3, textJa: '日常生活の広さと比べてみよう（例：教室は約200㎡）', textEn: 'Compare to real-life spaces (e.g. classroom ≈ 200㎡)', cost: 5 }
+    );
+  }
+  return hints;
+};
+
+// Generate progressive hints for large numbers
+export const generateLargeNumberHints = (topic: string): ProgressiveHint[] => {
+  const hints: ProgressiveHint[] = [
+    { level: 1, textJa: '数の位（けた）を確認しよう', textEn: 'Check the place value of each digit', cost: 0 },
+  ];
+
+  if (topic === 'reading-oku-cho') {
+    hints.push(
+      { level: 2, textJa: '億・兆の位置を確認：右から9番目が億、13番目が兆', textEn: 'Oku is the 9th digit from right, Cho is the 13th', cost: 2 },
+      { level: 3, textJa: '4桁ずつ区切って読もう', textEn: 'Group digits in sets of 4 from the right to read', cost: 5 }
+    );
+  } else if (topic === 'calculating-oku-cho') {
+    hints.push(
+      { level: 2, textJa: '億や兆の単位をそのまま使って計算しよう', textEn: 'Keep the oku/cho units and calculate as usual', cost: 2 },
+      { level: 3, textJa: '計算後に単位（億・兆）をつけるのを忘れずに', textEn: "Don't forget to add the unit (oku/cho) after calculating", cost: 5 }
+    );
+  } else if (topic === 'rounding-off') {
+    hints.push(
+      { level: 2, textJa: '四捨五入：切り捨てる位の数字が5以上なら切り上げ', textEn: 'Round up if the digit being dropped is 5 or more', cost: 2 },
+      { level: 3, textJa: '求める位の1つ下の桁を見よう', textEn: 'Look at the digit one place below the target place', cost: 5 }
+    );
+  } else {
+    hints.push(
+      { level: 2, textJa: '概算：それぞれの数をやすい数に近づけてから計算', textEn: 'Estimation: round each number first, then calculate', cost: 2 },
+      { level: 3, textJa: '上からの桁数を確認して四捨五入しよう', textEn: 'Count digits from the top and round accordingly', cost: 5 }
+    );
+  }
+  return hints;
+};
+
+// Generate progressive hints for calculation rules
+export const generateCalculationRulesHints = (topic: string): ProgressiveHint[] => {
+  const hints: ProgressiveHint[] = [
+    { level: 1, textJa: '式の中の記号と数字をよく確認しよう', textEn: 'Carefully check the symbols and numbers in the expression', cost: 0 },
+  ];
+
+  if (topic === 'order-of-operations') {
+    hints.push(
+      { level: 2, textJa: '計算のじゅんじょ：①かっこ → ②×÷ → ③±', textEn: 'Order: ① Parentheses → ② × ÷ → ③ + −', cost: 2 },
+      { level: 3, textJa: 'かけ算・わり算を先に計算してから、たし算・ひき算をしよう', textEn: 'Calculate × ÷ first, then do + − from left to right', cost: 5 }
+    );
+  } else if (topic === 'calculate-smartly') {
+    hints.push(
+      { level: 2, textJa: '100や1000になるペアを先に計算しよう（例：25×4=100）', textEn: 'Find pairs that make 100 or 1000 first (e.g. 25×4=100)', cost: 2 },
+      { level: 3, textJa: 'かけ算はじゅんじょを入れかえてもいい（交換法則）', textEn: 'You can reorder multiplication (commutative property)', cost: 5 }
+    );
+  } else if (topic === 'distributive-property') {
+    hints.push(
+      { level: 2, textJa: 'むずかしい数を2つに分ける：例 98 = 100 − 2', textEn: 'Split the hard number into two: e.g. 98 = 100 − 2', cost: 2 },
+      { level: 3, textJa: '(100 − 2) × □ = 100×□ − 2×□ で計算しよう', textEn: 'Use (100−2)×□ = 100×□ − 2×□ to calculate', cost: 5 }
+    );
+  } else {
+    hints.push(
+      { level: 2, textJa: '先に計算する部分を( )で囲んでみよう', textEn: 'Put parentheses around the part to calculate first', cost: 2 },
+      { level: 3, textJa: '問題の順番通りに式を組み立てよう', textEn: 'Build the equation following the order in the problem', cost: 5 }
+    );
+  }
+  return hints;
+};
+
+// Generate progressive hints for line graphs
+export const generateLineGraphHints = (topic: string): ProgressiveHint[] => {
+  const hints: ProgressiveHint[] = [
+    { level: 1, textJa: 'グラフの縦軸・横軸のラベルを確認しよう', textEn: 'Check the labels on the vertical and horizontal axes', cost: 0 },
+  ];
+
+  if (topic === 'reading-graph') {
+    hints.push(
+      { level: 2, textJa: '点の位置から縦軸の値を読もう', textEn: 'Read the vertical axis value from the position of the dot', cost: 2 },
+      { level: 3, textJa: '横軸の時間に合わせて、縦軸の数値を読もう', textEn: 'Find the time on the horizontal axis, then read up to the line', cost: 5 }
+    );
+  } else if (topic === 'interpreting-change') {
+    hints.push(
+      { level: 2, textJa: '線が上がっていれば増加、下がっていれば減少', textEn: 'Rising line = increasing, falling line = decreasing', cost: 2 },
+      { level: 3, textJa: '2つの時点の値の差を計算しよう', textEn: 'Calculate the difference between two time points', cost: 5 }
+    );
+  } else if (topic === 'slope') {
+    hints.push(
+      { level: 2, textJa: '線が一番急な部分を探そう', textEn: 'Look for the steepest part of the line', cost: 2 },
+      { level: 3, textJa: '単位時間あたりの変化量を比べよう', textEn: 'Compare the rate of change per unit time', cost: 5 }
+    );
+  } else {
+    hints.push(
+      { level: 2, textJa: 'グラフ用紙の目盛りを1つずつ確認しよう', textEn: 'Check each grid mark on the graph paper carefully', cost: 2 },
+      { level: 3, textJa: '各データのポイントを正確に打ってから線で結ぼう', textEn: 'Plot each data point accurately, then connect with a line', cost: 5 }
+    );
+  }
+  return hints;
+};
+
+// Generate progressive hints for investigating changes
+export const generateInvestigatingChangesHints = (topic: string): ProgressiveHint[] => {
+  const hints: ProgressiveHint[] = [
+    { level: 1, textJa: '変わっている数と変わっていない数を見つけよう', textEn: 'Find what is changing and what stays the same', cost: 0 },
+  ];
+
+  if (topic === 'completing-table') {
+    hints.push(
+      { level: 2, textJa: '表の中のパターンやきまりを探してみよう', textEn: 'Look for a pattern or rule in the table', cost: 2 },
+      { level: 3, textJa: '2つの数の関係（たし算・かけ算など）を式で表そう', textEn: 'Express the relationship between two numbers as an equation', cost: 5 }
+    );
+  } else if (topic === 'finding-rule') {
+    hints.push(
+      { level: 2, textJa: '変わり方のきまりを式に表してみよう（例：□ = ○ × 2）', textEn: 'Write the rule as an equation (e.g. □ = ○ × 2)', cost: 2 },
+      { level: 3, textJa: 'いくつかの組み合わせで式が成り立つか確認しよう', textEn: 'Check that the equation works for multiple pairs of values', cost: 5 }
+    );
+  } else {
+    hints.push(
+      { level: 2, textJa: '数の変わり方が一定かどうか確認しよう', textEn: 'Check whether the rate of change is constant', cost: 2 },
+      { level: 3, textJa: '式を使って求めたい値を計算しよう', textEn: 'Use the equation to calculate the value you need', cost: 5 }
+    );
+  }
+  return hints;
+};
+
 // ============================================
 // DAILY QUESTS SYSTEM
 // ============================================

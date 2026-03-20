@@ -3,6 +3,8 @@ import { FractionQuestion } from '@/lib/fractions';
 import { FractionInput } from './FractionInput';
 import { cn } from '@/lib/utils';
 import { Lightbulb } from 'lucide-react';
+import SmartHintPanel from '@/components/SmartHintPanel';
+import { generateFractionHints } from '@/lib/gameState';
 
 interface FractionsQuestionItemProps {
   question: FractionQuestion;
@@ -19,6 +21,8 @@ interface FractionsQuestionItemProps {
   isCorrect?: boolean;
   // For teach me feature
   onTeachMe?: () => void;
+  noHintsMode?: boolean;
+  onHintUsed?: () => void;
 }
 
 const FractionsQuestionItem = ({
@@ -35,6 +39,8 @@ const FractionsQuestionItem = ({
   graded,
   isCorrect,
   onTeachMe,
+  noHintsMode = false,
+  onHintUsed,
 }: FractionsQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -364,6 +370,19 @@ const FractionsQuestionItem = ({
           {graded && isFractionTypes && renderFractionBar()}
           {graded && question.topic === 'adding-fractions' && renderAdditionBars()}
           {graded && question.topic === 'subtracting-fractions' && renderBorrowingVisualization()}
+
+          {/* Smart Hint Panel */}
+          {!graded && (
+            <SmartHintPanel
+              hints={generateFractionHints(
+                question.topic === 'adding-fractions' || question.topic === 'subtracting-fractions'
+                  ? (question.denominator1 !== question.denominator2)
+                  : false
+              )}
+              onHintUsed={onHintUsed}
+              disabled={noHintsMode}
+            />
+          )}
 
           {/* Hint Toggle */}
           {!graded && (

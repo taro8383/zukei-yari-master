@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { AccuracyRateQuestion, AccuracyRateTopic, ACCURACY_RATE_TOPICS } from '@/lib/ratios';
 import BatteryBar from './BatteryBar';
+import SmartHintPanel from '@/components/SmartHintPanel';
+import { generateAccuracyRateHints } from '@/lib/gameState';
 
 interface AccuracyRateQuestionItemProps {
   question: AccuracyRateQuestion;
@@ -11,6 +13,8 @@ interface AccuracyRateQuestionItemProps {
   graded: boolean;
   isCorrect?: boolean;
   onTeachMe?: () => void;
+  noHintsMode?: boolean;
+  onHintUsed?: () => void;
 }
 
 const AccuracyRateQuestionItem = ({
@@ -21,6 +25,8 @@ const AccuracyRateQuestionItem = ({
   graded,
   isCorrect,
   onTeachMe,
+  noHintsMode = false,
+  onHintUsed,
 }: AccuracyRateQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
   const topicInfo = ACCURACY_RATE_TOPICS[question.topic];
@@ -126,6 +132,15 @@ const AccuracyRateQuestionItem = ({
                 showAnswer={graded}
               />
             </div>
+          )}
+
+          {/* Smart Hint Panel */}
+          {!graded && (
+            <SmartHintPanel
+              hints={generateAccuracyRateHints(question.topic)}
+              onHintUsed={onHintUsed}
+              disabled={noHintsMode}
+            />
           )}
 
           {/* Hint Toggle */}

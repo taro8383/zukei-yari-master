@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Lightbulb } from 'lucide-react';
+import SmartHintPanel from '@/components/SmartHintPanel';
+import { generateAreaHints } from '@/lib/gameState';
 
 interface AreaQuestionItemProps {
   question: {
@@ -34,6 +36,8 @@ interface AreaQuestionItemProps {
   graded: boolean;
   isCorrect?: boolean;
   onTeachMe?: () => void;
+  noHintsMode?: boolean;
+  onHintUsed?: () => void;
 }
 
 const AreaQuestionItem = ({
@@ -44,6 +48,8 @@ const AreaQuestionItem = ({
   graded,
   isCorrect,
   onTeachMe,
+  noHintsMode = false,
+  onHintUsed,
 }: AreaQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -460,6 +466,15 @@ const AreaQuestionItem = ({
           {/* Visual Aids - only show when graded for calculating area, always for composite shapes */}
           {isCalculatingArea && renderAreaShape()}
           {(isCompositeShapes || graded) && renderCompositeShape()}
+
+          {/* Smart Hint Panel */}
+          {!graded && (
+            <SmartHintPanel
+              hints={generateAreaHints(question.topic)}
+              onHintUsed={onHintUsed}
+              disabled={noHintsMode}
+            />
+          )}
 
           {/* Hint Toggle */}
           {!graded && (

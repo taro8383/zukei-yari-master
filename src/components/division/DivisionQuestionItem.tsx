@@ -3,6 +3,8 @@ import { Lightbulb } from 'lucide-react';
 import { DivisionQuestion, DivisionTopic } from '@/lib/division';
 import DivisionBracket from './DivisionBracket';
 import GroupingModel from './GroupingModel';
+import SmartHintPanel from '@/components/SmartHintPanel';
+import { generateDivisionHints } from '@/lib/gameState';
 
 interface DivisionQuestionItemProps {
   question: DivisionQuestion;
@@ -21,6 +23,8 @@ interface DivisionQuestionItemProps {
   graded: boolean;
   isCorrect?: boolean;
   onTeachMe?: () => void;
+  noHintsMode?: boolean;
+  onHintUsed?: () => void;
 }
 
 const DivisionQuestionItem = ({
@@ -37,6 +41,8 @@ const DivisionQuestionItem = ({
   graded,
   isCorrect,
   onTeachMe,
+  noHintsMode = false,
+  onHintUsed,
 }: DivisionQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -223,6 +229,15 @@ const DivisionQuestionItem = ({
             <div className="mb-4">
               {renderVisualAid()}
             </div>
+          )}
+
+          {/* Smart Hint Panel */}
+          {!graded && (
+            <SmartHintPanel
+              hints={generateDivisionHints(question.dividend, question.divisor)}
+              onHintUsed={onHintUsed}
+              disabled={noHintsMode}
+            />
           )}
 
           {/* Hint Toggle */}

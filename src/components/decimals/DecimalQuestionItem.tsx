@@ -3,6 +3,8 @@ import { DecimalQuestion } from '@/lib/decimals';
 import VerticalDecimalGrid from './VerticalDecimalGrid';
 import DecimalShiftArrow from './DecimalShiftArrow';
 import { Lightbulb } from 'lucide-react';
+import SmartHintPanel from '@/components/SmartHintPanel';
+import { generateDecimalHints } from '@/lib/gameState';
 
 interface DecimalQuestionItemProps {
   question: DecimalQuestion;
@@ -16,6 +18,8 @@ interface DecimalQuestionItemProps {
   onGridAnswerChange?: (cellIndex: number, value: string) => void;
   // For teach me feature
   onTeachMe?: () => void;
+  noHintsMode?: boolean;
+  onHintUsed?: () => void;
 }
 
 const DecimalQuestionItem = ({
@@ -28,6 +32,8 @@ const DecimalQuestionItem = ({
   gridAnswers = [],
   onGridAnswerChange,
   onTeachMe,
+  noHintsMode = false,
+  onHintUsed,
 }: DecimalQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -243,6 +249,19 @@ const DecimalQuestionItem = ({
             <div className="mb-4">
               {renderVisualAid()}
             </div>
+          )}
+
+          {/* Smart Hint Panel */}
+          {!graded && (
+            <SmartHintPanel
+              hints={generateDecimalHints(
+                question.topic === 'decimal-add' || question.topic === 'decimal-subtract'
+                  ? (question.topic === 'decimal-add' ? 'add' : 'subtract')
+                  : question.topic === 'decimal-multiply' ? 'multiply' : 'divide'
+              )}
+              onHintUsed={onHintUsed}
+              disabled={noHintsMode}
+            />
           )}
 
           {/* Hint Toggle */}

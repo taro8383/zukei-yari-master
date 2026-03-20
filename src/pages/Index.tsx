@@ -2398,6 +2398,8 @@ const Index = () => {
                             return parseFloat(geometryAnswers[i]) === q.answer;
                           })() : undefined}
                           onTeachMe={() => handleTeachMe(q, geometryAnswers[i], i)}
+                          noHintsMode={challengeModes.noHints}
+                          onHintUsed={() => setHintsUsed(prev => prev + 1)}
                         />
                       ) : (
                         <QuestionItem
@@ -2408,6 +2410,8 @@ const Index = () => {
                           graded={geometryGraded}
                           isCorrect={geometryGraded ? parseInt(geometryAnswers[i]) === q.answer : undefined}
                           onTeachMe={() => handleTeachMe(q, geometryAnswers[i], i)}
+                          noHintsMode={challengeModes.noHints}
+                          onHintUsed={() => setHintsUsed(prev => prev + 1)}
                         />
                       )}
                     </div>
@@ -2614,6 +2618,8 @@ const Index = () => {
                         graded={accuracyRateGraded}
                         isCorrect={accuracyRateGraded ? parseFloat(accuracyRateAnswers[i]) === q.answer : undefined}
                         onTeachMe={() => handleTeachMe(q, accuracyRateAnswers[i], i)}
+                        noHintsMode={challengeModes.noHints}
+                        onHintUsed={() => setHintsUsed(prev => prev + 1)}
                       />
                     </div>
                   ))}
@@ -2728,6 +2734,8 @@ const Index = () => {
                         equationAnswer={calculationRulesEquationAnswers[i] || ''}
                         onEquationChange={(eq) => handleCalculationRulesEquationChange(i, eq)}
                         onTeachMe={() => handleTeachMe(q, calculationRulesAnswers[i], i)}
+                        noHintsMode={challengeModes.noHints}
+                        onHintUsed={() => setHintsUsed(prev => prev + 1)}
                       />
                     </div>
                   ))}
@@ -2840,6 +2848,8 @@ const Index = () => {
                             : parseInt(divisionAnswers[i]) === q.quotient
                         ) : undefined}
                         onTeachMe={() => handleTeachMe(q, divisionAnswers[i], i)}
+                        noHintsMode={challengeModes.noHints}
+                        onHintUsed={() => setHintsUsed(prev => prev + 1)}
                       />
                     </div>
                   ))}
@@ -2943,6 +2953,8 @@ const Index = () => {
                         gridAnswers={decimalGridAnswers[i] || []}
                         onGridAnswerChange={(cellIdx, v) => handleDecimalGridAnswerChange(i, cellIdx, v)}
                         onTeachMe={() => handleTeachMe(q, decimalAnswers[i], i)}
+                        noHintsMode={challengeModes.noHints}
+                        onHintUsed={() => setHintsUsed(prev => prev + 1)}
                       />
                     </div>
                   ))}
@@ -3045,6 +3057,8 @@ const Index = () => {
                             : parseInt(largeNumberAnswers[i]) === q.answer)
                           : undefined}
                         onTeachMe={() => handleTeachMe(q, largeNumberAnswers[i], i)}
+                        noHintsMode={challengeModes.noHints}
+                        onHintUsed={() => setHintsUsed(prev => prev + 1)}
                       />
                     </div>
                   ))}
@@ -3158,6 +3172,8 @@ const Index = () => {
                             : Math.abs(parseFloat(lineGraphAnswers[i] || '0') - (typeof q.answer === 'number' ? q.answer : parseFloat(q.answer))) < 0.01
                         ) : undefined}
                         onTeachMe={() => handleTeachMe(q, lineGraphAnswers[i], i)}
+                        noHintsMode={challengeModes.noHints}
+                        onHintUsed={() => setHintsUsed(prev => prev + 1)}
                       />
                     </div>
                   ))}
@@ -3285,6 +3301,8 @@ const Index = () => {
                           })()
                         ) : undefined}
                         onTeachMe={() => handleTeachMe(q, fractionAnswers[i], i)}
+                        noHintsMode={challengeModes.noHints}
+                        onHintUsed={() => setHintsUsed(prev => prev + 1)}
                       />
                     </div>
                   ))}
@@ -3387,6 +3405,8 @@ const Index = () => {
                             : investigatingChangesAnswers[i] === q.answer
                         ) : undefined}
                         onTeachMe={() => handleTeachMe(q, investigatingChangesAnswers[i], i)}
+                        noHintsMode={challengeModes.noHints}
+                        onHintUsed={() => setHintsUsed(prev => prev + 1)}
                       />
                     </div>
                   ))}

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { InvestigatingChangesQuestion } from '@/lib/investigatingChanges';
+import SmartHintPanel from '@/components/SmartHintPanel';
+import { generateInvestigatingChangesHints } from '@/lib/gameState';
 
 interface InvestigatingChangesQuestionItemProps {
   question: InvestigatingChangesQuestion;
@@ -11,6 +13,8 @@ interface InvestigatingChangesQuestionItemProps {
   graded: boolean;
   isCorrect?: boolean;
   onTeachMe?: () => void;
+  noHintsMode?: boolean;
+  onHintUsed?: () => void;
 }
 
 const InvestigatingChangesQuestionItem = ({
@@ -21,6 +25,8 @@ const InvestigatingChangesQuestionItem = ({
   graded,
   isCorrect,
   onTeachMe,
+  noHintsMode = false,
+  onHintUsed,
 }: InvestigatingChangesQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -249,6 +255,15 @@ const InvestigatingChangesQuestionItem = ({
           {(isCompletingTable || isFindingRule || isWritingEquation) && renderTable()}
           {isWritingEquation && renderEquationBuilder()}
           {isFindingRule && renderRuleOptions()}
+
+          {/* Smart Hint Panel */}
+          {!graded && (
+            <SmartHintPanel
+              hints={generateInvestigatingChangesHints(question.topic)}
+              onHintUsed={onHintUsed}
+              disabled={noHintsMode}
+            />
+          )}
 
           {/* Hint Toggle */}
           {!graded && (

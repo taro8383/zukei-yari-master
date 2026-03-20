@@ -13,6 +13,8 @@ import {
 } from '@/components/explanations';
 import ConceptExplanation from '@/components/ConceptExplanation';
 import { Lightbulb } from 'lucide-react';
+import SmartHintPanel from '@/components/SmartHintPanel';
+import { generateGeometryHints } from '@/lib/gameState';
 
 interface QuestionItemProps {
   question: Question;
@@ -22,6 +24,8 @@ interface QuestionItemProps {
   graded: boolean;
   isCorrect?: boolean;
   onTeachMe?: () => void;
+  noHintsMode?: boolean;
+  onHintUsed?: () => void;
 }
 
 const QuestionItem = ({
@@ -32,6 +36,8 @@ const QuestionItem = ({
   graded,
   isCorrect,
   onTeachMe,
+  noHintsMode = false,
+  onHintUsed,
 }: QuestionItemProps) => {
   const { diagram } = question;
 
@@ -144,6 +150,15 @@ const QuestionItem = ({
             <div className="mt-3">
               <ConceptExplanation concept="area" />
             </div>
+          )}
+
+          {/* Smart Hint Panel */}
+          {!graded && (
+            <SmartHintPanel
+              hints={generateGeometryHints(question.diagram.type, question.diagram.params)}
+              onHintUsed={onHintUsed}
+              disabled={noHintsMode}
+            />
           )}
 
           {/* Interactive Exercise or Regular Diagram */}

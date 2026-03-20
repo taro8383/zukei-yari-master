@@ -3,6 +3,8 @@ import { Lightbulb } from 'lucide-react';
 import { LineGraphQuestion } from '@/lib/lineGraphs';
 import LineGraphVisualizer from './LineGraphVisualizer';
 import DrawingGraphInteractive from './DrawingGraphInteractive';
+import SmartHintPanel from '@/components/SmartHintPanel';
+import { generateLineGraphHints } from '@/lib/gameState';
 
 interface LineGraphQuestionItemProps {
   question: LineGraphQuestion;
@@ -22,6 +24,8 @@ interface LineGraphQuestionItemProps {
   graded: boolean;
   isCorrect?: boolean;
   onTeachMe?: () => void;
+  noHintsMode?: boolean;
+  onHintUsed?: () => void;
 }
 
 const LineGraphQuestionItem = ({
@@ -40,6 +44,8 @@ const LineGraphQuestionItem = ({
   graded,
   isCorrect,
   onTeachMe,
+  noHintsMode = false,
+  onHintUsed,
 }: LineGraphQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -271,6 +277,15 @@ const LineGraphQuestionItem = ({
               />
             )}
           </div>
+
+          {/* Smart Hint Panel */}
+          {!graded && (
+            <SmartHintPanel
+              hints={generateLineGraphHints(question.topic)}
+              onHintUsed={onHintUsed}
+              disabled={noHintsMode}
+            />
+          )}
 
           {/* Hint Toggle */}
           {!graded && (

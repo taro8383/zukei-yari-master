@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { LargeNumberQuestion } from '@/lib/largeNumbers';
 import PlaceValueChart from './PlaceValueChart';
 import NumberLine from './NumberLine';
+import SmartHintPanel from '@/components/SmartHintPanel';
+import { generateLargeNumberHints } from '@/lib/gameState';
 
 interface LargeNumbersQuestionItemProps {
   question: LargeNumberQuestion;
@@ -13,6 +15,8 @@ interface LargeNumbersQuestionItemProps {
   graded: boolean;
   isCorrect?: boolean;
   onTeachMe?: () => void;
+  noHintsMode?: boolean;
+  onHintUsed?: () => void;
 }
 
 const LargeNumbersQuestionItem = ({
@@ -23,6 +27,8 @@ const LargeNumbersQuestionItem = ({
   graded,
   isCorrect,
   onTeachMe,
+  noHintsMode = false,
+  onHintUsed,
 }: LargeNumbersQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
 
@@ -89,6 +95,15 @@ const LargeNumbersQuestionItem = ({
         <div className="mb-4">
           {renderVisualAid()}
         </div>
+      )}
+
+      {/* Smart Hint Panel */}
+      {!graded && (
+        <SmartHintPanel
+          hints={generateLargeNumberHints(question.topic)}
+          onHintUsed={onHintUsed}
+          disabled={noHintsMode}
+        />
       )}
 
       {/* Hint Toggle */}

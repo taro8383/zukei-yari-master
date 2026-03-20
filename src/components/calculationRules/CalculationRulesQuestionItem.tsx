@@ -3,6 +3,8 @@ import { Lightbulb } from 'lucide-react';
 import { CalculationRulesQuestion, CalculationRulesTopic, CALCULATION_RULES_TOPICS } from '@/lib/calculationRules';
 import OrderOfOperationsTree from './OrderOfOperationsTree';
 import AreaModel from './AreaModel';
+import SmartHintPanel from '@/components/SmartHintPanel';
+import { generateCalculationRulesHints } from '@/lib/gameState';
 
 // Helper function to evaluate a mathematical expression
 // Returns null if the expression is invalid
@@ -103,6 +105,8 @@ interface CalculationRulesQuestionItemProps {
   // For equation building
   equationAnswer?: string;
   onEquationChange?: (equation: string) => void;
+  noHintsMode?: boolean;
+  onHintUsed?: () => void;
 }
 
 const CalculationRulesQuestionItem = ({
@@ -117,6 +121,8 @@ const CalculationRulesQuestionItem = ({
   onStepAnswerChange,
   equationAnswer = '',
   onEquationChange,
+  noHintsMode = false,
+  onHintUsed,
 }: CalculationRulesQuestionItemProps) => {
   const [showHint, setShowHint] = useState(false);
   const topicInfo = CALCULATION_RULES_TOPICS[question.topic];
@@ -299,6 +305,15 @@ const CalculationRulesQuestionItem = ({
             <div className="mb-4">
               {renderVisualAid()}
             </div>
+          )}
+
+          {/* Smart Hint Panel */}
+          {!graded && (
+            <SmartHintPanel
+              hints={generateCalculationRulesHints(question.topic)}
+              onHintUsed={onHintUsed}
+              disabled={noHintsMode}
+            />
           )}
 
           {/* Hint Toggle */}
