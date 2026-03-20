@@ -1385,6 +1385,21 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
         <div className="mb-4">
           <p className="text-xl font-medium leading-relaxed">{currentQuestion?.text}</p>
           <p className="text-sm text-muted-foreground mt-1">{currentQuestion?.textEn}</p>
+
+          {/* Hint for expected answer format (for ratio/accuracy rate questions) */}
+          {(currentQuestion as any).hint && (
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm text-blue-700 dark:text-blue-300 font-medium flex items-center gap-2">
+                <span>💡</span>
+                {(currentQuestion as any).hint}
+              </p>
+              {(currentQuestion as any).hintEn && (
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  {(currentQuestion as any).hintEn}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Geometry Diagram (if applicable) */}

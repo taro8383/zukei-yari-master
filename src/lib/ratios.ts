@@ -50,6 +50,9 @@ export interface RatioQuestion {
   correctOperation?: 'difference' | 'multiple';
   differenceAnswer?: number;
   multipleAnswer?: number;
+  // Hint for expected answer format
+  hint?: string;
+  hintEn?: string;
 }
 
 export interface AccuracyRateQuestion {
@@ -66,6 +69,9 @@ export interface AccuracyRateQuestion {
   explanationEn: string;
   formula: string; // Formula to display when wrong
   formulaEn: string;
+  // Hint for expected answer format
+  hint?: string;
+  hintEn?: string;
 }
 
 export const RATIO_TOPICS: Record<RatioTopic, RatioTopicInfo> = {
@@ -222,6 +228,15 @@ export function generateFindingRatioQuestions(): RatioQuestion[] {
 
     if (askForComparedOverBase) {
       // Standard: Compared ÷ Base
+      // Determine hint based on whether ratio is whole number or decimal
+      const isWholeNumber = ratio === Math.floor(ratio);
+      const hint = isWholeNumber
+        ? '倍の数を整数で答えましょう。'
+        : '倍の数を小数第1位まで答えましょう。';
+      const hintEn = isWholeNumber
+        ? 'Answer as a whole number.'
+        : 'Answer to 1 decimal place.';
+
       questions.push({
         id: index + 1,
         type: 'finding-ratio',
@@ -233,10 +248,21 @@ export function generateFindingRatioQuestions(): RatioQuestion[] {
         textEn: `When the base amount is ${baseAmount} and the compared amount is ${comparedAmount}, how many times bigger is the compared amount?`,
         explanation: `${comparedAmount} ÷ ${baseAmount} = ${ratio}`,
         explanationEn: `${comparedAmount} ÷ ${baseAmount} = ${ratio}`,
+        hint,
+        hintEn,
       });
     } else {
       // Reverse: Base ÷ Compared
       const reverseRatio = Math.round((baseAmount / comparedAmount) * 100) / 100;
+      // Determine hint for reverse ratio
+      const isReverseWholeNumber = reverseRatio === Math.floor(reverseRatio);
+      const reverseHint = isReverseWholeNumber
+        ? '倍の数を整数で答えましょう。'
+        : '倍の数を小数第1位まで答えましょう。';
+      const reverseHintEn = isReverseWholeNumber
+        ? 'Answer as a whole number.'
+        : 'Answer to 1 decimal place.';
+
       questions.push({
         id: index + 1,
         type: 'finding-ratio',
@@ -248,6 +274,8 @@ export function generateFindingRatioQuestions(): RatioQuestion[] {
         textEn: `When the base amount is ${comparedAmount} and the compared amount is ${baseAmount}, how many times bigger is the compared amount?`,
         explanation: `${baseAmount} ÷ ${comparedAmount} = ${reverseRatio}`,
         explanationEn: `${baseAmount} ÷ ${comparedAmount} = ${reverseRatio}`,
+        hint: reverseHint,
+        hintEn: reverseHintEn,
       });
     }
   });
@@ -345,6 +373,15 @@ export function generateFindingComparedQuestions(): RatioQuestion[] {
   const selected = shuffled.slice(0, 5);
 
   selected.forEach(([baseAmount, ratio, comparedAmount], index) => {
+    // Determine hint based on whether result is whole number or decimal
+    const isWholeNumber = comparedAmount === Math.floor(comparedAmount);
+    const hint = isWholeNumber
+      ? '答えは整数です。'
+      : '答えは小数第1位まで答えましょう。';
+    const hintEn = isWholeNumber
+      ? 'The answer is a whole number.'
+      : 'Answer to 1 decimal place.';
+
     questions.push({
       id: index + 1,
       type: 'finding-compared',
@@ -356,6 +393,8 @@ export function generateFindingComparedQuestions(): RatioQuestion[] {
       textEn: `The red bucket holds ${baseAmount}L. The blue bucket holds ${ratio} times that amount. How many liters does the blue bucket hold?`,
       explanation: `${baseAmount} × ${ratio} = ${comparedAmount}`,
       explanationEn: `${baseAmount} × ${ratio} = ${comparedAmount}`,
+      hint,
+      hintEn,
     });
   });
 
@@ -449,6 +488,15 @@ export function generateFindingBaseQuestions(): RatioQuestion[] {
   const selected = shuffled.slice(0, 5);
 
   selected.forEach(([comparedAmount, ratio, baseAmount], index) => {
+    // Determine hint based on whether result is whole number or decimal
+    const isWholeNumber = baseAmount === Math.floor(baseAmount);
+    const hint = isWholeNumber
+      ? '答えは整数です。'
+      : '答えは小数第1位まで答えましょう。';
+    const hintEn = isWholeNumber
+      ? 'The answer is a whole number.'
+      : 'Answer to 1 decimal place.';
+
     questions.push({
       id: index + 1,
       type: 'finding-base',
@@ -460,6 +508,8 @@ export function generateFindingBaseQuestions(): RatioQuestion[] {
       textEn: `Kei's toy car traveled ${comparedAmount}cm. This is ${ratio} times further than his sister's car. How many centimeters did his sister's car travel?`,
       explanation: `${comparedAmount} ÷ ${ratio} = ${baseAmount}`,
       explanationEn: `${comparedAmount} ÷ ${ratio} = ${baseAmount}`,
+      hint,
+      hintEn,
     });
   });
 
@@ -528,6 +578,17 @@ export function generateDecimalRatioQuestions(): AccuracyRateQuestion[] {
     ];
     const theme = themes[index % themes.length];
 
+    // Determine hint based on decimal places
+    const decimalStr = decimalRatio.toString();
+    const hasDecimal = decimalStr.includes('.');
+    const decimalPlaces = hasDecimal ? decimalStr.split('.')[1].length : 0;
+    const hint = hasDecimal
+      ? `答えは小数第${decimalPlaces}位まで答えましょう。`
+      : '答えは整数です。';
+    const hintEn = hasDecimal
+      ? `Answer to ${decimalPlaces} decimal place${decimalPlaces > 1 ? 's' : ''}.`
+      : 'The answer is a whole number.';
+
     questions.push({
       id: index + 1,
       topic: 'decimal-ratio',
@@ -542,6 +603,8 @@ export function generateDecimalRatioQuestions(): AccuracyRateQuestion[] {
       explanationEn: `${correctAnswers} ÷ ${totalQuestions} = ${decimalRatio}`,
       formula: `正解: ${correctAnswers} ÷ ${totalQuestions} = ${decimalRatio}`,
       formulaEn: `Correct: ${correctAnswers} ÷ ${totalQuestions} = ${decimalRatio}`,
+      hint,
+      hintEn,
     });
   });
 
@@ -606,6 +669,8 @@ export function generateConvertPercentQuestions(): AccuracyRateQuestion[] {
       explanationEn: `${decimalRatio} × 100 = ${percentage}%`,
       formula: `正解: ${decimalRatio} × 100 = ${percentage}%`,
       formulaEn: `Correct: ${decimalRatio} × 100 = ${percentage}%`,
+      hint: '答えは整数で答えましょう。',
+      hintEn: 'Answer as a whole number.',
     });
   });
 
@@ -697,6 +762,8 @@ export function generateCalculateAccuracyQuestions(): AccuracyRateQuestion[] {
       explanationEn: `(${correctAnswers} ÷ ${totalQuestions}) × 100 = ${percentage}%`,
       formula: `正解: (${correctAnswers} ÷ ${totalQuestions}) × 100 = ${percentage}%`,
       formulaEn: `Correct: (${correctAnswers} ÷ ${totalQuestions}) × 100 = ${percentage}%`,
+      hint: '答えは整数で答えましょう。',
+      hintEn: 'Answer as a whole number.',
     });
   });
 
@@ -764,13 +831,27 @@ export function generateDifferenceVsMultipleQuestions(): RatioQuestion[] {
       ? differenceScenarios[index % differenceScenarios.length]
       : multipleScenarios[index % multipleScenarios.length];
 
+    // Determine hint based on answer type
+    const answerValue = isDifference ? diff : Math.round(ratio * 100) / 100;
+    const isWholeNumber = answerValue === Math.floor(answerValue);
+    const hint = isDifference
+      ? '差（ひき算の答え）を整数で答えましょう。'
+      : (isWholeNumber
+          ? '倍の数を整数で答えましょう。'
+          : '倍の数を小数第1位まで答えましょう。');
+    const hintEn = isDifference
+      ? 'Answer the difference as a whole number.'
+      : (isWholeNumber
+          ? 'Answer as a whole number.'
+          : 'Answer to 1 decimal place.');
+
     questions.push({
       id: index + 1,
       type: 'difference-vs-multiple',
       baseAmount: smaller,
       comparedAmount: larger,
       ratio: Math.round(ratio * 100) / 100,
-      answer: isDifference ? diff : Math.round(ratio * 100) / 100,
+      answer: answerValue,
       text: scenario.ja(smaller, larger, isDifference ? diff : ratio),
       textEn: scenario.en(smaller, larger, isDifference ? diff : ratio),
       explanation: isDifference
@@ -782,6 +863,8 @@ export function generateDifferenceVsMultipleQuestions(): RatioQuestion[] {
       correctOperation: isDifference ? 'difference' : 'multiple',
       differenceAnswer: diff,
       multipleAnswer: Math.round(ratio * 100) / 100,
+      hint,
+      hintEn,
     });
   });
 
