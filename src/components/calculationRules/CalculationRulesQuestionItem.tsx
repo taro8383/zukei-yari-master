@@ -5,6 +5,7 @@ import OrderOfOperationsTree from './OrderOfOperationsTree';
 import AreaModel from './AreaModel';
 import SmartHintPanel from '@/components/SmartHintPanel';
 import { generateCalculationRulesHints } from '@/lib/gameState';
+import { ManipulativeToggle, AreaModelGridVisual } from '@/components/manipulatives';
 
 // Helper function to evaluate a mathematical expression
 // Returns null if the expression is invalid
@@ -315,6 +316,28 @@ const CalculationRulesQuestionItem = ({
               disabled={noHintsMode}
             />
           )}
+
+          {/* Manipulative: Area Model Grid for multiplication topics */}
+          {!graded && (() => {
+            let factors: [number, number] | null = null;
+            if (question.topic === 'distributive-property' && question.expression) {
+              const parts = question.expression.split('×').map(s => parseInt(s.trim(), 10));
+              if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                factors = [parts[0], parts[1]];
+              }
+            } else if (question.topic === 'calculate-smartly' && question.expression && question.expression.includes('×')) {
+              const parts = question.expression.split('×').map(s => parseInt(s.trim(), 10));
+              if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                factors = [parts[0], parts[1]];
+              }
+            }
+            if (!factors) return null;
+            return (
+              <ManipulativeToggle label="面積モデルを見る / Show Area Model">
+                <AreaModelGridVisual factor1={factors[0]} factor2={factors[1]} />
+              </ManipulativeToggle>
+            );
+          })()}
 
           {/* Hint Toggle */}
           {!graded && (

@@ -6,6 +6,7 @@ import PlaceValueChart from './PlaceValueChart';
 import NumberLine from './NumberLine';
 import SmartHintPanel from '@/components/SmartHintPanel';
 import { generateLargeNumberHints } from '@/lib/gameState';
+import { ManipulativeToggle, NumberBlocksVisual } from '@/components/manipulatives';
 
 interface LargeNumbersQuestionItemProps {
   question: LargeNumberQuestion;
@@ -94,6 +95,25 @@ const LargeNumbersQuestionItem = ({
       {renderVisualAid() && (
         <div className="mb-4">
           {renderVisualAid()}
+        </div>
+      )}
+
+      {/* Manipulative: Number Blocks / Place Value Visual */}
+      {!graded && question.topic === 'reading-oku-cho' && question.numericValue && (
+        <div className="mb-4">
+          <ManipulativeToggle label="位取り積み木を見る / Show Place Value">
+            <NumberBlocksVisual number={question.numericValue} />
+          </ManipulativeToggle>
+        </div>
+      )}
+      {!graded && question.topic === 'calculating-oku-cho' && question.num1 && (
+        <div className="mb-4">
+          <ManipulativeToggle label="位取り表を見る / Show Place Value">
+            <div className="flex flex-col gap-2">
+              <NumberBlocksVisual number={question.num1} />
+              {question.num2 && <NumberBlocksVisual number={question.num2} />}
+            </div>
+          </ManipulativeToggle>
         </div>
       )}
 

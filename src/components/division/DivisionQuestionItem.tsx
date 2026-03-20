@@ -5,6 +5,7 @@ import DivisionBracket from './DivisionBracket';
 import GroupingModel from './GroupingModel';
 import SmartHintPanel from '@/components/SmartHintPanel';
 import { generateDivisionHints } from '@/lib/gameState';
+import { ManipulativeToggle, NumberLineVisual } from '@/components/manipulatives';
 
 interface DivisionQuestionItemProps {
   question: DivisionQuestion;
@@ -238,6 +239,19 @@ const DivisionQuestionItem = ({
               onHintUsed={onHintUsed}
               disabled={noHintsMode}
             />
+          )}
+
+          {/* Manipulative: Number Line for division topics */}
+          {!graded && (question.topic === 'division-with-remainder' || question.topic === 'mental-division') && (
+            <ManipulativeToggle label="数直線を見る / Show Number Line">
+              <NumberLineVisual
+                start={0}
+                operand={question.divisor}
+                direction="+"
+                result={question.divisor * question.quotient}
+                jumps={question.quotient}
+              />
+            </ManipulativeToggle>
           )}
 
           {/* Hint Toggle */}

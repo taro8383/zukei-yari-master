@@ -5,6 +5,7 @@ import DecimalShiftArrow from './DecimalShiftArrow';
 import { Lightbulb } from 'lucide-react';
 import SmartHintPanel from '@/components/SmartHintPanel';
 import { generateDecimalHints } from '@/lib/gameState';
+import { ManipulativeToggle, MoneyCoinsVisual } from '@/components/manipulatives';
 
 interface DecimalQuestionItemProps {
   question: DecimalQuestion;
@@ -262,6 +263,13 @@ const DecimalQuestionItem = ({
               onHintUsed={onHintUsed}
               disabled={noHintsMode}
             />
+          )}
+
+          {/* Manipulative: Money Coins for decimal-structure */}
+          {!graded && question.topic === 'decimal-structure' && question.decimalNumber !== undefined && (
+            <ManipulativeToggle label="コインで見る / Show with Coins">
+              <MoneyCoinsVisual amount={Math.round(question.decimalNumber * 100)} />
+            </ManipulativeToggle>
           )}
 
           {/* Hint Toggle */}

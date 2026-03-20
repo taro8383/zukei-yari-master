@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Lightbulb } from 'lucide-react';
 import SmartHintPanel from '@/components/SmartHintPanel';
 import { generateFractionHints } from '@/lib/gameState';
+import { ManipulativeToggle, FractionBarVisual } from '@/components/manipulatives';
 
 interface FractionsQuestionItemProps {
   question: FractionQuestion;
@@ -410,6 +411,36 @@ const FractionsQuestionItem = ({
                 </>
               )}
             </div>
+          )}
+
+          {/* Manipulative: Fraction Bar Visual (pre-answer) */}
+          {!graded && (
+            <ManipulativeToggle label="分数バーを見る / Show Fraction Bar">
+              {isAddingOrSubtracting ? (
+                <div className="flex items-center gap-3 flex-wrap justify-center bg-white rounded-xl border border-gray-200 p-3">
+                  <FractionBarVisual
+                    numerator={question.numerator1 || 0}
+                    denominator={question.denominator1 || 1}
+                    color="#60a5fa"
+                  />
+                  <span className="text-xl font-bold text-gray-500">
+                    {question.topic === 'adding-fractions' ? '+' : '−'}
+                  </span>
+                  <FractionBarVisual
+                    numerator={question.numerator2 || 0}
+                    denominator={question.denominator2 || 1}
+                    color="#f472b6"
+                  />
+                </div>
+              ) : (() => {
+                const { num, den, whole } = parseFraction(question.fraction || question.originalFraction);
+                return (
+                  <div className="flex justify-center bg-white rounded-xl border border-gray-200 p-3">
+                    <FractionBarVisual numerator={num} denominator={den} whole={whole} />
+                  </div>
+                );
+              })()}
+            </ManipulativeToggle>
           )}
 
           {/* Answer Input Section */}
