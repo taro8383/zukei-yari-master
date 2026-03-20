@@ -12,10 +12,11 @@ interface HeaderBarProps {
   onOpenVocabulary?: () => void;
   onOpenMiniGames?: () => void;
   onOpenTestMode?: () => void;
+  onOpenAchievements?: () => void;
   unacknowledgedInsights?: number;
 }
 
-const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, onOpenStoryMode, onOpenVocabulary, onOpenMiniGames, onOpenTestMode, unacknowledgedInsights = 0 }: HeaderBarProps) => {
+const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, onOpenStoryMode, onOpenVocabulary, onOpenMiniGames, onOpenTestMode, onOpenAchievements, unacknowledgedInsights = 0 }: HeaderBarProps) => {
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [showCoinsAnimation, setShowCoinsAnimation] = useState(false);
 
@@ -105,8 +106,10 @@ const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, onOpen
         </div>
 
         {/* Achievements */}
-        <div
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-purple-50 border border-purple-200"
+        <button
+          onClick={onOpenAchievements}
+          disabled={!onOpenAchievements}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-purple-50 border border-purple-200 hover:bg-purple-100 transition-colors disabled:cursor-default"
           title="実績 / Achievements"
         >
           <Trophy className="w-5 h-5 text-purple-500" />
@@ -114,7 +117,7 @@ const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, onOpen
             <span className="text-sm font-black text-purple-600">{achievements.length}</span>
             <span className="text-[10px] text-purple-400 font-medium">バッジ</span>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Right - Quests + Insights + Shop + XP Bar */}

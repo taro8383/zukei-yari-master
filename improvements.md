@@ -246,7 +246,7 @@ Unlock after every 10 questions:
 
 ---
 
-### 10. Achievement Showcase Wall
+### 10. Achievement Showcase Wall ✅ IMPLEMENTED 2026-03-20
 
 A visual gallery of all earned achievements:
 

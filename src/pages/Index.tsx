@@ -16,6 +16,7 @@ import ChallengeModeSelector, { ChallengeModes } from '@/components/ChallengeMod
 import ShopModal from '@/components/ShopModal';
 import VocabularyModal from '@/components/VocabularyModal';
 import MiniGameModal from '@/components/MiniGameModal';
+import AchievementWallModal from '@/components/AchievementWallModal';
 import AdventureMap from '@/components/AdventureMap';
 import DailyQuests from '@/components/DailyQuests';
 import LearningInsights from '@/components/LearningInsights';
@@ -373,6 +374,7 @@ const Index = () => {
   const [insightsModalOpen, setInsightsModalOpen] = useState(false);
   const [vocabularyModalOpen, setVocabularyModalOpen] = useState(false);
   const [miniGameModalOpen, setMiniGameModalOpen] = useState(false);
+  const [achievementWallOpen, setAchievementWallOpen] = useState(false);
   const [unacknowledgedInsights, setUnacknowledgedInsights] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [showMiniGameUnlock, setShowMiniGameUnlock] = useState(false);
@@ -2146,6 +2148,7 @@ const Index = () => {
           onOpenVocabulary={() => setVocabularyModalOpen(true)}
           onOpenMiniGames={() => setMiniGameModalOpen(true)}
           onOpenTestMode={() => setTestModeOpen(true)}
+          onOpenAchievements={() => setAchievementWallOpen(true)}
           unacknowledgedInsights={unacknowledgedInsights}
         />
       </div>
@@ -3584,6 +3587,12 @@ const Index = () => {
       <ShopModal
         isOpen={shopModalOpen}
         onClose={() => setShopModalOpen(false)}
+      />
+
+      {/* Achievement Wall Modal */}
+      <AchievementWallModal
+        isOpen={achievementWallOpen}
+        onClose={() => setAchievementWallOpen(false)}
       />
 
       {/* Vocabulary Modal */}
