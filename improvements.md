@@ -8,7 +8,9 @@
 
 ## 🧠 Learning Quality Improvements
 
-### 1. Interactive Step-by-Step Solver
+### 1. Interactive Step-by-Step Solver ✅ IMPLEMENTED
+> **Implementation**: `SolutionModal.tsx` + `src/lib/solutionGenerator.ts`
+
 Instead of just showing "correct/incorrect", demonstrate the solution process visually:
 
 ```
@@ -30,7 +32,9 @@ Step 3: 100 + 20 = 120 ← Adding together
 
 ---
 
-### 2. Visual Math Manipulatives
+### 2. Visual Math Manipulatives ✅ IMPLEMENTED
+> **Implementation**: `src/components/manipulatives/` — 5 standalone reusable components behind 👁 toggle buttons, accessible **before answering** each question. Fraction bars and area models that previously existed only as post-grade embedded visuals have been extracted into proper reusable components.
+
 Interactive visual tools for concrete understanding:
 
 | Tool | Use Case | Visual |
@@ -41,6 +45,12 @@ Interactive visual tools for concrete understanding:
 | **Money/Coins** | Decimal practice | Realistic yen coins |
 | **Number Line** | Addition/subtraction jumps | Animated hopping |
 
+> | **Number Blocks** | `NumberBlocksVisual` | LargeNumbers (reading-oku-cho, calculating-oku-cho) |
+> | **Fraction Bars** | `FractionBarVisual` | Fractions (all topics; two-bar side-by-side for add/subtract) |
+> | **Area Models** | `AreaModelGridVisual` | CalculationRules (distributive-property, calculate-smartly ×) |
+> | **Money/Coins** | `MoneyCoinsVisual` | Decimals (decimal-structure) |
+> | **Number Line** | `NumberLineVisual` | Division (division-with-remainder, mental-division) |
+
 **Benefits**:
 - Concrete → Abstract learning progression
 - Especially helps visual learners
@@ -48,7 +58,9 @@ Interactive visual tools for concrete understanding:
 
 ---
 
-### 3. "Teach Me" Mode
+### 3. "Teach Me" Mode ✅ IMPLEMENTED
+> **Implementation**: `TeachMeModal.tsx` — triggered on wrong answers, includes visual lessons and "Try Similar" button
+
 When a student gets a problem wrong, offer a micro-lesson:
 
 ```
@@ -75,7 +87,9 @@ When multiplying by 3, think "3 groups of this number"
 
 ---
 
-### 4. Math Vocabulary Cards
+### 4. Math Vocabulary Cards ✅ IMPLEMENTED
+> **Implementation**: `VocabularyModal.tsx` + `ClickableMathTerm.tsx` + `src/lib/vocabulary.ts` — clickable terms in questions, searchable vocabulary library
+
 Tap any math term to see kid-friendly definitions:
 
 ```
@@ -119,7 +133,9 @@ Frame problems as relatable stories:
 
 ---
 
-### 6. Error Pattern Recognition
+### 6. Error Pattern Recognition ✅ IMPLEMENTED
+> **Implementation**: `LearningInsights.tsx` + `recordMistake()`, `getLearningInsights()` in `src/lib/gameState.ts`
+
 Track common mistakes and offer targeted help:
 
 ```
@@ -146,7 +162,8 @@ improving! Keep going!
 
 ## 🎮 Engagement Improvements
 
-### 7. Daily Quests / Missions
+### 7. Daily Quests / Missions ✅ IMPLEMENTED
+> **Implementation**: `DailyQuests.tsx` + `getDailyQuests()`, `resetDailyQuests()` in `src/lib/gameState.ts` — daily missions with coin rewards and reset timer
 
 ```
 🎯 Today's Mission
@@ -201,7 +218,8 @@ A virtual pet that grows with math practice:
 
 ---
 
-### 9. Mini-Game Breaks
+### 9. Mini-Game Breaks ✅ IMPLEMENTED
+> **Implementation**: `MiniGameModal.tsx` + `src/lib/miniGames.ts` — all 5 games implemented (Number Snake, Quick Flash, Pattern Match, Balance Scale, Bubble Pop) with high scores and coin rewards
 
 Unlock after every 10 questions:
 
@@ -248,7 +266,8 @@ A visual gallery of all earned achievements:
 
 ---
 
-### 11. Personalization Options
+### 11. Personalization Options ⚠️ PARTIALLY IMPLEMENTED
+> **Implementation**: `ShopModal.tsx` has themes and color accents purchasable with coins — missing Math Buddy character selection, Problem Themes (Space/Cooking/etc.), and Sound Effects
 
 Let kids make it their own:
 
@@ -297,7 +316,8 @@ Growth Areas:
 
 ---
 
-### 13. Competition Modes
+### 13. Competition Modes ⚠️ PARTIALLY IMPLEMENTED
+> **Implementation**: Speed mode in `ChallengeModeSelector.tsx`, streak tracking in `HeaderBar.tsx` + `EndOfSessionSummary.tsx` — missing Ghost Mode and Yesterday vs Today comparison
 
 | Mode | Description |
 |------|-------------|
@@ -313,7 +333,8 @@ Growth Areas:
 
 ---
 
-### 14. Story Mode (Math Adventure)
+### 14. Story Mode (Math Adventure) ✅ IMPLEMENTED
+> **Implementation**: `src/lib/storyMode.ts` + `AdventureMap.tsx` + `src/components/story/` (`ChapterIntroModal`, `ChapterCompleteModal`, `DailyEpisodeModal`, `StoryProgressPanel`) — fully integrated in `Index.tsx`
 
 Narrative wrapper for the adventure map:
 
@@ -346,7 +367,8 @@ Next: Fraction Volcano 🌋
 
 ---
 
-### 15. Help-Seeking Features
+### 15. Help-Seeking Features ✅ IMPLEMENTED
+> **Implementation**: `SmartHintPanel.tsx` — tiered progressive hints, some free and some costing coins, integrated into question items
 
 Normalize asking for help:
 
@@ -368,7 +390,8 @@ Normalize asking for help:
 
 ---
 
-### 16. End-of-Session Summary
+### 16. End-of-Session Summary ✅ IMPLEMENTED
+> **Implementation**: `EndOfSessionSummary.tsx` — shows score, time, coins earned, streak, comparison to last session, and next challenge goal
 
 Celebration screen when finished:
 
