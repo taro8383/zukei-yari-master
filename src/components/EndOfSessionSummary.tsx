@@ -16,6 +16,8 @@ interface EndOfSessionSummaryProps {
   coinsEarned: number;
   topic: string;
   topicName: string;
+  ghostMode?: boolean;
+  ghostBestTime?: number | null; // ghost's time in seconds (null = no ghost)
 }
 
 interface SessionComparison {
@@ -36,6 +38,8 @@ export const EndOfSessionSummary = ({
   coinsEarned,
   topic,
   topicName,
+  ghostMode,
+  ghostBestTime,
 }: EndOfSessionSummaryProps) => {
   const [comparison, setComparison] = useState<SessionComparison>({
     accuracyImprovement: 0,
@@ -45,12 +49,18 @@ export const EndOfSessionSummary = ({
   });
   const [suggestedTopic, setSuggestedTopic] = useState<string>('');
   const [currentStreak, setCurrentStreak] = useState(0);
+  const [yesterdayProgress, setYesterdayProgress] = useState<{
+    date: string;
+    questionsAnswered: number;
+    correctAnswers: number;
+  } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       loadComparisonData();
       generateSuggestion();
       loadStreak();
+      loadYesterdayData();
       saveSessionData();
     }
   }, [isOpen, score, totalQuestions, timeSpent, topic]);
@@ -89,6 +99,11 @@ export const EndOfSessionSummary = ({
   const loadStreak = () => {
     const data = getGameData();
     setCurrentStreak(data.stats.streak.current);
+  };
+
+  const loadYesterdayData = () => {
+    const data = getGameData();
+    setYesterdayProgress(data.stats.yesterdayProgress ?? null);
   };
 
   const generateSuggestion = () => {
@@ -308,6 +323,71 @@ export const EndOfSessionSummary = ({
               </p>
               <p className="text-xs text-blue-600">
                 First time trying this! Great job!
+              </p>
+            </div>
+          )}
+
+          {/* Ghost Race Result */}
+          {ghostMode && ghostBestTime !== undefined && (
+            <div
+              className={cn(
+                'rounded-xl p-4 border',
+                ghostBestTime !== null && timeSpent < ghostBestTime
+                  ? 'bg-green-50 border-green-300'
+                  : 'bg-orange-50 border-orange-300',
+              )}
+            >
+              {ghostBestTime !== null && timeSpent < ghostBestTime ? (
+                <>
+                  <p className="font-bold text-green-700 text-center text-base">
+                    👻 ゴーストを倒した！🏆 新記録！
+                  </p>
+                  <p className="text-xs text-green-600 text-center mt-1">
+                    Ghost defeated! New record! ({Math.floor(timeSpent / 60)}:{String(timeSpent % 60).padStart(2, '0')})
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-bold text-orange-700 text-center text-base">
+                    👻 あと{ghostBestTime !== null ? ghostBestTime - timeSpent < 0 ? Math.abs(Math.round(timeSpent - ghostBestTime)) : 0 : 0}秒…もう一度！
+                  </p>
+                  <p className="text-xs text-orange-600 text-center mt-1">
+                    {ghostBestTime !== null
+                      ? `${Math.abs(Math.round(timeSpent - ghostBestTime))}s behind — try again!`
+                      : 'Set a record first — try again!'}
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Yesterday vs Today */}
+          {yesterdayProgress !== null && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <h3 className="font-bold flex items-center gap-2 mb-3 text-sm text-blue-800">
+                📅 きのうとくらべ / Yesterday vs Today
+              </h3>
+              <div className="flex gap-3 justify-center">
+                <div className="bg-white rounded-lg px-4 py-2 border border-blue-200 text-center">
+                  <div className="text-lg font-black text-blue-700">{score}</div>
+                  <div className="text-xs text-blue-500">今日 / Today</div>
+                </div>
+                <div className="flex items-center text-blue-400 font-bold">vs</div>
+                <div className="bg-white rounded-lg px-4 py-2 border border-blue-200 text-center">
+                  <div className="text-lg font-black text-blue-400">{yesterdayProgress.correctAnswers}</div>
+                  <div className="text-xs text-blue-400">きのう / Yesterday</div>
+                </div>
+              </div>
+              <p className="text-xs text-center mt-3 font-medium">
+                {score > yesterdayProgress.correctAnswers ? (
+                  <span className="text-green-600">
+                    +{score - yesterdayProgress.correctAnswers}問 多くできた！🎉 / {score - yesterdayProgress.correctAnswers} more correct than yesterday!
+                  </span>
+                ) : (
+                  <span className="text-blue-600">
+                    きのうもがんばった！今日も続けよう！ / Keep it up!
+                  </span>
+                )}
               </p>
             </div>
           )}

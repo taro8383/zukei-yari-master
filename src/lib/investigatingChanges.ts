@@ -103,6 +103,38 @@ function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// Helper to pick a real-world scenario context based on rule type
+function getScenario(ruleType: 'multiply' | 'add' | 'subtract', ruleValue: number, i: number): { contextJa: string; contextEn: string } {
+  if (ruleType === 'multiply') {
+    const scenarios = [
+      { ja: `まい日${ruleValue}円ずつちょ金します。〇日後のちょ金がく（△円）を調べよう。`, en: `You save ${ruleValue} yen every day. Let's find your savings (△ yen) after 〇 days.` },
+      { ja: `植物が1日に${ruleValue}cmずつのびます。〇日後のたかさ（△cm）を調べよう。`, en: `A plant grows ${ruleValue}cm each day. Let's track its height (△cm) after 〇 days.` },
+      { ja: `1本${ruleValue}円のえんぴつを〇本買います。代金（△円）を調べよう。`, en: `Pencils cost ${ruleValue} yen each. Let's find the cost (△ yen) for 〇 pencils.` },
+      { ja: `けいくんは1回のゲームで${ruleValue}点ずつ得点します。〇回後の得点（△点）を調べよう。`, en: `Kei scores ${ruleValue} points per game round. Let's track his score (△ points) after 〇 rounds.` },
+    ];
+    const s = scenarios[i % 4];
+    return { contextJa: s.ja, contextEn: s.en };
+  }
+  if (ruleType === 'add') {
+    const scenarios = [
+      { ja: `まい日${ruleValue}まいずつシールを集めます。〇日目のまい数（△まい）を調べよう。`, en: `You collect ${ruleValue} stickers every day. Let's find how many (△) you have on day 〇.` },
+      { ja: `${ruleValue}人ずつ列に並びます。〇列目までの人数（△人）を調べよう。`, en: `${ruleValue} people join the line each turn. Let's find the total (△) after 〇 turns.` },
+      { ja: `本を毎日${ruleValue}ページ読みます。〇日後に読んだページ数（△ページ）を調べよう。`, en: `You read ${ruleValue} pages every day. Let's find the total pages (△) read after 〇 days.` },
+      { ja: `けいくんは${ruleValue}円ずつおこづかいをもらいます。〇回もらった後の合計（△円）を調べよう。`, en: `Kei receives ${ruleValue} yen of pocket money each time. Let's find the total (△ yen) after 〇 times.` },
+    ];
+    const s = scenarios[i % 4];
+    return { contextJa: s.ja, contextEn: s.en };
+  }
+  // subtract
+  const scenarios = [
+    { ja: `はじめに△まいのシールがありました。毎日${ruleValue}まいずつ使います。〇日後の残り（△まい）を調べよう。`, en: `You start with some stickers and use ${ruleValue} each day. Let's find the remainder (△) after 〇 days.` },
+    { ja: `タンクに水が入っています。毎日${ruleValue}Lずつ使います。〇日後の残り（△L）を調べよう。`, en: `A tank is being used up at ${ruleValue}L per day. Let's track the remaining water (△L) after 〇 days.` },
+    { ja: `けいくんのスタミナは毎回${ruleValue}ずつへります。〇回後の残り（△）を調べよう。`, en: `Kei's stamina decreases by ${ruleValue} each turn. Let's find the remaining stamina (△) after 〇 turns.` },
+  ];
+  const s = scenarios[i % 3];
+  return { contextJa: s.ja, contextEn: s.en };
+}
+
 // Generate questions for completing the table - DYNAMICALLY
 export function generateCompletingTableQuestions(): InvestigatingChangesQuestion[] {
   const questions: InvestigatingChangesQuestion[] = [];
@@ -126,6 +158,7 @@ export function generateCompletingTableQuestions(): InvestigatingChangesQuestion
 
     usedKeys.add(key);
     const ruleType = addend === 0 ? 'multiply' : 'add';
+    const { contextJa: ctxJa, contextEn: ctxEn } = getScenario(ruleType, multiplier, i);
 
     // Generate RANDOM x values (not always 1-5)
     const startX = randomInt(1, 10);
@@ -150,8 +183,8 @@ export function generateCompletingTableQuestions(): InvestigatingChangesQuestion
     questions.push({
       id: i + 1,
       topic: 'completing-table',
-      text: `下の表のきまりを見つけて、空いているマス（第${hiddenPosition}列）をうめよう。`,
-      textEn: `Find the rule and fill in the empty cells (column ${hiddenPosition}).`,
+      text: `${ctxJa}　下の表のきまりを見つけて、空いているマス（第${hiddenPosition}列）をうめよう。`,
+      textEn: `${ctxEn} Find the rule and fill in the empty cell (column ${hiddenPosition}).`,
       explanation: `きまり：〇 × ${multiplier}${addend > 0 ? ` + ${addend}` : ''} = △\n第${hiddenPosition}列の答え：${hiddenAnswer}`,
       explanationEn: `Rule: 〇 × ${multiplier}${addend > 0 ? ` + ${addend}` : ''} = △\nAnswer for column ${hiddenPosition}: ${hiddenAnswer}`,
       tableData,
@@ -225,11 +258,14 @@ export function generateFindingRuleQuestions(): InvestigatingChangesQuestion[] {
       { ja: `〇に${multiplier}を足すと△になる`, en: `△ equals 〇 plus ${multiplier}`, value: 'add', isCorrect: false },
     ].slice(0, 3).sort(() => Math.random() - 0.5);
 
+    const ruleTypeForCtx: 'multiply' | 'add' | 'subtract' = addend === 0 ? 'multiply' : 'add';
+    const { contextJa: ctxJa, contextEn: ctxEn } = getScenario(ruleTypeForCtx, multiplier, i);
+
     questions.push({
       id: i + 1,
       topic: 'finding-rule',
-      text: '〇が1増えると、△はどう変わりますか？ 正しいきまりをえらぼう。',
-      textEn: 'When 〇 increases by 1, how does △ change? Choose the correct rule.',
+      text: `${ctxJa}　〇が1増えると、△はどう変わりますか？正しいきまりをえらぼう。`,
+      textEn: `${ctxEn} When 〇 increases by 1, how does △ change? Choose the correct rule.`,
       explanation: `正解：${correctRuleJa}\n式：〇 × ${multiplier}${addend > 0 ? ` + ${addend}` : ''} = △`,
       explanationEn: `Correct: ${correctRuleEn}\nEquation: 〇 × ${multiplier}${addend > 0 ? ` + ${addend}` : ''} = △`,
       tableData,
@@ -289,11 +325,14 @@ export function generateWritingEquationQuestions(): InvestigatingChangesQuestion
       };
     });
 
+    const ruleTypeForCtx2: 'multiply' | 'add' | 'subtract' = operator === '×' ? 'multiply' : operator === '+' ? 'add' : 'subtract';
+    const { contextJa: ctxJa2, contextEn: ctxEn2 } = getScenario(ruleTypeForCtx2, constant, i);
+
     questions.push({
       id: i + 1,
       topic: 'writing-equation',
-      text: '表のきまりを「〇」と「△」を使った式に表そう。',
-      textEn: 'Express the rule using an equation with 〇 and △.',
+      text: `${ctxJa2}　表のきまりを「〇」と「△」を使った式に表そう。`,
+      textEn: `${ctxEn2} Express the rule using an equation with 〇 and △.`,
       explanation: `式：〇 ${operator} ${constant} = △`,
       explanationEn: `Equation: 〇 ${operator} ${constant} = △`,
       tableData,

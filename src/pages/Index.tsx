@@ -20,6 +20,7 @@ import AdventureMap from '@/components/AdventureMap';
 import DailyQuests from '@/components/DailyQuests';
 import LearningInsights from '@/components/LearningInsights';
 import EndOfSessionSummary from '@/components/EndOfSessionSummary';
+import GhostBanner from '@/components/GhostBanner';
 import TeachMeModal from '@/components/TeachMeModal';
 import ParticleManager, { celebrateCorrect, celebratePerfect, celebrateCoin, celebrateAchievement, celebrateLevelUp } from '@/components/ParticleEffects';
 import { Topic, TOPICS, Question, generateQuestions } from '@/lib/geometry';
@@ -41,7 +42,7 @@ import { FractionsExplanationCard, FractionsQuestionItem } from '@/components/fr
 import { AreaExplanationCard, AreaQuestionItem } from '@/components/area';
 import { InvestigatingChangesExplanationCard, InvestigatingChangesQuestionItem } from '@/components/investigatingChanges';
 import { saveHistoryEntry, getHistory, clearHistory, TAB_NAMES } from '@/lib/historyStorage';
-import { getGameData, saveGameData, getThemeColors, updateQuestProgress, recordMistake, getLearningInsights, completeChapter } from '@/lib/gameState';
+import { getGameData, saveGameData, getThemeColors, updateQuestProgress, recordMistake, getLearningInsights, completeChapter, saveTopicPersonalBest, getTopicPersonalBest } from '@/lib/gameState';
 import { StoryChapter, STORY_CHAPTERS, getChapterByRegionId, calculateChapterStars } from '@/lib/storyMode';
 import { addAnsweredQuestions, isMiniGameAvailable, MiniGameProgress, getMiniGameProgress, skipMiniGame } from '@/lib/miniGames';
 import { ChapterIntroModal, ChapterCompleteModal, DailyEpisodeModal, StoryProgressPanel } from '@/components/story';
@@ -246,9 +247,16 @@ const Index = () => {
   const [challengeModes, setChallengeModes] = useState<ChallengeModes>({
     speedMode: false,
     noHints: false,
+    ghostMode: false,
   });
   const [hintsUsed, setHintsUsed] = useState(0);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [topicPersonalBest, setTopicPersonalBest] = useState<{
+    score: number;
+    totalQuestions: number;
+    timeSeconds: number;
+    date: string;
+  } | null>(null);
 
   // Protractor state (shared across tabs)
   const [activeProtractor, setActiveProtractor] = useState<ProtractorType>(null);
@@ -751,6 +759,7 @@ const Index = () => {
     setGeometryScore(0);
     setHintsUsed(0);
     setSessionStartTime(Date.now());
+    setTopicPersonalBest(getTopicPersonalBest(selectedTopic));
   };
 
   const handleGeometryAnswerChange = (index: number, value: string) => {
@@ -805,6 +814,8 @@ const Index = () => {
     window.dispatchEvent(new CustomEvent('coins-changed'));
 
     // Show end-of-session summary
+    const timeSpentSecs = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    saveTopicPersonalBest(selectedTopic, correct, 5, timeSpentSecs);
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedTopic);
     setSessionTopicName(TOPICS[selectedTopic].label);
@@ -867,6 +878,7 @@ const Index = () => {
     setRatioScore(0);
     setHintsUsed(0);
     setSessionStartTime(Date.now());
+    setTopicPersonalBest(getTopicPersonalBest(selectedRatioTopic));
   };
 
   const handleRatioAnswerChange = (index: number, value: string) => {
@@ -935,6 +947,8 @@ const Index = () => {
     window.dispatchEvent(new CustomEvent('coins-changed'));
 
     // Show end-of-session summary
+    const timeSpentSecs = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    saveTopicPersonalBest(selectedRatioTopic, correct, 5, timeSpentSecs);
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedRatioTopic);
     setSessionTopicName(RATIO_TOPICS[selectedRatioTopic].label);
@@ -987,6 +1001,7 @@ const Index = () => {
     setAccuracyRateScore(0);
     setHintsUsed(0);
     setSessionStartTime(Date.now());
+    setTopicPersonalBest(getTopicPersonalBest(selectedAccuracyRateTopic));
   };
 
   const handleAccuracyRateAnswerChange = (index: number, value: string) => {
@@ -1038,6 +1053,8 @@ const Index = () => {
     window.dispatchEvent(new CustomEvent('coins-changed'));
 
     // Show end-of-session summary
+    const timeSpentSecs = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    saveTopicPersonalBest(selectedAccuracyRateTopic, correct, 5, timeSpentSecs);
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedAccuracyRateTopic);
     setSessionTopicName(ACCURACY_RATE_TOPICS[selectedAccuracyRateTopic].label);
@@ -1090,6 +1107,7 @@ const Index = () => {
     setLargeNumberScore(0);
     setHintsUsed(0);
     setSessionStartTime(Date.now());
+    setTopicPersonalBest(getTopicPersonalBest(selectedLargeNumberTopic));
   };
 
   const handleLargeNumberAnswerChange = (index: number, value: string) => {
@@ -1145,6 +1163,8 @@ const Index = () => {
     window.dispatchEvent(new CustomEvent('coins-changed'));
 
     // Show end-of-session summary
+    const timeSpentSecs = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    saveTopicPersonalBest(selectedLargeNumberTopic, correct, 5, timeSpentSecs);
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedLargeNumberTopic);
     setSessionTopicName(LARGE_NUMBER_TOPICS[selectedLargeNumberTopic].label);
@@ -1201,6 +1221,7 @@ const Index = () => {
     setCalculationRulesScore(0);
     setHintsUsed(0);
     setSessionStartTime(Date.now());
+    setTopicPersonalBest(getTopicPersonalBest(selectedCalculationRulesTopic));
   };
 
   const handleCalculationRulesAnswerChange = (index: number, value: string) => {
@@ -1281,6 +1302,8 @@ const Index = () => {
     window.dispatchEvent(new CustomEvent('coins-changed'));
 
     // Show end-of-session summary
+    const timeSpentSecs = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    saveTopicPersonalBest(selectedCalculationRulesTopic, correct, 5, timeSpentSecs);
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedCalculationRulesTopic);
     setSessionTopicName(CALCULATION_RULES_TOPICS[selectedCalculationRulesTopic].label);
@@ -1333,6 +1356,7 @@ const Index = () => {
     setDivisionScore(0);
     setHintsUsed(0);
     setSessionStartTime(Date.now());
+    setTopicPersonalBest(getTopicPersonalBest(selectedDivisionTopic));
   };
 
   const handleDivisionAnswerChange = (index: number, value: string) => {
@@ -1421,6 +1445,8 @@ const Index = () => {
     window.dispatchEvent(new CustomEvent('coins-changed'));
 
     // Show end-of-session summary
+    const timeSpentSecs = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    saveTopicPersonalBest(selectedDivisionTopic, correct, 5, timeSpentSecs);
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedDivisionTopic);
     setSessionTopicName(DIVISION_TOPICS[selectedDivisionTopic].label);
@@ -1467,6 +1493,7 @@ const Index = () => {
     setDecimalScore(0);
     setHintsUsed(0);
     setSessionStartTime(Date.now());
+    setTopicPersonalBest(getTopicPersonalBest(selectedDecimalTopic));
   };
 
   const handleDecimalAnswerChange = (index: number, value: string) => {
@@ -1522,6 +1549,8 @@ const Index = () => {
     window.dispatchEvent(new CustomEvent('coins-changed'));
 
     // Show end-of-session summary
+    const timeSpentSecs = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    saveTopicPersonalBest(selectedDecimalTopic, correct, 5, timeSpentSecs);
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedDecimalTopic);
     setSessionTopicName(DECIMAL_TOPICS[selectedDecimalTopic].label);
@@ -1569,6 +1598,7 @@ const Index = () => {
     setLineGraphScore(0);
     setHintsUsed(0);
     setSessionStartTime(Date.now());
+    setTopicPersonalBest(getTopicPersonalBest(selectedLineGraphTopic));
   };
 
   const handleLineGraphAnswerChange = (index: number, value: string) => {
@@ -1687,6 +1717,8 @@ const Index = () => {
     window.dispatchEvent(new CustomEvent('coins-changed'));
 
     // Show end-of-session summary
+    const timeSpentSecs = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    saveTopicPersonalBest(selectedLineGraphTopic, correct, 5, timeSpentSecs);
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedLineGraphTopic);
     setSessionTopicName(LINE_GRAPH_TOPICS[selectedLineGraphTopic].label);
@@ -1734,6 +1766,7 @@ const Index = () => {
     setFractionScore(0);
     setHintsUsed(0);
     setSessionStartTime(Date.now());
+    setTopicPersonalBest(getTopicPersonalBest(selectedFractionTopic));
   };
 
   const handleFractionAnswerChange = (index: number, value: string) => {
@@ -1826,6 +1859,8 @@ const Index = () => {
     window.dispatchEvent(new CustomEvent('coins-changed'));
 
     // Show end-of-session summary
+    const timeSpentSecs = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    saveTopicPersonalBest(selectedFractionTopic, correct, 5, timeSpentSecs);
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedFractionTopic);
     setSessionTopicName(FRACTION_TOPICS[selectedFractionTopic].label);
@@ -1870,6 +1905,7 @@ const Index = () => {
     setInvestigatingChangesScore(0);
     setHintsUsed(0);
     setSessionStartTime(Date.now());
+    setTopicPersonalBest(getTopicPersonalBest(selectedInvestigatingChangesTopic));
   };
 
   const handleInvestigatingChangesAnswerChange = (index: number, value: string) => {
@@ -1920,6 +1956,8 @@ const Index = () => {
     window.dispatchEvent(new CustomEvent('coins-changed'));
 
     // Show end-of-session summary
+    const timeSpentSecs = sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 1000) : 0;
+    saveTopicPersonalBest(selectedInvestigatingChangesTopic, correct, 5, timeSpentSecs);
     setSessionCoinsEarned(totalCoins);
     setSessionTopicKey(selectedInvestigatingChangesTopic);
     setSessionTopicName(INVESTIGATING_CHANGES_TOPICS[selectedInvestigatingChangesTopic].label);
@@ -2294,6 +2332,11 @@ const Index = () => {
           </TabsList>
           )}
 
+          {/* Ghost Banner - floating above question list when ghost mode active */}
+          {challengeModes.ghostMode && sessionStartTime && (
+            <GhostBanner ghostBest={topicPersonalBest} sessionStartTime={sessionStartTime} />
+          )}
+
           {/* Geometry Tab */}
           <TabsContent value="geometry" className="mt-0">
             {/* Topic Selection */}
@@ -2341,6 +2384,7 @@ const Index = () => {
               modes={challengeModes}
               onChange={setChallengeModes}
               disabled={geometryQuestions.length > 0}
+              topicPersonalBest={topicPersonalBest}
             />
 
             {/* Generate Button */}
@@ -3628,6 +3672,8 @@ const Index = () => {
         coinsEarned={sessionCoinsEarned}
         topic={sessionTopicKey}
         topicName={sessionTopicName}
+        ghostMode={challengeModes.ghostMode}
+        ghostBestTime={topicPersonalBest?.timeSeconds ?? null}
       />
 
       {/* Teach Me Modal */}

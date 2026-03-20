@@ -115,7 +115,16 @@ Tap any math term to see kid-friendly definitions:
 
 ---
 
-### 5. Real-World Problem Contexts
+### 5. Real-World Problem Contexts ✅ IMPLEMENTED
+> **Implementation**: All question generator functions now use rotating real-world story scenarios (i % N pattern)
+> - `ratios.ts` — difference-vs-multiple, finding-base, calculate-accuracy
+> - `calculationRules.ts` — combining-into-one-equation
+> - `largeNumbers.ts` — rounding-up-down; `lineGraphs.ts` — drawing-graph
+> - `division.ts` — all 5 topics (cookies, stickers, oranges, cards, pencils, origami, yen, apples, etc.)
+> - `fractions.ts` — all 4 topics (pizza, juice, ribbon, rope, cake, milk)
+> - `decimals.ts` — all 4 topics (ribbon, juice, pencil, sugar, rope, eraser, packages)
+> - `investigatingChanges.ts` — all 3 topics via `getScenario()` helper (savings, plants, stickers, pages, stamina, water)
+
 Frame problems as relatable stories:
 
 | Topic | Context Example |
@@ -123,7 +132,6 @@ Frame problems as relatable stories:
 | **Multiplication** | "You're buying 4 bento boxes at 380 yen each..." |
 | **Division** | "Share 48 candies equally among 6 friends..." |
 | **Fractions** | "You ate 2/8 of the pizza, your sister ate 3/8..." |
-| **Time** | "The train leaves at 3:15 PM and takes 45 minutes..." |
 | **Money** | "You have 1000 yen. Can you buy a 680 yen game and..." |
 
 **Benefits**:
@@ -316,15 +324,15 @@ Growth Areas:
 
 ---
 
-### 13. Competition Modes ⚠️ PARTIALLY IMPLEMENTED
-> **Implementation**: Speed mode in `ChallengeModeSelector.tsx`, streak tracking in `HeaderBar.tsx` + `EndOfSessionSummary.tsx` — missing Ghost Mode and Yesterday vs Today comparison
+### 13. Competition Modes ✅ IMPLEMENTED
+> **Implementation**: All four modes complete — Speed mode + No Hints (`ChallengeModeSelector.tsx`), Streak Challenge (`HeaderBar.tsx` + `EndOfSessionSummary.tsx`), Ghost Mode (`GhostBanner.tsx` + `gameState.ts` `topicPersonalBests`), Yesterday vs Today (`gameState.ts` `yesterdayProgress` + `EndOfSessionSummary.tsx`)
 
-| Mode | Description |
-|------|-------------|
-| **Beat the Clock** | Personal best time tracking |
-| **Yesterday vs Today** | "You answered 3 more than yesterday!" |
-| **Ghost Mode** | Replay your previous attempt to beat it |
-| **Streak Challenge** | How many correct in a row? |
+| Mode | Description | Status |
+|------|-------------|--------|
+| **Beat the Clock** | 30s/question Speed Mode toggle, ×2 coins | ✅ |
+| **Yesterday vs Today** | Daily totals comparison in EndOfSessionSummary | ✅ |
+| **Ghost Mode** | Race personal best time — `GhostBanner` live timer + +15 coin win bonus | ✅ |
+| **Streak Challenge** | Day-streak tracked in `gameState.ts`, shown in `HeaderBar` + summary | ✅ |
 
 **Benefits**:
 - Self-competition (healthy)

@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { Zap, EyeOff, Clock, Timer, Info } from 'lucide-react';
+import { Zap, EyeOff, Clock, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ChallengeModes {
   speedMode: boolean;
   noHints: boolean;
+  ghostMode: boolean;
 }
 
 interface ChallengeModeSelectorProps {
   modes: ChallengeModes;
   onChange: (modes: ChallengeModes) => void;
   disabled?: boolean;
+  topicPersonalBest?: { score: number; totalQuestions: number; timeSeconds: number } | null;
 }
 
 interface ModeOption {
@@ -45,9 +47,25 @@ const modeOptions: ModeOption[] = [
     color: 'from-purple-400 to-indigo-500',
     reward: '+10 コイン',
   },
+  {
+    id: 'ghostMode',
+    icon: <span className="text-xl leading-none">👻</span>,
+    nameJa: 'ゴーストチャレンジ',
+    nameEn: 'Ghost Challenge',
+    descriptionJa: 'じぶんのベストにちょうせん！',
+    descriptionEn: 'Race your personal best!',
+    color: 'from-teal-400 to-cyan-500',
+    reward: '+15 コイン',
+  },
 ];
 
-const ChallengeModeSelector = ({ modes, onChange, disabled }: ChallengeModeSelectorProps) => {
+const ChallengeModeSelector = ({ modes, onChange, disabled, topicPersonalBest }: ChallengeModeSelectorProps) => {
+
+  const formatGhostTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
+  };
   const [showInfo, setShowInfo] = useState<string | null>(null);
 
   const toggleMode = (modeId: keyof ChallengeModes) => {
@@ -140,6 +158,22 @@ const ChallengeModeSelector = ({ modes, onChange, disabled }: ChallengeModeSelec
               時間内にこたえないと自動的に次の問題へ / Questions auto-advance after 30 seconds
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Ghost mode personal best card */}
+      {modes.ghostMode && (
+        <div className="mt-4 p-3 bg-teal-50 border border-teal-200 rounded-xl">
+          {topicPersonalBest ? (
+            <p className="text-sm font-bold text-teal-700">
+              👻 ベスト: {topicPersonalBest.score}/{topicPersonalBest.totalQuestions} — {formatGhostTime(topicPersonalBest.timeSeconds)}
+              <span className="ml-2 font-normal text-teal-600">超えられる？/ Can you beat it?</span>
+            </p>
+          ) : (
+            <p className="text-sm text-teal-700">
+              まだきろくなし！はじめてのちょうせん！ / No record yet — set your first!
+            </p>
+          )}
         </div>
       )}
     </div>

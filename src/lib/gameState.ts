@@ -114,6 +114,8 @@ export interface GameData {
       questionsAnswered: number;
       correctAnswers: number;
     };
+    yesterdayProgress: { date: string; questionsAnswered: number; correctAnswers: number } | null;
+    topicPersonalBests: Record<string, { score: number; totalQuestions: number; timeSeconds: number; date: string }>;
   };
   // Error pattern recognition
   mistakes: MistakeEntry[];
@@ -319,6 +321,8 @@ const defaultGameData: GameData = {
       questionsAnswered: 0,
       correctAnswers: 0,
     },
+    yesterdayProgress: null,
+    topicPersonalBests: {},
   },
   mistakes: [],
   errorPatterns: [],
@@ -451,6 +455,13 @@ export const getGameData = (): GameData => {
     if (!parsed.currentDailyEpisode) {
       merged.currentDailyEpisode = null;
     }
+    // Ghost mode / yesterday data (v4+ fields)
+    if (!parsed.stats || !('yesterdayProgress' in parsed.stats)) {
+      merged.stats.yesterdayProgress = null;
+    }
+    if (!parsed.stats?.topicPersonalBests) {
+      merged.stats.topicPersonalBests = {};
+    }
 
     return merged;
   } catch (error) {
@@ -500,8 +511,11 @@ export const updateStreak = (): GameData => {
   data.stats.streak.lastActiveDate = today;
   data.stats.streak.dailyGoalMet = false;
 
-  // Reset daily progress for new day
+  // Reset daily progress for new day, saving yesterday's data first
   if (data.stats.dailyProgress.date !== today) {
+    if (data.stats.dailyProgress.questionsAnswered > 0) {
+      data.stats.yesterdayProgress = { ...data.stats.dailyProgress };
+    }
     data.stats.dailyProgress = {
       date: today,
       questionsAnswered: 0,
@@ -646,7 +660,9 @@ export const calculateSessionCoins = (
   totalQuestions: number,
   hintsUsed: number,
   isSpeedMode: boolean,
-  timeSpentSeconds: number
+  timeSpentSeconds: number,
+  isGhostMode?: boolean,
+  ghostBeaten?: boolean,
 ): { baseCoins: number; bonuses: { name: string; amount: number }[]; total: number } => {
   const bonuses: { name: string; amount: number }[] = [];
 
@@ -669,10 +685,48 @@ export const calculateSessionCoins = (
     bonuses.push({ name: 'ヒントなし / No Hints', amount: 10 });
   }
 
+  // Ghost mode win bonus
+  if (isGhostMode && ghostBeaten) {
+    bonuses.push({ name: '👻 ゴーストを倒した！ / Ghost Defeated!', amount: 15 });
+  }
+
   const bonusTotal = bonuses.reduce((sum, b) => sum + b.amount, 0);
   const total = baseCoins + bonusTotal;
 
   return { baseCoins, bonuses, total };
+};
+
+// Save a personal best for a topic (returns true if it's a new best)
+export const saveTopicPersonalBest = (
+  topic: string,
+  score: number,
+  totalQuestions: number,
+  timeSeconds: number,
+): boolean => {
+  const data = getGameData();
+  const existing = data.stats.topicPersonalBests[topic];
+  const isNewBest =
+    !existing ||
+    score > existing.score ||
+    (score === existing.score && timeSeconds < existing.timeSeconds);
+  if (isNewBest) {
+    data.stats.topicPersonalBests[topic] = {
+      score,
+      totalQuestions,
+      timeSeconds,
+      date: new Date().toISOString().split('T')[0],
+    };
+    saveGameData(data);
+  }
+  return isNewBest;
+};
+
+// Get personal best for a topic (null if none)
+export const getTopicPersonalBest = (
+  topic: string,
+): { score: number; totalQuestions: number; timeSeconds: number; date: string } | null => {
+  const data = getGameData();
+  return data.stats.topicPersonalBests[topic] || null;
 };
 
 // Get streak status text

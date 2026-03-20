@@ -123,8 +123,20 @@ function generateDecimalStructureQuestions(): DecimalQuestion[] {
       questions.push({
         id: `structure-${i}`,
         topic: 'decimal-structure',
-        text: `${decimalNumber} は ${targetUnit} を何こ集めた数ですか？`,
-        textEn: `How many ${targetUnit}s are in ${decimalNumber}?`,
+        text: [
+          `リボンは${decimalNumber}mです。${decimalNumber} は ${targetUnit} を何こ集めた数ですか？`,
+          `ジュースが${decimalNumber}Lあります。${decimalNumber} は ${targetUnit} を何こ集めた数ですか？`,
+          `えんぴつのながさは${decimalNumber}cmです。${decimalNumber} は ${targetUnit} を何こ集めた数ですか？`,
+          `砂糖が${decimalNumber}kgあります。${decimalNumber} は ${targetUnit} を何こ集めた数ですか？`,
+          `ひもの長さは${decimalNumber}mです。${decimalNumber} は ${targetUnit} を何こ集めた数ですか？`,
+        ][i % 5],
+        textEn: [
+          `A ribbon is ${decimalNumber}m long. How many ${targetUnit}s make up ${decimalNumber}?`,
+          `There is ${decimalNumber}L of juice. How many ${targetUnit}s make up ${decimalNumber}?`,
+          `A pencil is ${decimalNumber}cm long. How many ${targetUnit}s make up ${decimalNumber}?`,
+          `There is ${decimalNumber}kg of sugar. How many ${targetUnit}s make up ${decimalNumber}?`,
+          `A rope is ${decimalNumber}m long. How many ${targetUnit}s make up ${decimalNumber}?`,
+        ][i % 5],
         answer,
         decimalNumber,
         targetUnit: targetUnit as '0.1' | '0.01',
@@ -143,8 +155,8 @@ function generateDecimalStructureQuestions(): DecimalQuestion[] {
       questions.push({
         id: `structure-${i}`,
         topic: 'decimal-structure',
-        text: `1を${ones}こ、0.1を${tenths}こ、0.01を${hundredths}こ集めた数はいくつですか？`,
-        textEn: `What number is made of ${ones} ones, ${tenths} tenths, and ${hundredths} hundredths?`,
+        text: `けいくんが計った長さを小数で表そう。1を${ones}こ、0.1を${tenths}こ、0.01を${hundredths}こ集めた数はいくつですか？`,
+        textEn: `Let's express a measurement as a decimal. What number is made of ${ones} ones, ${tenths} tenths, and ${hundredths} hundredths?`,
         answer,
         formula: `正解: ${ones} + ${tenths / 10} + ${hundredths / 100} = ${answer}`,
         formulaEn: `Answer: ${ones} + 0.${tenths} + 0.0${hundredths} = ${answer}`,
@@ -188,8 +200,16 @@ function generateDecimalAddSubtractQuestions(): DecimalQuestion[] {
       questions.push({
         id: `addsub-${i}`,
         topic: 'decimal-add-subtract',
-        text: `筆算で計算しましょう。`,
-        textEn: `Calculate using vertical method.`,
+        text: [
+          `ジュースが${largerNum}Lありました。${smallerNum}L飲みました。残りは何Lですか？筆算で計算しましょう。`,
+          `けいくんは${largerNum}mのリボンから${smallerNum}m使いました。残りは何mですか？筆算で計算しましょう。`,
+          `砂糖が${largerNum}kgありました。${smallerNum}kg使いました。残りは何kgですか？筆算で計算しましょう。`,
+        ][i % 3],
+        textEn: [
+          `There was ${largerNum}L of juice. ${smallerNum}L was drunk. How much remains? Calculate using the vertical method.`,
+          `Kei used ${smallerNum}m from a ${largerNum}m ribbon. How much ribbon is left? Calculate using the vertical method.`,
+          `There was ${largerNum}kg of sugar. ${smallerNum}kg was used. How much is left? Calculate using the vertical method.`,
+        ][i % 3],
         answer,
         num1: largerNum,
         num2: smallerNum,
@@ -207,8 +227,16 @@ function generateDecimalAddSubtractQuestions(): DecimalQuestion[] {
     questions.push({
       id: `addsub-${i}`,
       topic: 'decimal-add-subtract',
-      text: `筆算で計算しましょう。`,
-      textEn: `Calculate using vertical method.`,
+      text: [
+        `けいくんは${num1}mのリボンと${num2}mのリボンを持っています。合わせて何mですか？筆算で計算しましょう。`,
+        `ジュースが${num1}Lと${num2}Lあります。合わせて何Lですか？筆算で計算しましょう。`,
+        `荷物の重さが${num1}kgと${num2}kgです。合計は何kgですか？筆算で計算しましょう。`,
+      ][i % 3],
+      textEn: [
+        `Kei has ${num1}m and ${num2}m of ribbon. How many meters in total? Calculate using the vertical method.`,
+        `There is ${num1}L and ${num2}L of juice. How much in total? Calculate using the vertical method.`,
+        `Packages weigh ${num1}kg and ${num2}kg. What is the total weight? Calculate using the vertical method.`,
+      ][i % 3],
       answer,
       num1,
       num2,
@@ -247,29 +275,29 @@ function generateDecimalShiftQuestions(): DecimalQuestion[] {
     switch (shiftType) {
       case 'x10':
         answer = parseFloat((originalNumber * 10).toFixed(1));
-        text = `${originalNumber} を10倍した数はいくつですか？`;
-        textEn = `What is 10 times ${originalNumber}?`;
+        text = `けいくんの消しゴムは${originalNumber}cmです。10倍の長さは何cmですか？`;
+        textEn = `Kei's eraser is ${originalNumber}cm long. What is 10 times that length?`;
         formula = `正解: ${originalNumber} × 10 = ${answer}（小数点を右へ1つ移動）`;
         formulaEn = `Answer: ${originalNumber} × 10 = ${answer} (Move decimal right 1)`;
         break;
       case 'x100':
         answer = parseFloat((originalNumber * 100).toFixed(0));
-        text = `${originalNumber} を100倍した数はいくつですか？`;
-        textEn = `What is 100 times ${originalNumber}?`;
+        text = `${originalNumber}kgの荷物が100個あります。全部の重さは何kgですか？`;
+        textEn = `There are 100 packages each weighing ${originalNumber}kg. What is the total weight?`;
         formula = `正解: ${originalNumber} × 100 = ${answer}（小数点を右へ2つ移動）`;
         formulaEn = `Answer: ${originalNumber} × 100 = ${answer} (Move decimal right 2)`;
         break;
       case 'divide10':
         answer = parseFloat((originalNumber / 10).toFixed(3));
-        text = `${originalNumber} の1/10の数はいくつですか？`;
-        textEn = `What is 1/10 of ${originalNumber}?`;
+        text = `${originalNumber}mのロープを10等分すると、1本は何mになりますか？`;
+        textEn = `A ${originalNumber}m rope is cut into 10 equal pieces. How long is each piece?`;
         formula = `正解: ${originalNumber} ÷ 10 = ${answer}（小数点を左へ1つ移動）`;
         formulaEn = `Answer: ${originalNumber} ÷ 10 = ${answer} (Move decimal left 1)`;
         break;
       case 'divide100':
         answer = parseFloat((originalNumber / 100).toFixed(4));
-        text = `${originalNumber} の1/100の数はいくつですか？`;
-        textEn = `What is 1/100 of ${originalNumber}?`;
+        text = `${originalNumber}gの粉を100等分すると、1つ分は何gになりますか？`;
+        textEn = `${originalNumber}g of powder is divided into 100 equal portions. How much is each portion?`;
         formula = `正解: ${originalNumber} ÷ 100 = ${answer}（小数点を左へ2つ移動）`;
         formulaEn = `Answer: ${originalNumber} ÷ 100 = ${answer} (Move decimal left 2)`;
         break;
@@ -312,8 +340,14 @@ function generateDecimalMultiplyDivideQuestions(): DecimalQuestion[] {
       questions.push({
         id: `multdiv-${i}`,
         topic: 'decimal-multiply-divide',
-        text: `筆算で計算しましょう。`,
-        textEn: 'Calculate using vertical method.',
+        text: [
+          `${wholeNumber}mのリボンを${decimalNumber}倍した長さは何mですか？筆算で計算しましょう。`,
+          `1袋${decimalNumber}kgのお米が${wholeNumber}袋あります。全部で何kgですか？筆算で計算しましょう。`,
+        ][i % 2],
+        textEn: [
+          `What is ${decimalNumber} times ${wholeNumber}m of ribbon? Calculate using the vertical method.`,
+          `${wholeNumber} bags of rice each weigh ${decimalNumber}kg. What is the total weight? Use the vertical method.`,
+        ][i % 2],
         answer,
         decimalNumber,
         wholeNumber,
@@ -347,8 +381,14 @@ function generateDecimalMultiplyDivideQuestions(): DecimalQuestion[] {
       questions.push({
         id: `multdiv-${i}`,
         topic: 'decimal-multiply-divide',
-        text: `筆算で計算しましょう。`,
-        textEn: 'Calculate using vertical method.',
+        text: [
+          `${problem.decimal}mのリボンを${problem.whole}人で同じ長さずつ分けます。1人分は何mですか？筆算で計算しましょう。`,
+          `${problem.decimal}Lのジュースを${problem.whole}つのコップに同じ量ずつ分けます。1つ分は何Lですか？筆算で計算しましょう。`,
+        ][i % 2],
+        textEn: [
+          `${problem.decimal}m of ribbon is shared equally among ${problem.whole} people. How many meters does each person get? Use the vertical method.`,
+          `${problem.decimal}L of juice is divided equally into ${problem.whole} cups. How much juice goes in each cup? Use the vertical method.`,
+        ][i % 2],
         answer: problem.answer,
         decimalNumber: problem.decimal,
         wholeNumber: problem.whole,
