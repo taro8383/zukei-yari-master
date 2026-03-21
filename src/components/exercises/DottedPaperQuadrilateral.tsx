@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Undo, RotateCcw } from 'lucide-react';
 
 interface Point {
@@ -58,7 +58,7 @@ const areParallel = (p1: Point, p2: Point, p3: Point, p4: Point): boolean => {
 };
 
 // Validate quadrilateral type
-const validateQuadrilateral = (vertices: Point[], type: 'rectangle' | 'square' | 'trapezoid' | 'parallelogram' | 'rhombus' | 'kite' | 'any'): { isValid: boolean; message: string } => {
+export const validateQuadrilateral = (vertices: Point[], type: 'rectangle' | 'square' | 'trapezoid' | 'parallelogram' | 'rhombus' | 'kite' | 'any'): { isValid: boolean; message: string } => {
   if (vertices.length !== 4) return { isValid: false, message: '4つの頂点が必要です / Need 4 vertices' };
 
   if (type === 'any') return { isValid: true, message: 'OK' };
@@ -192,21 +192,18 @@ const DottedPaperQuadrilateral = ({
   const [isComplete, setIsComplete] = useState(savedIsComplete || false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  // Reset state when requiredType changes (new question)
-  useEffect(() => {
-    setVertices(savedVertices || []);
-    setAllPoints(savedAllPoints || []);
-    setIsClosed(savedIsClosed || false);
-    setIsComplete(savedIsComplete || false);
-    setValidationError(null);
-  }, [requiredType, savedVertices, savedAllPoints, savedIsClosed, savedIsComplete]);
+  // Keep a ref to onStateChange so the notification effect doesn't re-fire
+  // every time the parent re-renders (inline arrow functions change reference each render)
+  const onStateChangeRef = useRef(onStateChange);
+  onStateChangeRef.current = onStateChange;
 
   // Notify parent when state changes (for test mode persistence)
+  // onStateChange is intentionally accessed via ref to avoid infinite loops
   useEffect(() => {
-    if (onStateChange) {
-      onStateChange({ vertices, allPoints, isClosed, isComplete });
+    if (onStateChangeRef.current) {
+      onStateChangeRef.current({ vertices, allPoints, isClosed, isComplete });
     }
-  }, [vertices, allPoints, isClosed, isComplete, onStateChange]);
+  }, [vertices, allPoints, isClosed, isComplete]);
 
   const gridSize = 10;
   const dotSpacing = 22;

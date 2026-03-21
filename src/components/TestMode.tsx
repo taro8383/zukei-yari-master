@@ -10,6 +10,7 @@ import {
   IntersectingLinesExercise,
   DottedPaperQuadrilateral,
   DiagonalsDrawing,
+  validateQuadrilateral,
 } from './exercises';
 import {
   DiagonalsExplanation,
@@ -148,6 +149,18 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
   const handleClearPoints = () => {
     setPlottedPoints((prev) => ({ ...prev, [currentIndex]: [] }));
     setAnswers((prev) => ({ ...prev, [currentIndex]: '' }));
+  };
+
+  // Handle undo last point for drawing graph
+  const handleUndoPoint = () => {
+    setPlottedPoints((prev) => {
+      const currentPoints = prev[currentIndex] || [];
+      const newPoints = currentPoints.slice(0, -1);
+      if (newPoints.length === 0) {
+        setAnswers((prevAns) => ({ ...prevAns, [currentIndex]: '' }));
+      }
+      return { ...prev, [currentIndex]: newPoints };
+    });
   };
 
   // Handle division quotient change
@@ -416,6 +429,17 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
     } else if (isDivisionQuestion(qType)) {
       const numericAnswer = parseFloat(userAnswer);
       return !isNaN(numericAnswer) && numericAnswer === q.quotient;
+    } else if (qType === 'diagonals-drawing') {
+      // Correct when the student completed drawing the required diagonals
+      return diagonalsAnswers[idx]?.isComplete || false;
+    } else if (qType === 'dotted-paper-quadrilateral') {
+      const quad = quadrilateralAnswers[idx];
+      if (!quad?.isComplete || quad.vertices.length !== 4) return false;
+      const typeMap: Record<number, 'rectangle' | 'square' | 'trapezoid' | 'parallelogram' | 'rhombus' | 'kite' | 'any'> = {
+        0: 'rectangle', 1: 'square', 2: 'trapezoid', 3: 'parallelogram', 4: 'rhombus', 5: 'kite',
+      };
+      const requiredType = typeMap[q.diagram?.params?.requiredType] || 'any';
+      return validateQuadrilateral(quad.vertices, requiredType).isValid;
     } else {
       const numericAnswer = parseFloat(userAnswer);
       if (!isNaN(numericAnswer)) {
@@ -494,17 +518,13 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
         );
 
       case 'dotted-paper-quadrilateral': {
-        const typeMap: Record<number, string> = {
-          0: 'rectangle', 1: 'square', 2: 'trapezoid', 3: 'parallelogram', 4: 'rhombus', 5: 'kite',
-        };
-        const requiredType = (typeMap[q.diagram?.params?.requiredType] || 'any') as 'rectangle' | 'square' | 'trapezoid' | 'parallelogram' | 'rhombus' | 'kite' | 'any';
         const savedQuadrilateral = quadrilateralAnswers[currentIndex];
         return (
           <DottedPaperQuadrilateral
             key={`test-quadrilateral-${q.id}-${currentIndex}`}
             onComplete={() => handleAnswerChange('1')}
             graded={false}
-            requiredType={requiredType}
+            requiredType="any"
             savedVertices={savedQuadrilateral?.vertices}
             savedAllPoints={savedQuadrilateral?.allPoints}
             savedIsClosed={savedQuadrilateral?.isClosed}
@@ -1447,12 +1467,29 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
               tableData={(currentQuestion as any).tableData}
               plottedPoints={plottedPoints[currentIndex] || []}
               onPointPlot={handlePointPlot}
-              onClearPoints={handleClearPoints}
               yAxisMin={(currentQuestion as any).yAxisMin}
               yAxisMax={(currentQuestion as any).yAxisMax}
               yAxisLabel={(currentQuestion as any).yAxisLabel}
               graded={false}
             />
+            <div className="flex justify-center gap-3 mt-3">
+              <button
+                onClick={handleUndoPoint}
+                disabled={!plottedPoints[currentIndex] || plottedPoints[currentIndex].length === 0}
+                className="px-4 py-2 bg-yellow-100 hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed text-yellow-700 rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
+              >
+                <span>↩️</span>
+                <span>1つ戻す / Undo</span>
+              </button>
+              <button
+                onClick={handleClearPoints}
+                disabled={!plottedPoints[currentIndex] || plottedPoints[currentIndex].length === 0}
+                className="px-4 py-2 bg-red-100 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed text-red-700 rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
+              >
+                <span>🗑️</span>
+                <span>全部消す / Clear All</span>
+              </button>
+            </div>
           </div>
         )}
 
