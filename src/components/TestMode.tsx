@@ -330,15 +330,16 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
 
     // For interactive exercises (quadrilateral drawing, diagonals drawing)
     if (isInteractiveExercise(q)) {
-      if (qType === 'dotted-paper-quadrilateral') {
+      const diagramType = getDiagramType(q);
+      if (diagramType === 'dotted-paper-quadrilateral') {
         const quad = quadrilateralAnswers[idx];
         return quad?.isComplete || false;
       }
-      if (qType === 'diagonals-drawing') {
+      if (diagramType === 'diagonals-drawing') {
         const diag = diagonalsAnswers[idx];
         return diag?.isComplete || false;
       }
-      if (qType === 'intersecting-lines-interactive') {
+      if (diagramType === 'intersecting-lines-interactive') {
         const inter = interactiveAnswers[idx];
         return !!(inter?.angleB && inter?.comparison);
       }
@@ -429,10 +430,10 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
     } else if (isDivisionQuestion(qType)) {
       const numericAnswer = parseFloat(userAnswer);
       return !isNaN(numericAnswer) && numericAnswer === q.quotient;
-    } else if (qType === 'diagonals-drawing') {
+    } else if (getDiagramType(q) === 'diagonals-drawing') {
       // Correct when the student completed drawing the required diagonals
       return diagonalsAnswers[idx]?.isComplete || false;
-    } else if (qType === 'dotted-paper-quadrilateral') {
+    } else if (getDiagramType(q) === 'dotted-paper-quadrilateral') {
       const quad = quadrilateralAnswers[idx];
       if (!quad?.isComplete || quad.vertices.length !== 4) return false;
       const typeMap: Record<number, 'rectangle' | 'square' | 'trapezoid' | 'parallelogram' | 'rhombus' | 'kite' | 'any'> = {
@@ -1546,13 +1547,15 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
               ) : (
                 <>
                   <span className="text-3xl font-black text-red-500">×</span>
-                  <span className="text-sm text-muted-foreground">
-                    正しいこたえ / Correct answer：
-                    <strong className="text-foreground ml-1">
-                      {String((currentQuestion as any).answer || '')}
-                      {(currentQuestion as any).unit || ''}
-                    </strong>
-                  </span>
+                  {!isInteractiveExercise(currentQuestion) && (
+                    <span className="text-sm text-muted-foreground">
+                      正しいこたえ / Correct answer：
+                      <strong className="text-foreground ml-1">
+                        {String((currentQuestion as any).answer || '')}
+                        {(currentQuestion as any).unit || ''}
+                      </strong>
+                    </span>
+                  )}
                   <button
                     onClick={handleTeachMeClick}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg text-sm font-medium transition-colors ml-auto"
