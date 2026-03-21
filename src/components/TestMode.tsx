@@ -217,6 +217,13 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
     const qType = getQuestionType(q);
     if (isAreaQuestion(qType)) return (q as any).answerArea ?? '';
     if (qType === 'large-area-units') return (q as any).answerConversion ?? '';
+    if (isFractionQuestion(qType) && !isFractionTypesQuestion(qType)) {
+      const qAny = q as any;
+      if (qAny.answerFraction) return qAny.answerFraction;
+      if (qAny.answerMixedWhole !== undefined && qAny.answerMixedWhole > 0)
+        return `${qAny.answerMixedWhole}と${qAny.answerMixedNum ?? qAny.answerNum}/${qAny.answerDen}`;
+      return `${qAny.answerNum}/${qAny.answerDen}`;
+    }
     return (q as any).answer ?? '';
   };
 
@@ -412,7 +419,19 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
         } else {
           answerStr = `${fractionAns.numerator}/${fractionAns.denominator}`;
         }
-        const expectedAnswer = String(q.answer);
+        // Build expected answer from fraction-specific fields (q.answer is undefined for FractionQuestion)
+        const qAny = q as any;
+        let expectedAnswer: string;
+        if (qAny.answerFraction) {
+          // converting-fractions: pre-formatted answer string
+          expectedAnswer = qAny.answerFraction;
+        } else if (qAny.answerMixedWhole !== undefined && qAny.answerMixedWhole > 0) {
+          // adding/subtracting: mixed number result
+          expectedAnswer = `${qAny.answerMixedWhole}と${qAny.answerMixedNum ?? qAny.answerNum}/${qAny.answerDen}`;
+        } else {
+          // adding/subtracting: simple fraction result
+          expectedAnswer = `${qAny.answerNum}/${qAny.answerDen}`;
+        }
         return answerStr === expectedAnswer;
       }
       return false;
