@@ -35,7 +35,7 @@ function renderDiagram(type: string, params: Record<string, number>) {
     case 'square-area':
       return <SquareArea side={params.side} />;
     case 'perpendicular':
-      return <Perpendicular />;
+      return <Perpendicular rotation={params.rotation || 0} />;
     case 'parallel-corresponding':
       return <ParallelCorresponding givenAngle={params.givenAngle} />;
     case 'parallel-supplementary':
@@ -51,7 +51,14 @@ function renderDiagram(type: string, params: Record<string, number>) {
     case 'polygon-diagonals':
       return <PolygonDiagonals sides={params.sides} />;
     case 'count-right-angles':
-      return <CountRightAngles count={params.count} />;
+      return <CountRightAngles count={params.count} shape={params.shape as string} orientation={params.orientation || 0} />;
+    case 'area-composite-lshape':
+      return <LShapeArea
+        outerWidth={params.outerWidth}
+        outerHeight={params.outerHeight}
+        cutoutWidth={params.cutoutWidth}
+        cutoutHeight={params.cutoutHeight}
+      />;
     case 'area-composite-cshape':
       return <CShapeArea
         outerWidth={params.outerWidth}
@@ -90,6 +97,64 @@ const STROKE = "hsl(220, 30%, 20%)";
 const PINK = "hsl(340, 70%, 55%)";
 const BLUE = "hsl(210, 70%, 50%)";
 const FILL_LIGHT = "hsl(210, 70%, 50%, 0.08)";
+
+/* ===== GRID COMPONENT FOR CM MARKINGS ===== */
+
+function CmGrid({
+  startX,
+  startY,
+  width,
+  height,
+  cellSize,
+}: {
+  startX: number;
+  startY: number;
+  width: number;
+  height: number;
+  cellSize: number;
+}) {
+  const lines = [];
+  const cols = Math.floor(width / cellSize);
+  const rows = Math.floor(height / cellSize);
+
+  // Vertical lines
+  for (let i = 0; i <= cols; i++) {
+    const x = startX + i * cellSize;
+    const isMajor = i % 5 === 0;
+    lines.push(
+      <line
+        key={`v${i}`}
+        x1={x}
+        y1={startY}
+        x2={x}
+        y2={startY + height}
+        stroke={isMajor ? "hsl(220, 30%, 20%, 0.4)" : "hsl(220, 30%, 20%, 0.15)"}
+        strokeWidth={isMajor ? 1.5 : 0.5}
+        strokeDasharray={isMajor ? undefined : "2 2"}
+      />
+    );
+  }
+
+  // Horizontal lines
+  for (let i = 0; i <= rows; i++) {
+    const y = startY + i * cellSize;
+    const isMajor = i % 5 === 0;
+    lines.push(
+      <line
+        key={`h${i}`}
+        x1={startX}
+        y1={y}
+        x2={startX + width}
+        y2={y}
+        stroke={isMajor ? "hsl(220, 30%, 20%, 0.4)" : "hsl(220, 30%, 20%, 0.15)"}
+        strokeWidth={isMajor ? 1.5 : 0.5}
+        strokeDasharray={isMajor ? undefined : "2 2"}
+      />
+    );
+  }
+
+  return <g>{lines}</g>;
+}
 
 /* ===== ANGLE DIAGRAMS ===== */
 
@@ -218,10 +283,10 @@ function SquareArea({ side }: { side: number }) {
 
 /* ===== LINE DIAGRAMS ===== */
 
-function Perpendicular() {
+function Perpendicular({ rotation = 0 }: { rotation?: number }) {
   const cx = 140, cy = 100;
   return (
-    <g>
+    <g transform={`rotate(${rotation}, ${cx}, ${cy})`}>
       <line x1={40} y1={cy} x2={240} y2={cy} stroke={STROKE} strokeWidth={2.5} />
       <line x1={cx} y1={20} x2={cx} y2={180} stroke={STROKE} strokeWidth={2.5} />
       <RightAngleMarker cx={cx} cy={cy} size={14} rotation={0} />
@@ -381,11 +446,16 @@ function RhombusPerimeter({ side }: { side: number }) {
   return (
     <g>
       <polygon points={pts.map(p => p.join(',')).join(' ')} fill="hsl(45, 95%, 60%, 0.12)" stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
-      {/* Equal marks on all sides */}
+      {/* Equal marks on all sides — drawn perpendicular to each side */}
       {[[0, 1], [1, 2], [2, 3], [3, 0]].map(([a, b], i) => {
         const mx = (pts[a][0] + pts[b][0]) / 2;
         const my = (pts[a][1] + pts[b][1]) / 2;
-        return <line key={i} x1={mx - 3} y1={my - 3} x2={mx + 3} y2={my + 3} stroke={PINK} strokeWidth={2} />;
+        const dx = pts[b][0] - pts[a][0];
+        const dy = pts[b][1] - pts[a][1];
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const px = (-dy / len) * 5;
+        const py = (dx / len) * 5;
+        return <line key={i} x1={mx - px} y1={my - py} x2={mx + px} y2={my + py} stroke={PINK} strokeWidth={2} />;
       })}
       {/* Side label */}
       <text x={cx + s / 2 + 14} y={cy - s / 2 - 2} fontSize={13} fontWeight="bold" fill={STROKE}>{side}cm</text>
@@ -426,7 +496,7 @@ function PolygonDiagonals({ sides }: { sides: number }) {
 
 /* ===== COUNT RIGHT ANGLES ===== */
 
-function CountRightAngles({ count, shape }: { count: number; shape?: string }) {
+function CountRightAngles({ count, shape, orientation = 0 }: { count: number; shape?: string; orientation?: number }) {
   // Create shapes with ACTUAL geometric right angles - NO markers shown
   // Students must visually identify 90° angles themselves
   const cx = 140, cy = 100;
@@ -440,8 +510,9 @@ function CountRightAngles({ count, shape }: { count: number; shape?: string }) {
     </>
   );
 
+  const rot = `rotate(${orientation}, ${cx}, ${cy})`;
+
   if (shape === 'rectangle' || count === 4) {
-    // Rectangle: exactly 4 right angles
     const w = 100, h = 70;
     const pts = [
       [cx - w/2, cy - h/2],
@@ -450,44 +521,135 @@ function CountRightAngles({ count, shape }: { count: number; shape?: string }) {
       [cx - w/2, cy + h/2],
     ];
     return (
-      <g>
+      <g transform={rot}>
         <rect x={cx - w/2} y={cy - h/2} width={w} height={h} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} />
         <VertexDots points={pts} />
       </g>
     );
   } else if (shape === 'l-shape' || count === 5) {
-    // L-shape (concave hexagon): 5 right angles, 1 reflex (270°) angle
     const pts = [
-      [cx - 60, cy - 60],  // top-left
-      [cx + 20, cy - 60],  // top-right
-      [cx + 20, cy + 20],  // step down-right
-      [cx + 60, cy + 20],  // inner corner (270° - NOT a right angle)
-      [cx + 60, cy + 60],  // bottom-right
-      [cx - 60, cy + 60],  // bottom-left
+      [cx - 60, cy - 60],
+      [cx + 20, cy - 60],
+      [cx + 20, cy + 20],
+      [cx + 60, cy + 20],
+      [cx + 60, cy + 60],
+      [cx - 60, cy + 60],
     ];
     return (
-      <g>
+      <g transform={rot}>
         <polygon points={pts.map(p => p.join(',')).join(' ')} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
         <VertexDots points={pts} />
       </g>
     );
   } else {
-    // Stepped shape: 6 right angles
     const pts = [
-      [cx - 60, cy - 60],  // top-left
-      [cx + 40, cy - 60],  // top-right
-      [cx + 40, cy - 10],  // step down
-      [cx + 10, cy - 10],  // step left
-      [cx + 10, cy + 60],  // bottom-right
-      [cx - 60, cy + 60],  // bottom-left
+      [cx - 60, cy - 60],
+      [cx + 40, cy - 60],
+      [cx + 40, cy - 10],
+      [cx + 10, cy - 10],
+      [cx + 10, cy + 60],
+      [cx - 60, cy + 60],
     ];
     return (
-      <g>
+      <g transform={rot}>
         <polygon points={pts.map(p => p.join(',')).join(' ')} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
         <VertexDots points={pts} />
       </g>
     );
   }
+}
+
+/* ===== L-SHAPE COMPOSITE AREA ===== */
+
+function LShapeArea({
+  outerWidth,
+  outerHeight,
+  cutoutWidth,
+  cutoutHeight,
+}: {
+  outerWidth: number;
+  outerHeight: number;
+  cutoutWidth: number;
+  cutoutHeight: number;
+}) {
+  // Scale to fit viewBox
+  const maxW = 220;
+  const maxH = 160;
+  const scale = Math.min(maxW / outerWidth, maxH / outerHeight);
+  const ow = outerWidth * scale;
+  const oh = outerHeight * scale;
+  const cw = cutoutWidth * scale;
+  const ch = cutoutHeight * scale;
+
+  const cx = (280 - ow) / 2;
+  const cy0 = (180 - oh) / 2;
+
+  // L-shape points: outer rect with bottom-right cutout
+  // Starting from top-left, go clockwise
+  const pts = [
+    [cx, cy0],                    // Top-left
+    [cx + ow, cy0],               // Top-right
+    [cx + ow, cy0 + oh - ch],     // Cutout top-right
+    [cx + ow - cw, cy0 + oh - ch], // Cutout top-left (inner corner)
+    [cx + ow - cw, cy0 + oh],     // Cutout bottom-left
+    [cx, cy0 + oh],               // Bottom-left
+  ];
+
+  return (
+    <g>
+      <ArrowDefs />
+      {/* 1cm grid background */}
+      <CmGrid
+        startX={cx}
+        startY={cy0}
+        width={ow}
+        height={oh}
+        cellSize={scale}
+      />
+
+      {/* L-shape */}
+      <polygon
+        points={pts.map((p) => p.join(',')).join(' ')}
+        fill="hsl(200, 50%, 45%, 0.15)"
+        stroke={STROKE}
+        strokeWidth={2.5}
+        strokeLinejoin="round"
+      />
+
+      {/* Dimension labels */}
+      {/* Outer width */}
+      <text x={cx + ow / 2} y={cy0 - 8} textAnchor="middle" fontSize={12} fontWeight="bold" fill={STROKE}>
+        {outerWidth}cm
+      </text>
+      <line x1={cx} y1={cy0 - 4} x2={cx + ow} y2={cy0 - 4} stroke={STROKE} strokeWidth={1.5} markerStart="url(#arrowL)" markerEnd="url(#arrowR)" />
+
+      {/* Outer height */}
+      <text x={cx - 12} y={cy0 + oh / 2 + 4} textAnchor="middle" fontSize={12} fontWeight="bold" fill={STROKE} transform={`rotate(-90, ${cx - 12}, ${cy0 + oh / 2 + 4})`}>
+        {outerHeight}cm
+      </text>
+      <line x1={cx - 6} y1={cy0} x2={cx - 6} y2={cy0 + oh} stroke={STROKE} strokeWidth={1.5} markerStart="url(#arrowU)" markerEnd="url(#arrowD)" />
+
+      {/* Cutout width (bottom edge) */}
+      <text x={cx + ow - cw / 2} y={cy0 + oh + 20} textAnchor="middle" fontSize={11} fontWeight="bold" fill={PINK}>
+        {cutoutWidth}cm
+      </text>
+      <line x1={cx + ow - cw} y1={cy0 + oh + 12} x2={cx + ow} y2={cy0 + oh + 12} stroke={PINK} strokeWidth={1.5} markerStart="url(#arrowL)" markerEnd="url(#arrowR)" />
+
+      {/* Cutout height (right edge) */}
+      <text x={cx + ow + 18} y={cy0 + oh - ch / 2 + 4} textAnchor="middle" fontSize={11} fontWeight="bold" fill={PINK} transform={`rotate(90, ${cx + ow + 18}, ${cy0 + oh - ch / 2 + 4})`}>
+        {cutoutHeight}cm
+      </text>
+      <line x1={cx + ow + 8} y1={cy0 + oh - ch} x2={cx + ow + 8} y2={cy0 + oh} stroke={PINK} strokeWidth={1.5} markerStart="url(#arrowU)" markerEnd="url(#arrowD)" />
+
+      {/* Labels for sections */}
+      <text x={cx + (ow - cw) / 2} y={cy0 + oh / 2} textAnchor="middle" fontSize={14} fontWeight="bold" fill={STROKE}>
+        A
+      </text>
+      <text x={cx + ow - cw / 2} y={cy0 + oh - ch / 2} textAnchor="middle" fontSize={14} fontWeight="bold" fill={STROKE}>
+        B
+      </text>
+    </g>
+  );
 }
 
 /* ===== C-SHAPE COMPOSITE AREA ===== */
@@ -534,10 +696,19 @@ function CShapeArea({
   return (
     <g>
       <ArrowDefs />
+      {/* 1cm grid background */}
+      <CmGrid
+        startX={cx}
+        startY={cy0}
+        width={ow}
+        height={oh}
+        cellSize={scale}
+      />
+
       {/* C-shape */}
       <polygon
         points={pts.map((p) => p.join(',')).join(' ')}
-        fill="hsl(150, 50%, 45%, 0.1)"
+        fill="hsl(150, 50%, 45%, 0.15)"
         stroke={STROKE}
         strokeWidth={2.5}
         strokeLinejoin="round"

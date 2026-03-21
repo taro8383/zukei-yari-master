@@ -206,20 +206,36 @@ const LineGraphQuestionItem = ({
               />
             ) : isDrawingGraph && question.tableData ? (
               <>
-                {/* Word Problem Display */}
-                <div className="bg-kid-blue/10 rounded-xl p-4 border border-kid-blue/30 mb-4">
-                  <p className="text-sm font-bold text-foreground mb-2 text-center">
-                    📖 問題を読んで数字を見つけよう！/ Read the problem and find the numbers!
-                  </p>
-                  <div className="bg-white rounded-lg p-4 shadow-sm">
-                    <p className="text-foreground text-base leading-relaxed">
-                      {question.problemDescription}
+                {/* Word Problem Display or Table Display */}
+                {question.problemDescription ? (
+                  <div className="bg-kid-blue/10 rounded-xl p-4 border border-kid-blue/30 mb-4">
+                    <p className="text-sm font-bold text-foreground mb-2 text-center">
+                      📖 問題を読んで数字を見つけよう！/ Read the problem and find the numbers!
                     </p>
-                    <p className="text-gray-500 text-sm mt-2">
-                      {question.problemDescriptionEn}
-                    </p>
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <p className="text-foreground text-base leading-relaxed">
+                        {question.problemDescription}
+                      </p>
+                      <p className="text-gray-500 text-sm mt-2">
+                        {question.problemDescriptionEn}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="bg-kid-blue/10 rounded-xl p-4 border border-kid-blue/30 mb-4">
+                    <p className="text-sm font-bold text-foreground mb-2 text-center">
+                      📊 表 / Table (参考)
+                    </p>
+                    <div className="flex justify-center gap-4 flex-wrap">
+                      {question.tableData.map((row, idx) => (
+                        <div key={idx} className="text-center bg-white rounded-lg px-3 py-2 shadow-sm">
+                          <div className="text-xs text-muted-foreground">{row.x}</div>
+                          <div className="text-lg font-bold text-primary">{row.y}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Interactive Graph with Click-to-Select */}
                 <div className="bg-white rounded-xl p-4 border-2 border-kid-blue/30 mb-4">
@@ -238,10 +254,9 @@ const LineGraphQuestionItem = ({
                   />
                 </div>
 
-                {/* Undo and Clear buttons */}
+                {/* Clear and Undo buttons */}
                 {!graded && (
-                  <div className="flex justify-center gap-3 mt-3">
-                    {/* Undo button */}
+                  <div className="flex justify-center mt-3 gap-3">
                     <button
                       onClick={onUndoPoint}
                       disabled={!plottedPoints || plottedPoints.length === 0}
@@ -250,7 +265,6 @@ const LineGraphQuestionItem = ({
                       <span>↩️</span>
                       <span>1つ戻す / Undo</span>
                     </button>
-                    {/* Clear All button */}
                     <button
                       onClick={onClearPoints}
                       disabled={!plottedPoints || plottedPoints.length === 0}

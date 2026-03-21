@@ -52,7 +52,7 @@ export interface LineGraphQuestion {
   // For drawing graph
   tableData?: Array<{ x: string; y: number }>;
   correctPoints?: Array<{ x: number; y: number }>;
-  // Word problem description for students to extract data
+  // Word problem description (for drawing-graph topic)
   problemDescription?: string;
   problemDescriptionEn?: string;
   formula: string;
@@ -724,7 +724,6 @@ function generateDrawingGraphQuestions(): LineGraphQuestion[] {
     {
       title: 'はなのたかさの成長',
       titleEn: 'Flower Growth',
-      // Word problem description - students extract data from text
       problemDescription: 'けいくんははなをそだていました。1日目は2cm、2日目は4cm、3日目は5cm、4日目は7cm、5日目には8cmにのびました。',
       problemDescriptionEn: 'Kei grew a flower. Day 1: 2cm, Day 2: 4cm, Day 3: 5cm, Day 4: 7cm, Day 5: 8cm.',
       tableData: [
@@ -841,8 +840,8 @@ function generateDrawingGraphQuestions(): LineGraphQuestion[] {
     questions.push({
       id: `draw-${i}`,
       topic: 'drawing-graph',
-      text: `${scenario.problemDescription}\n\n上の文章から数字を見つけて、グラフに点を打ちましょう。${scenario.questionDay}の値はいくつですか？`,
-      textEn: `${scenario.problemDescriptionEn}\n\nFind the numbers from the text above and plot points on the graph. What is the value for ${scenario.questionDayEn}?`,
+      text: `${scenario.problemDescription}\n\n上の文章から数字を見つけて、グラフの点をクリックして${scenario.title}のグラフを完成させましょう。${scenario.questionDay}の値はいくつですか？`,
+      textEn: `${scenario.problemDescriptionEn}\n\nFind the numbers from the text above, then click points to complete the ${scenario.titleEn} graph. What is the value for ${scenario.questionDayEn}?`,
       answer: scenario.correctY,
       dataPoints: [], // Will be filled by user
       tableData: scenario.tableData,
