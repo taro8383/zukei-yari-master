@@ -1719,7 +1719,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
                 ? questionResults[idx]
                   ? 'bg-green-400'
                   : 'bg-red-400'
-                : answers[idx]
+                : isQuestionAnswered(idx)
                 ? 'bg-green-400'
                 : 'bg-muted'
             )}
