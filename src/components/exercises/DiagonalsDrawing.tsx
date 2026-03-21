@@ -34,13 +34,18 @@ const DiagonalsDrawing = ({
   const [flashError, setFlashError] = useState<number | null>(null);
   const [isComplete, setIsComplete] = useState(savedIsComplete || false);
 
-  // Reset state when shapeType changes (new question)
+  // Reset state when shapeType changes (new question).
+  // Intentionally excludes savedDiagonals/savedIsComplete from deps — those are
+  // initial-state props only. Including them causes the effect to re-run every
+  // time onStateChange → parent update → new prop reference, wiping selectedVertex.
+  // The key prop in TestMode already remounts this component per question.
   useEffect(() => {
     setSelectedVertex(null);
     setDiagonals(savedDiagonals || []);
     setFlashError(null);
     setIsComplete(savedIsComplete || false);
-  }, [shapeType, savedDiagonals, savedIsComplete]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shapeType]);
 
   // Notify parent when state changes (for test mode persistence)
   useEffect(() => {

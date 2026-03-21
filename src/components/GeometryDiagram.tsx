@@ -35,7 +35,7 @@ function renderDiagram(type: string, params: Record<string, number>) {
     case 'square-area':
       return <SquareArea side={params.side} />;
     case 'perpendicular':
-      return <Perpendicular />;
+      return <Perpendicular rotation={params.rotation || 0} />;
     case 'parallel-corresponding':
       return <ParallelCorresponding givenAngle={params.givenAngle} />;
     case 'parallel-supplementary':
@@ -51,7 +51,7 @@ function renderDiagram(type: string, params: Record<string, number>) {
     case 'polygon-diagonals':
       return <PolygonDiagonals sides={params.sides} />;
     case 'count-right-angles':
-      return <CountRightAngles count={params.count} />;
+      return <CountRightAngles count={params.count} shape={params.shape as string} orientation={params.orientation || 0} />;
     case 'area-composite-lshape':
       return <LShapeArea
         outerWidth={params.outerWidth}
@@ -283,10 +283,10 @@ function SquareArea({ side }: { side: number }) {
 
 /* ===== LINE DIAGRAMS ===== */
 
-function Perpendicular() {
+function Perpendicular({ rotation = 0 }: { rotation?: number }) {
   const cx = 140, cy = 100;
   return (
-    <g>
+    <g transform={`rotate(${rotation}, ${cx}, ${cy})`}>
       <line x1={40} y1={cy} x2={240} y2={cy} stroke={STROKE} strokeWidth={2.5} />
       <line x1={cx} y1={20} x2={cx} y2={180} stroke={STROKE} strokeWidth={2.5} />
       <RightAngleMarker cx={cx} cy={cy} size={14} rotation={0} />
@@ -446,11 +446,16 @@ function RhombusPerimeter({ side }: { side: number }) {
   return (
     <g>
       <polygon points={pts.map(p => p.join(',')).join(' ')} fill="hsl(45, 95%, 60%, 0.12)" stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
-      {/* Equal marks on all sides */}
+      {/* Equal marks on all sides — drawn perpendicular to each side */}
       {[[0, 1], [1, 2], [2, 3], [3, 0]].map(([a, b], i) => {
         const mx = (pts[a][0] + pts[b][0]) / 2;
         const my = (pts[a][1] + pts[b][1]) / 2;
-        return <line key={i} x1={mx - 3} y1={my - 3} x2={mx + 3} y2={my + 3} stroke={PINK} strokeWidth={2} />;
+        const dx = pts[b][0] - pts[a][0];
+        const dy = pts[b][1] - pts[a][1];
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const px = (-dy / len) * 5;
+        const py = (dx / len) * 5;
+        return <line key={i} x1={mx - px} y1={my - py} x2={mx + px} y2={my + py} stroke={PINK} strokeWidth={2} />;
       })}
       {/* Side label */}
       <text x={cx + s / 2 + 14} y={cy - s / 2 - 2} fontSize={13} fontWeight="bold" fill={STROKE}>{side}cm</text>
@@ -491,7 +496,7 @@ function PolygonDiagonals({ sides }: { sides: number }) {
 
 /* ===== COUNT RIGHT ANGLES ===== */
 
-function CountRightAngles({ count, shape }: { count: number; shape?: string }) {
+function CountRightAngles({ count, shape, orientation = 0 }: { count: number; shape?: string; orientation?: number }) {
   // Create shapes with ACTUAL geometric right angles - NO markers shown
   // Students must visually identify 90° angles themselves
   const cx = 140, cy = 100;
@@ -505,8 +510,9 @@ function CountRightAngles({ count, shape }: { count: number; shape?: string }) {
     </>
   );
 
+  const rot = `rotate(${orientation}, ${cx}, ${cy})`;
+
   if (shape === 'rectangle' || count === 4) {
-    // Rectangle: exactly 4 right angles
     const w = 100, h = 70;
     const pts = [
       [cx - w/2, cy - h/2],
@@ -515,39 +521,37 @@ function CountRightAngles({ count, shape }: { count: number; shape?: string }) {
       [cx - w/2, cy + h/2],
     ];
     return (
-      <g>
+      <g transform={rot}>
         <rect x={cx - w/2} y={cy - h/2} width={w} height={h} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} />
         <VertexDots points={pts} />
       </g>
     );
   } else if (shape === 'l-shape' || count === 5) {
-    // L-shape (concave hexagon): 5 right angles, 1 reflex (270°) angle
     const pts = [
-      [cx - 60, cy - 60],  // top-left
-      [cx + 20, cy - 60],  // top-right
-      [cx + 20, cy + 20],  // step down-right
-      [cx + 60, cy + 20],  // inner corner (270° - NOT a right angle)
-      [cx + 60, cy + 60],  // bottom-right
-      [cx - 60, cy + 60],  // bottom-left
+      [cx - 60, cy - 60],
+      [cx + 20, cy - 60],
+      [cx + 20, cy + 20],
+      [cx + 60, cy + 20],
+      [cx + 60, cy + 60],
+      [cx - 60, cy + 60],
     ];
     return (
-      <g>
+      <g transform={rot}>
         <polygon points={pts.map(p => p.join(',')).join(' ')} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
         <VertexDots points={pts} />
       </g>
     );
   } else {
-    // Stepped shape: 6 right angles
     const pts = [
-      [cx - 60, cy - 60],  // top-left
-      [cx + 40, cy - 60],  // top-right
-      [cx + 40, cy - 10],  // step down
-      [cx + 10, cy - 10],  // step left
-      [cx + 10, cy + 60],  // bottom-right
-      [cx - 60, cy + 60],  // bottom-left
+      [cx - 60, cy - 60],
+      [cx + 40, cy - 60],
+      [cx + 40, cy - 10],
+      [cx + 10, cy - 10],
+      [cx + 10, cy + 60],
+      [cx - 60, cy + 60],
     ];
     return (
-      <g>
+      <g transform={rot}>
         <polygon points={pts.map(p => p.join(',')).join(' ')} fill={FILL_LIGHT} stroke={STROKE} strokeWidth={2.5} strokeLinejoin="round" />
         <VertexDots points={pts} />
       </g>

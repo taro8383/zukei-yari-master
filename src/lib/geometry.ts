@@ -383,18 +383,22 @@ function generateSingleQuestion(topic: Topic, id: number): Question {
           rightAngleCount = 6;
           shapeName = 'stepped';
         }
+        // Random orientation (0, 90, 180, 270) gives 12 visual variants (3 shapes × 4 rotations)
+        const orientation = Math.floor(Math.random() * 4) * 90;
         return {
           id, answer: rightAngleCount, unit: '個',
-          text: '下の図の直角（90°の角）は全部でいくつありますか？',
-          textEn: 'How many right angles (90° angles) are in the figure below?',
-          diagram: { type: 'count-right-angles', params: { count: rightAngleCount, shape: shapeName } },
+          text: '下の図の内側にある直角（90°の角）は全部でいくつありますか？',
+          textEn: 'How many right angles (90° angles) are inside the figure below?',
+          diagram: { type: 'count-right-angles', params: { count: rightAngleCount, shape: shapeName, orientation } },
         };
       } else if (type === 1) {
+        // Random rotation so the perpendicular looks different each time (answer always 90°)
+        const rotation = Math.floor(Math.random() * 4) * 45;
         return {
           id, answer: 90, unit: '°',
           text: '下の図で、2つの直線が垂直にまじわっています。アの角度は何度ですか？',
           textEn: 'Two lines meet perpendicularly. What is angle ア?',
-          diagram: { type: 'perpendicular', params: {} },
+          diagram: { type: 'perpendicular', params: { rotation } },
         };
       } else if (type === 2) {
         const givenAngle = Math.floor(Math.random() * 60) + 30;

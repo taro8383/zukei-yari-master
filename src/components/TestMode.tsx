@@ -212,6 +212,14 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
     return topicId === 'choosing-units';
   };
 
+  // Get the correct numeric answer for a question (handles non-standard answer fields)
+  const getCorrectAnswerValue = (q: TestQuestion): number | string => {
+    const qType = getQuestionType(q);
+    if (isAreaQuestion(qType)) return (q as any).answerArea ?? '';
+    if (qType === 'large-area-units') return (q as any).answerConversion ?? '';
+    return (q as any).answer ?? '';
+  };
+
   // Check if this is a decimal question that needs visual components
   const isDecimalAddSubtract = (topicId: string): boolean => {
     return topicId === 'decimal-add-subtract';
@@ -430,6 +438,23 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
     } else if (isDivisionQuestion(qType)) {
       const numericAnswer = parseFloat(userAnswer);
       return !isNaN(numericAnswer) && numericAnswer === q.quotient;
+    } else if (qType === 'finding-rule') {
+      // Correct option has value 'correct'; wrong options have other values
+      return userAnswer === String((q as any).answer);
+    } else if (qType === 'writing-equation') {
+      // Answer stored as 'operator|constant' string, e.g. '×|3'
+      return userAnswer === String((q as any).answer);
+    } else if (qType === 'combining-into-one-equation') {
+      // Answer stored as 'equationPart|numericAnswer'
+      const numericPart = userAnswer.split('|')[1] || '';
+      const numericVal = parseFloat(numericPart);
+      return !isNaN(numericVal) && Math.abs(numericVal - Number((q as any).answer)) < 0.0001;
+    } else if (getDiagramType(q) === 'intersecting-lines-interactive') {
+      const inter = interactiveAnswers[idx];
+      if (!inter?.angleB || !inter?.comparison) return false;
+      const givenAngle = (q as any).diagram?.params?.givenAngle;
+      const correctAngleB = 180 - givenAngle;
+      return parseInt(inter.angleB) === correctAngleB && inter.comparison === 'eq';
     } else if (getDiagramType(q) === 'diagonals-drawing') {
       // Correct when the student completed drawing the required diagonals
       return diagonalsAnswers[idx]?.isComplete || false;
@@ -442,10 +467,11 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
       const requiredType = typeMap[q.diagram?.params?.requiredType] || 'any';
       return validateQuadrilateral(quad.vertices, requiredType).isValid;
     } else {
+      const correctValue = getCorrectAnswerValue(q);
       const numericAnswer = parseFloat(userAnswer);
-      if (!isNaN(numericAnswer)) {
+      if (!isNaN(numericAnswer) && correctValue !== '') {
         const tolerance = 0.0001;
-        return Math.abs(numericAnswer - Number(q.answer)) < tolerance;
+        return Math.abs(numericAnswer - Number(correctValue)) < tolerance;
       }
       return false;
     }
@@ -715,16 +741,21 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
         return (
           <div className="flex flex-col items-center gap-2 mb-4">
             <p className="text-sm text-muted-foreground">L字の形 / L-Shape</p>
-            <svg width={svgWidth} height={svgHeight} className="border rounded-lg bg-white">
+            <svg width={svgWidth + 20} height={svgHeight} className="border rounded-lg bg-white">
               {/* Rectangle A (left) */}
               <rect x="50" y="30" width={rect1W} height={oh} fill="#60a5fa" stroke="#3b82f6" strokeWidth={2} />
               <text x={50 + rect1W / 2} y={30 + oh / 2 + 5} textAnchor="middle" fontSize={14} fill="white" fontWeight="bold">A</text>
               {/* Rectangle B (bottom right) */}
               <rect x={50 + rect1W} y={30 + oh - rect2H} width={cw} height={rect2H} fill="#a78bfa" stroke="#8b5cf6" strokeWidth={2} />
               <text x={50 + rect1W + cw / 2} y={30 + oh - rect2H / 2 + 5} textAnchor="middle" fontSize={14} fill="white" fontWeight="bold">B</text>
-              {/* Labels */}
+              {/* Label: total width at top */}
               <text x={50 + ow / 2} y="20" textAnchor="middle" fontSize={12} fill="#374151" fontWeight="bold">{outerWidth} cm</text>
+              {/* Label: height of A on left */}
               <text x="30" y={30 + oh / 2 + 5} textAnchor="middle" fontSize={12} fill="#374151" fontWeight="bold">{outerHeight} cm</text>
+              {/* Label: width of B below B */}
+              <text x={50 + rect1W + cw / 2} y={30 + oh + 15} textAnchor="middle" fontSize={12} fill="#7c3aed" fontWeight="bold">{cutoutWidth} cm</text>
+              {/* Label: height of B to the right of B */}
+              <text x={50 + ow + 5} y={30 + oh - rect2H / 2 + 5} textAnchor="start" fontSize={12} fill="#7c3aed" fontWeight="bold">{outerHeight - cutoutHeight} cm</text>
             </svg>
           </div>
         );
@@ -1551,7 +1582,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
                     <span className="text-sm text-muted-foreground">
                       正しいこたえ / Correct answer：
                       <strong className="text-foreground ml-1">
-                        {String((currentQuestion as any).answer || '')}
+                        {String(getCorrectAnswerValue(currentQuestion))}
                         {(currentQuestion as any).unit || ''}
                       </strong>
                     </span>
@@ -1580,9 +1611,26 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
                       rotation={diagram.params.rotation}
                     />
                   )}
-                  {diagram.type === 'dotted-paper-quadrilateral' && (
-                    <QuadrilateralExplanation />
-                  )}
+                  {diagram.type === 'dotted-paper-quadrilateral' && (() => {
+                    const typeMap: Record<number, 'rectangle' | 'square' | 'trapezoid' | 'parallelogram' | 'rhombus' | 'kite' | 'any'> = {
+                      0: 'rectangle', 1: 'square', 2: 'trapezoid', 3: 'parallelogram', 4: 'rhombus', 5: 'kite',
+                    };
+                    const requiredType = typeMap[diagram.params.requiredType] || 'any';
+                    const quad = quadrilateralAnswers[currentIndex];
+                    const validationMsg = quad?.vertices?.length === 4
+                      ? validateQuadrilateral(quad.vertices, requiredType).message
+                      : null;
+                    return (
+                      <>
+                        {validationMsg && validationMsg !== 'OK' && (
+                          <div className="mb-3 px-4 py-2 bg-red-50 border border-red-200 rounded-lg text-sm font-medium text-red-700">
+                            ❌ {validationMsg}
+                          </div>
+                        )}
+                        <QuadrilateralExplanation />
+                      </>
+                    );
+                  })()}
                   {diagram.type === 'diagonals-drawing' && (
                     <DiagonalsDrawingExplanation
                       shapeType={diagram.params.shapeType}
