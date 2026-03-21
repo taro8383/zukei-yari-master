@@ -900,8 +900,11 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
               <tr>
                 <th className="p-3 border-r-2 border-primary font-bold text-foreground bg-primary/10">△</th>
                 {q.tableData.map((row: { y: number; isInput?: boolean }, i: number) => (
-                  <td key={`y-${i}`} className="p-3 border-b border-primary/20 text-center">
-                    <span className="text-lg font-bold">{row.y}</span>
+                  <td key={`y-${i}`} className={`p-3 border-b border-primary/20 text-center${row.isInput && !isGraded ? ' bg-kid-yellow/20 border-2 border-kid-yellow/50' : ''}`}>
+                    {row.isInput && !isGraded
+                      ? <span className="text-2xl font-bold text-kid-yellow">?</span>
+                      : <span className="text-lg font-bold">{row.y}</span>
+                    }
                   </td>
                 ))}
               </tr>
