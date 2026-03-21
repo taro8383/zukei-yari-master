@@ -4,7 +4,26 @@
 import { StoryProgress, DailyEpisode, getDefaultStoryProgress, generateDailyEpisode } from './storyMode';
 
 // Shop item types
-export type ShopItemType = 'theme' | 'avatarColor' | 'powerup';
+export type ShopItemType = 'theme' | 'avatarColor' | 'powerup' | 'accessory';
+
+// Pet types
+export type PetType = 'robot' | 'cat' | 'dog' | 'alien' | 'penguin' | 'dragon';
+
+// Pet state interface
+export interface PetState {
+  petType: PetType | null;
+  happiness: number; // 0-100
+  accessories: string[]; // unlocked accessory IDs
+  equippedAccessories: string[]; // currently wearing
+  lastFedDate: string | null;
+  totalCorrectFeeds: number;
+}
+
+// Problem theme types
+export type ProblemTheme = 'default' | 'space' | 'cooking' | 'sports' | 'animals' | 'fantasy';
+
+// Sound pack types
+export type SoundPack = 'classic' | 'cartoon' | 'nature' | 'silent';
 
 // Quest types
 export type QuestType = 'answer-correct' | 'answer-questions' | 'perfect-score' | 'try-topic' | 'use-hints' | 'streak-days';
@@ -92,13 +111,17 @@ export interface GameData {
   inventory: {
     themes: string[]; // Purchased theme IDs
     powerups: { [powerupId: string]: number }; // Count of each powerup
+    accessories: string[]; // Purchased accessory IDs
   };
   dailyQuests: DailyQuest[];
   settings: {
     soundEnabled: boolean;
     animationsEnabled: boolean;
     theme: string; // Current theme ID
+    problemTheme: ProblemTheme; // Story theme for questions
+    soundPack: SoundPack; // Sound effect pack
   };
+  pet: PetState;
   stats: {
     totalQuestions: number;
     correctAnswers: number;
@@ -283,6 +306,118 @@ export const SHOP_ITEMS: ShopItem[] = [
     descriptionEn: 'Keep streak even if you miss a day',
     price: 100,
   },
+  // Pet Accessories (Universal)
+  {
+    id: 'acc-bow',
+    type: 'accessory',
+    icon: '🎀',
+    nameJa: 'リボン',
+    nameEn: 'Bow',
+    descriptionJa: 'かわいいリボン',
+    descriptionEn: 'Cute bow accessory',
+    price: 50,
+  },
+  {
+    id: 'acc-hat',
+    type: 'accessory',
+    icon: '🎩',
+    nameJa: 'シルクハット',
+    nameEn: 'Top Hat',
+    descriptionJa: 'かっこいいシルクハット',
+    descriptionEn: 'Cool top hat',
+    price: 75,
+  },
+  {
+    id: 'acc-glasses',
+    type: 'accessory',
+    icon: '👓',
+    nameJa: 'メガネ',
+    nameEn: 'Glasses',
+    descriptionJa: 'かしこそうなメガネ',
+    descriptionEn: 'Smart-looking glasses',
+    price: 60,
+  },
+  {
+    id: 'acc-cape',
+    type: 'accessory',
+    icon: '🦸',
+    nameJa: 'マント',
+    nameEn: 'Cape',
+    descriptionJa: 'ヒーローのマント',
+    descriptionEn: 'Hero cape',
+    price: 100,
+  },
+  {
+    id: 'acc-crown',
+    type: 'accessory',
+    icon: '👑',
+    nameJa: 'おうかん',
+    nameEn: 'Crown',
+    descriptionJa: 'きらきらおうかん',
+    descriptionEn: 'Shiny crown',
+    price: 150,
+  },
+  // Pet-Specific Accessories
+  {
+    id: 'acc-robot-antenna',
+    type: 'accessory',
+    icon: '📡',
+    nameJa: 'アンテナ',
+    nameEn: 'Robot Antenna',
+    descriptionJa: 'ロボット用アンテナ',
+    descriptionEn: 'Antenna for robot pet',
+    price: 50,
+  },
+  {
+    id: 'acc-cat-bell',
+    type: 'accessory',
+    icon: '🔔',
+    nameJa: 'すず',
+    nameEn: 'Cat Bell',
+    descriptionJa: 'ねこ用のすず',
+    descriptionEn: 'Bell for cat pet',
+    price: 50,
+  },
+  {
+    id: 'acc-dog-collar',
+    type: 'accessory',
+    icon: '🦮',
+    nameJa: 'くびわ',
+    nameEn: 'Dog Collar',
+    descriptionJa: 'いぬ用のくびわ',
+    descriptionEn: 'Collar for dog pet',
+    price: 50,
+  },
+  {
+    id: 'acc-alien-ufo',
+    type: 'accessory',
+    icon: '🛸',
+    nameJa: 'UFO',
+    nameEn: 'Mini UFO',
+    descriptionJa: 'エイリアン用のUFO',
+    descriptionEn: 'UFO for alien pet',
+    price: 75,
+  },
+  {
+    id: 'acc-penguin-skates',
+    type: 'accessory',
+    icon: '⛸️',
+    nameJa: 'スケート',
+    nameEn: 'Ice Skates',
+    descriptionJa: 'ペンギン用のアイススケート',
+    descriptionEn: 'Ice skates for penguin',
+    price: 75,
+  },
+  {
+    id: 'acc-dragon-fire',
+    type: 'accessory',
+    icon: '🔥',
+    nameJa: 'ほのお',
+    nameEn: 'Fire Breath',
+    descriptionJa: 'ドラゴンのほのお',
+    descriptionEn: 'Fire breath for dragon',
+    price: 100,
+  },
 ];
 
 // Default game data
@@ -299,12 +434,23 @@ const defaultGameData: GameData = {
   inventory: {
     themes: [],
     powerups: {},
+    accessories: [],
   },
   dailyQuests: [],
   settings: {
     soundEnabled: true,
     animationsEnabled: true,
     theme: 'default',
+    problemTheme: 'default',
+    soundPack: 'classic',
+  },
+  pet: {
+    petType: null,
+    happiness: 50,
+    accessories: [],
+    equippedAccessories: [],
+    lastFedDate: null,
+    totalCorrectFeeds: 0,
   },
   stats: {
     totalQuestions: 0,
@@ -461,6 +607,19 @@ export const getGameData = (): GameData => {
     }
     if (!parsed.stats?.topicPersonalBests) {
       merged.stats.topicPersonalBests = {};
+    }
+    // Pet and personalization (v5+ fields)
+    if (!parsed.pet) {
+      merged.pet = defaultGameData.pet;
+    }
+    if (!parsed.inventory?.accessories) {
+      merged.inventory.accessories = [];
+    }
+    if (!parsed.settings?.problemTheme) {
+      merged.settings.problemTheme = 'default';
+    }
+    if (!parsed.settings?.soundPack) {
+      merged.settings.soundPack = 'classic';
     }
 
     return merged;
@@ -1954,4 +2113,285 @@ export const getStoryProgressSummary = () => {
     totalStoryCoins: storyProgress.totalStoryCoins,
     currentChapterId: storyProgress.currentChapterId,
   };
+};
+
+// ============================================
+// MATH PET SYSTEM
+// ============================================
+
+// Pet type definitions
+export const PET_TYPES: { id: PetType; icon: string; nameJa: string; nameEn: string; personalityJa: string; personalityEn: string }[] = [
+  { id: 'robot', icon: '🤖', nameJa: 'ロボット', nameEn: 'Robot', personalityJa: 'ろてき、びーぷ', personalityEn: 'Logical, beeps' },
+  { id: 'cat', icon: '🐱', nameJa: 'ねこ', nameEn: 'Cat', personalityJa: 'こうきしんたっぷり、ごろごろ', personalityEn: 'Curious, purrs' },
+  { id: 'dog', icon: '🐕', nameJa: 'いぬ', nameEn: 'Dog', personalityJa: 'ちゅうじつ、わんわん', personalityEn: 'Loyal, barks' },
+  { id: 'alien', icon: '👽', nameJa: 'エイリアン', nameEn: 'Alien', personalityJa: 'しんぴてき、へんなおと', personalityEn: 'Mysterious, weird sounds' },
+  { id: 'penguin', icon: '🐧', nameJa: 'ペンギン', nameEn: 'Penguin', personalityJa: 'くーる、よちよち', personalityEn: 'Cool, waddles' },
+  { id: 'dragon', icon: '🐲', nameJa: 'ドラゴン', nameEn: 'Dragon', personalityJa: 'ひあつい、がおー', personalityEn: 'Fiery, roars' },
+];
+
+// Accessory definitions with pet restrictions
+export const ACCESSORY_PET_RESTRICTIONS: { [accessoryId: string]: PetType[] | null } = {
+  'acc-bow': null, // All pets
+  'acc-hat': null,
+  'acc-glasses': null,
+  'acc-cape': null,
+  'acc-crown': null,
+  'acc-robot-antenna': ['robot'],
+  'acc-cat-bell': ['cat'],
+  'acc-dog-collar': ['dog'],
+  'acc-alien-ufo': ['alien'],
+  'acc-penguin-skates': ['penguin'],
+  'acc-dragon-fire': ['dragon'],
+};
+
+// Select a pet (free, can switch anytime)
+export const selectPet = (petType: PetType): boolean => {
+  const data = getGameData();
+  data.pet.petType = petType;
+  // Reset equipped accessories if not compatible
+  data.pet.equippedAccessories = data.pet.equippedAccessories.filter(accId => {
+    const restriction = ACCESSORY_PET_RESTRICTIONS[accId];
+    return restriction === null || restriction.includes(petType);
+  });
+  saveGameData(data);
+  window.dispatchEvent(new CustomEvent('pet-changed'));
+  return true;
+};
+
+// Get pet emotion based on happiness
+export const getPetEmotion = (): { emotion: 'happy' | 'neutral' | 'sad'; icon: string; textJa: string; textEn: string } => {
+  const data = getGameData();
+  const happiness = data.pet.happiness;
+
+  if (happiness >= 70) {
+    return { emotion: 'happy', icon: '😊', textJa: 'げんき！', textEn: 'Happy!' };
+  } else if (happiness >= 30) {
+    return { emotion: 'neutral', icon: '😐', textJa: 'ふつう', textEn: 'Okay' };
+  } else {
+    return { emotion: 'sad', icon: '😢', textJa: 'さみしい...', textEn: 'Sad...' };
+  }
+};
+
+// Feed pet with correct answer (+5 happiness, max 100)
+export const feedPet = (correct: boolean): { happiness: number; leveledUp: boolean } => {
+  const data = getGameData();
+
+  if (!data.pet.petType) {
+    return { happiness: 0, leveledUp: false };
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  data.pet.lastFedDate = today;
+
+  if (correct) {
+    data.pet.happiness = Math.min(100, data.pet.happiness + 5);
+    data.pet.totalCorrectFeeds++;
+  }
+
+  saveGameData(data);
+  window.dispatchEvent(new CustomEvent('pet-fed'));
+
+  return { happiness: data.pet.happiness, leveledUp: false };
+};
+
+// Check pet status (happiness decay, missed days)
+export const checkPetStatus = (): { happiness: number; missedDays: number; message: string | null } => {
+  const data = getGameData();
+
+  if (!data.pet.petType) {
+    return { happiness: 0, missedDays: 0, message: null };
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const lastFed = data.pet.lastFedDate;
+  let missedDays = 0;
+
+  if (lastFed) {
+    const lastDate = new Date(lastFed);
+    const todayDate = new Date(today);
+    const diffTime = todayDate.getTime() - lastDate.getTime();
+    missedDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    // Decay happiness: -10 per missed day
+    if (missedDays > 0) {
+      data.pet.happiness = Math.max(0, data.pet.happiness - (missedDays * 10));
+      saveGameData(data);
+    }
+  }
+
+  const message = missedDays > 0
+    ? `あなたにあいたかったよ！（${missedDays}日ぶり）/ Missed you! (${missedDays} days)`
+    : null;
+
+  return { happiness: data.pet.happiness, missedDays, message };
+};
+
+// Buy accessory
+export const buyAccessory = (accessoryId: string): { success: boolean; message: string } => {
+  const data = getGameData();
+  const item = SHOP_ITEMS.find(i => i.id === accessoryId);
+
+  if (!item || item.type !== 'accessory') {
+    return { success: false, message: 'アクセサリーが見つかりません / Accessory not found' };
+  }
+
+  if (data.inventory.accessories.includes(accessoryId)) {
+    return { success: false, message: 'すでにもっています / Already owned' };
+  }
+
+  if (data.player.coins < item.price) {
+    return { success: false, message: 'コインがたりません / Not enough coins' };
+  }
+
+  data.player.coins -= item.price;
+  data.inventory.accessories.push(accessoryId);
+  saveGameData(data);
+  window.dispatchEvent(new CustomEvent('coins-changed'));
+
+  return { success: true, message: `${item.nameJa}をかいました！ / Bought ${item.nameEn}!` };
+};
+
+// Equip/unequip accessory
+export const toggleAccessory = (accessoryId: string): { success: boolean; equipped: boolean } => {
+  const data = getGameData();
+
+  if (!data.inventory.accessories.includes(accessoryId)) {
+    return { success: false, equipped: false };
+  }
+
+  // Check pet compatibility
+  const restriction = ACCESSORY_PET_RESTRICTIONS[accessoryId];
+  if (restriction !== null && data.pet.petType && !restriction.includes(data.pet.petType)) {
+    return { success: false, equipped: false };
+  }
+
+  const index = data.pet.equippedAccessories.indexOf(accessoryId);
+  if (index > -1) {
+    data.pet.equippedAccessories.splice(index, 1);
+    saveGameData(data);
+    return { success: true, equipped: false };
+  } else {
+    data.pet.equippedAccessories.push(accessoryId);
+    saveGameData(data);
+    return { success: true, equipped: true };
+  }
+};
+
+// Get equipped accessories with details
+export const getEquippedAccessories = (): ShopItem[] => {
+  const data = getGameData();
+  return data.pet.equippedAccessories
+    .map(id => SHOP_ITEMS.find(item => item.id === id))
+    .filter((item): item is ShopItem => item !== undefined);
+};
+
+// Check if accessory is compatible with current pet
+export const isAccessoryCompatible = (accessoryId: string): boolean => {
+  const data = getGameData();
+  const restriction = ACCESSORY_PET_RESTRICTIONS[accessoryId];
+  if (restriction === null) return true;
+  if (!data.pet.petType) return false;
+  return restriction.includes(data.pet.petType);
+};
+
+// ============================================
+// PROBLEM THEMES
+// ============================================
+
+// Set problem theme
+export const setProblemTheme = (theme: ProblemTheme): boolean => {
+  const data = getGameData();
+  data.settings.problemTheme = theme;
+  saveGameData(data);
+  window.dispatchEvent(new CustomEvent('theme-changed'));
+  return true;
+};
+
+// Get current problem theme
+export const getProblemTheme = (): ProblemTheme => {
+  return getGameData().settings.problemTheme;
+};
+
+// Get themed scenario for questions
+export const getThemedScenario = (theme: ProblemTheme, index: number): { text: string; textEn: string } => {
+  const scenarios: { [key in ProblemTheme]: { text: string; textEn: string }[] } = {
+    default: [
+      { text: 'あるひ、', textEn: 'One day, ' },
+      { text: 'がっこうで、', textEn: 'At school, ' },
+      { text: 'おうちで、', textEn: 'At home, ' },
+    ],
+    space: [
+      { text: 'うちゅうせんは', textEn: 'The spaceship has ' },
+      { text: 'えいせいから', textEn: 'From the satellite, ' },
+      { text: 'ほしのせかいで、', textEn: 'In the star world, ' },
+    ],
+    cooking: [
+      { text: 'シェフが', textEn: 'The chef ' },
+      { text: 'ケーキをやくとき、', textEn: 'When baking a cake, ' },
+      { text: 'レストランで、', textEn: 'At the restaurant, ' },
+    ],
+    sports: [
+      { text: 'せんしゅが', textEn: 'The player ' },
+      { text: 'サッカーのしあいで、', textEn: 'In the soccer game, ' },
+      { text: 'スポーツ大会で、', textEn: 'At the sports festival, ' },
+    ],
+    animals: [
+      { text: 'どうぶつえんで、', textEn: 'At the zoo, ' },
+      { text: 'さるたちが', textEn: 'The monkeys ' },
+      { text: 'ぞうのぞうさんは', textEn: 'Elephant Zou-san ' },
+    ],
+    fantasy: [
+      { text: 'まほうつかいが', textEn: 'The wizard ' },
+      { text: 'ドラゴンのしまで、', textEn: 'On Dragon Island, ' },
+      { text: 'ゆうしゃは', textEn: 'The hero ' },
+    ],
+  };
+
+  const list = scenarios[theme] || scenarios.default;
+  return list[index % list.length];
+};
+
+// ============================================
+// SOUND PACKS
+// ============================================
+
+// Set sound pack
+export const setSoundPack = (pack: SoundPack): boolean => {
+  const data = getGameData();
+  data.settings.soundPack = pack;
+  saveGameData(data);
+  return true;
+};
+
+// Get current sound pack
+export const getSoundPack = (): SoundPack => {
+  return getGameData().settings.soundPack;
+};
+
+// Sound file mappings
+export const SOUND_FILES: { [key in SoundPack]: { correct: string | null; wrong: string | null; coin: string | null; achievement: string | null } } = {
+  classic: {
+    correct: '/sounds/correct.mp3',
+    wrong: '/sounds/wrong.mp3',
+    coin: '/sounds/coin.mp3',
+    achievement: '/sounds/achievement.mp3',
+  },
+  cartoon: {
+    correct: '/sounds/cartoon-boing.mp3',
+    wrong: '/sounds/cartoon-bonk.mp3',
+    coin: '/sounds/cartoon-ching.mp3',
+    achievement: '/sounds/cartoon-tada.mp3',
+  },
+  nature: {
+    correct: '/sounds/nature-bird.mp3',
+    wrong: '/sounds/nature-thud.mp3',
+    coin: '/sounds/nature-chime.mp3',
+    achievement: '/sounds/nature-magic.mp3',
+  },
+  silent: {
+    correct: null,
+    wrong: null,
+    coin: null,
+    achievement: null,
+  },
 };

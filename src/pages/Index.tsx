@@ -17,6 +17,8 @@ import ShopModal from '@/components/ShopModal';
 import VocabularyModal from '@/components/VocabularyModal';
 import MiniGameModal from '@/components/MiniGameModal';
 import AchievementWallModal from '@/components/AchievementWallModal';
+import MathPetModal from '@/components/MathPetModal';
+import PersonalizationModal from '@/components/PersonalizationModal';
 import AdventureMap from '@/components/AdventureMap';
 import DailyQuests from '@/components/DailyQuests';
 import LearningInsights from '@/components/LearningInsights';
@@ -375,6 +377,8 @@ const Index = () => {
   const [vocabularyModalOpen, setVocabularyModalOpen] = useState(false);
   const [miniGameModalOpen, setMiniGameModalOpen] = useState(false);
   const [achievementWallOpen, setAchievementWallOpen] = useState(false);
+  const [mathPetOpen, setMathPetOpen] = useState(false);
+  const [personalizeOpen, setPersonalizeOpen] = useState(false);
   const [unacknowledgedInsights, setUnacknowledgedInsights] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [showMiniGameUnlock, setShowMiniGameUnlock] = useState(false);
@@ -2149,6 +2153,8 @@ const Index = () => {
           onOpenMiniGames={() => setMiniGameModalOpen(true)}
           onOpenTestMode={() => setTestModeOpen(true)}
           onOpenAchievements={() => setAchievementWallOpen(true)}
+          onOpenPet={() => setMathPetOpen(true)}
+          onOpenPersonalize={() => setPersonalizeOpen(true)}
           unacknowledgedInsights={unacknowledgedInsights}
         />
       </div>
@@ -3593,6 +3599,18 @@ const Index = () => {
       <AchievementWallModal
         isOpen={achievementWallOpen}
         onClose={() => setAchievementWallOpen(false)}
+      />
+
+      {/* Math Pet Modal */}
+      <MathPetModal
+        isOpen={mathPetOpen}
+        onClose={() => setMathPetOpen(false)}
+      />
+
+      {/* Personalization Modal */}
+      <PersonalizationModal
+        isOpen={personalizeOpen}
+        onClose={() => setPersonalizeOpen(false)}
       />
 
       {/* Vocabulary Modal */}

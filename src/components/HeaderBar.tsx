@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Coins, Flame, Trophy, User, ShoppingBag, Target, Brain, BookOpen, Gamepad2, FileCheck } from 'lucide-react';
+import { Coins, Flame, Trophy, User, ShoppingBag, Target, Brain, BookOpen, Gamepad2, FileCheck, Sparkles } from 'lucide-react';
 import { getGameData, getStreakStatus, updateStreak, GameData } from '@/lib/gameState';
 import { cn } from '@/lib/utils';
+import PetAvatar from './PetAvatar';
 
 interface HeaderBarProps {
   className?: string;
@@ -13,10 +14,12 @@ interface HeaderBarProps {
   onOpenMiniGames?: () => void;
   onOpenTestMode?: () => void;
   onOpenAchievements?: () => void;
+  onOpenPet?: () => void;
+  onOpenPersonalize?: () => void;
   unacknowledgedInsights?: number;
 }
 
-const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, onOpenStoryMode, onOpenVocabulary, onOpenMiniGames, onOpenTestMode, onOpenAchievements, unacknowledgedInsights = 0 }: HeaderBarProps) => {
+const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, onOpenStoryMode, onOpenVocabulary, onOpenMiniGames, onOpenTestMode, onOpenAchievements, onOpenPet, onOpenPersonalize, unacknowledgedInsights = 0 }: HeaderBarProps) => {
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [showCoinsAnimation, setShowCoinsAnimation] = useState(false);
 
@@ -122,6 +125,26 @@ const HeaderBar = ({ className, onOpenShop, onOpenQuests, onOpenInsights, onOpen
 
       {/* Right - Quests + Insights + Shop + XP Bar */}
       <div className="flex items-center gap-2">
+        {/* Pet Avatar Button */}
+        {onOpenPet && (
+          <PetAvatar
+            gameData={gameData}
+            onClick={onOpenPet}
+            size="md"
+          />
+        )}
+
+        {/* Personalize Button */}
+        {onOpenPersonalize && (
+          <button
+            onClick={onOpenPersonalize}
+            className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-100 to-blue-100 border border-cyan-200 hover:scale-105 transition-transform"
+            title="パーソナライズ / Personalize"
+          >
+            <Sparkles className="w-5 h-5 text-cyan-600" />
+          </button>
+        )}
+
         {/* Story Mode Button */}
         {onOpenStoryMode && (
           <button

@@ -195,7 +195,7 @@ improving! Keep going!
 
 ---
 
-### 8. Math Pet Companion
+### 8. Math Pet Companion ✅ IMPLEMENTED 2026-03-21
 
 A virtual pet that grows with math practice:
 
@@ -274,14 +274,14 @@ A visual gallery of all earned achievements:
 
 ---
 
-### 11. Personalization Options ⚠️ PARTIALLY IMPLEMENTED
+### 11. Personalization Options ✅ IMPLEMENTED 2026-03-21
 > **Implementation**: `ShopModal.tsx` has themes and color accents purchasable with coins — missing Math Buddy character selection, Problem Themes (Space/Cooking/etc.), and Sound Effects
 
 Let kids make it their own:
 
 | Category | Options |
 |----------|---------|
-| **Math Buddy** | Robot, Cat, Dog, Alien, Penguin, Dragon |
+| **Math Pet** | Robot, Cat, Dog, Alien, Penguin, Dragon |
 | **Problem Themes** | Space, Cooking, Sports, Animals, Fantasy |
 | **Sound Effects** | Classic, Cartoon, Nature, Silent |
 | **Color Accents** | Blue, Pink, Green, Purple, Rainbow |

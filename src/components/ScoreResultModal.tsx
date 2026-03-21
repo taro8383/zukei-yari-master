@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { Achievement, calculateSessionCoins, unlockAchievement, recordQuestionAnswered, getGameData } from '@/lib/gameState';
+import { Achievement, calculateSessionCoins, unlockAchievement, recordQuestionAnswered, getGameData, feedPet } from '@/lib/gameState';
 import SolutionModal, { SolutionData } from './SolutionModal';
 import generateSolution from '@/lib/solutionGenerator';
 
@@ -102,9 +102,12 @@ const ScoreResultModal = ({
   // Record session and calculate rewards when modal opens
   useEffect(() => {
     if (isOpen) {
-      // Record each question
+      // Record each question and feed pet
       results.forEach(r => {
         recordQuestionAnswered(r.isCorrect, topicId);
+        if (r.isCorrect) {
+          feedPet(true);
+        }
       });
 
       // Calculate coins
