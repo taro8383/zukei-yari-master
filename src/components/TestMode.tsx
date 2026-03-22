@@ -335,7 +335,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
     // For division with remainder
     if (isDivisionWithRemainder(qType)) {
       const divAns = divisionAnswers[idx];
-      return !!(divAns?.quotient !== '' && divAns?.remainder !== '');
+      return !!(divAns?.quotient && divAns?.remainder);
     }
 
     // For division questions
