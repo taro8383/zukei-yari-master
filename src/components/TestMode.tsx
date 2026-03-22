@@ -114,7 +114,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
 
   // Large numbers reading-oku-cho needs text input (Japanese with Kanji)
   const isTextAnswerQuestion = (topicId: string): boolean => {
-    return topicId === 'reading-oku-cho';
+    return topicId === 'reading-oku-cho' || topicId === 'calculating-oku-cho';
   };
 
   // Handle kanji button clicks for reading-oku-cho
@@ -1085,8 +1085,8 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
       );
     }
 
-    // Text input with Kanji buttons for reading-oku-cho
-    if (topicId === 'reading-oku-cho') {
+    // Text input with Kanji buttons for reading-oku-cho and calculating-oku-cho
+    if (topicId === 'reading-oku-cho' || topicId === 'calculating-oku-cho') {
       return (
         <div className="flex flex-col gap-2">
           <input
