@@ -232,10 +232,10 @@ export function generateFindingRatioQuestions(): RatioQuestion[] {
       const isWholeNumber = ratio === Math.floor(ratio);
       const hint = isWholeNumber
         ? '倍の数を整数で答えましょう。'
-        : '倍の数を小数第1位まで答えましょう。';
+        : '倍の数を小数第1位まで答えましょう。（四捨五入：0.66→0.7、0.64→0.6）';
       const hintEn = isWholeNumber
         ? 'Answer as a whole number.'
-        : 'Answer to 1 decimal place.';
+        : 'Answer to 1 decimal place. (Round: 0.66→0.7, 0.64→0.6)';
 
       questions.push({
         id: index + 1,
@@ -253,15 +253,15 @@ export function generateFindingRatioQuestions(): RatioQuestion[] {
       });
     } else {
       // Reverse: Base ÷ Compared
-      const reverseRatio = Math.round((baseAmount / comparedAmount) * 100) / 100;
+      const reverseRatio = Math.round((baseAmount / comparedAmount) * 10) / 10;
       // Determine hint for reverse ratio
       const isReverseWholeNumber = reverseRatio === Math.floor(reverseRatio);
       const reverseHint = isReverseWholeNumber
         ? '倍の数を整数で答えましょう。'
-        : '倍の数を小数第1位まで答えましょう。';
+        : '倍の数を小数第1位まで答えましょう。（四捨五入：0.66→0.7、0.64→0.6）';
       const reverseHintEn = isReverseWholeNumber
         ? 'Answer as a whole number.'
-        : 'Answer to 1 decimal place.';
+        : 'Answer to 1 decimal place. (Round: 0.66→0.7, 0.64→0.6)';
 
       questions.push({
         id: index + 1,
@@ -377,10 +377,10 @@ export function generateFindingComparedQuestions(): RatioQuestion[] {
     const isWholeNumber = comparedAmount === Math.floor(comparedAmount);
     const hint = isWholeNumber
       ? '答えは整数です。'
-      : '答えは小数第1位まで答えましょう。';
+      : '答えは小数第1位まで答えましょう。（四捨五入）';
     const hintEn = isWholeNumber
       ? 'The answer is a whole number.'
-      : 'Answer to 1 decimal place.';
+      : 'Answer to 1 decimal place. (Round to nearest)';
 
     questions.push({
       id: index + 1,
@@ -492,10 +492,10 @@ export function generateFindingBaseQuestions(): RatioQuestion[] {
     const isWholeNumber = baseAmount === Math.floor(baseAmount);
     const hint = isWholeNumber
       ? '答えは整数です。'
-      : '答えは小数第1位まで答えましょう。';
+      : '答えは小数第1位まで答えましょう。（四捨五入）';
     const hintEn = isWholeNumber
       ? 'The answer is a whole number.'
-      : 'Answer to 1 decimal place.';
+      : 'Answer to 1 decimal place. (Round to nearest)';
 
     questions.push({
       id: index + 1,
@@ -832,18 +832,18 @@ export function generateDifferenceVsMultipleQuestions(): RatioQuestion[] {
       : multipleScenarios[index % multipleScenarios.length];
 
     // Determine hint based on answer type
-    const answerValue = isDifference ? diff : Math.round(ratio * 100) / 100;
+    const answerValue = isDifference ? diff : Math.round(ratio * 10) / 10;
     const isWholeNumber = answerValue === Math.floor(answerValue);
     const hint = isDifference
       ? '差（ひき算の答え）を整数で答えましょう。'
       : (isWholeNumber
           ? '倍の数を整数で答えましょう。'
-          : '倍の数を小数第1位まで答えましょう。');
+          : '倍の数を小数第1位まで答えましょう。（四捨五入）');
     const hintEn = isDifference
       ? 'Answer the difference as a whole number.'
       : (isWholeNumber
           ? 'Answer as a whole number.'
-          : 'Answer to 1 decimal place.');
+          : 'Answer to 1 decimal place. (Round to nearest)');
 
     questions.push({
       id: index + 1,
