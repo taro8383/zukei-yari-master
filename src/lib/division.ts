@@ -207,7 +207,8 @@ function generateDivisionPropertiesQuestions(): DivisionQuestion[] {
     { dividend: 80, divisor: 16, simplifiedDividend: 20, simplifiedDivisor: 4, factor: 4 },
     { dividend: 112, divisor: 28, simplifiedDividend: 28, simplifiedDivisor: 7, factor: 4 },
     // Divide by 5
-    { dividend: 85, divisor: 15, simplifiedDividend: 17, simplifiedDivisor: 3, factor: 5 },
+    { dividend: 90, divisor: 15, simplifiedDividend: 18, simplifiedDivisor: 3, factor: 5 },
+    { dividend: 75, divisor: 15, simplifiedDividend: 15, simplifiedDivisor: 3, factor: 5 },
     { dividend: 125, divisor: 25, simplifiedDividend: 25, simplifiedDivisor: 5, factor: 5 },
     // Divide by 6
     { dividend: 96, divisor: 24, simplifiedDividend: 16, simplifiedDivisor: 4, factor: 6 },
