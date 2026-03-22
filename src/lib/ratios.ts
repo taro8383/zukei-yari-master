@@ -263,6 +263,10 @@ export function generateFindingRatioQuestions(): RatioQuestion[] {
         ? 'Answer as a whole number.'
         : 'Answer to 1 decimal place. (Round: 0.66→0.7, 0.64→0.6)';
 
+      // Calculate the exact division result for honest explanation
+      const exactResult = baseAmount / comparedAmount;
+      const exactStr = exactResult.toFixed(3).replace(/\.?0+$/, ''); // Show up to 3 decimals, trim trailing zeros
+
       questions.push({
         id: index + 1,
         type: 'finding-ratio',
@@ -272,8 +276,8 @@ export function generateFindingRatioQuestions(): RatioQuestion[] {
         answer: reverseRatio,
         text: `もとにする数が ${comparedAmount}、くらべる数が ${baseAmount} のとき、くらべる数はもとにする数の何倍ですか？`,
         textEn: `When the base amount is ${comparedAmount} and the compared amount is ${baseAmount}, how many times bigger is the compared amount?`,
-        explanation: `${baseAmount} ÷ ${comparedAmount} = ${reverseRatio}`,
-        explanationEn: `${baseAmount} ÷ ${comparedAmount} = ${reverseRatio}`,
+        explanation: `${baseAmount} ÷ ${comparedAmount} = ${exactStr}... → 小数第1位に四捨五入 → ${reverseRatio}`,
+        explanationEn: `${baseAmount} ÷ ${comparedAmount} = ${exactStr}... → Round to 1 decimal → ${reverseRatio}`,
         hint: reverseHint,
         hintEn: reverseHintEn,
       });
@@ -833,6 +837,7 @@ export function generateDifferenceVsMultipleQuestions(): RatioQuestion[] {
 
     // Determine hint based on answer type
     const answerValue = isDifference ? diff : Math.round(ratio * 10) / 10;
+    const roundedRatio = Math.round(ratio * 10) / 10;
     const isWholeNumber = answerValue === Math.floor(answerValue);
     const hint = isDifference
       ? '差（ひき算の答え）を整数で答えましょう。'
@@ -845,24 +850,29 @@ export function generateDifferenceVsMultipleQuestions(): RatioQuestion[] {
           ? 'Answer as a whole number.'
           : 'Answer to 1 decimal place. (Round to nearest)');
 
+    // Build honest explanation showing exact division then rounding
+    const exactRatioStr = ratio.toFixed(3).replace(/\.?0+$/, '');
+    const multipleExplanation = `「何倍か」を求める → わり算：${larger} ÷ ${smaller} = ${exactRatioStr}... → 小数第1位に四捨五入 → ${roundedRatio}倍`;
+    const multipleExplanationEn = `Finding "how many times" → Division: ${larger} ÷ ${smaller} = ${exactRatioStr}... → Round to 1 decimal → ${roundedRatio} times`;
+
     questions.push({
       id: index + 1,
       type: 'difference-vs-multiple',
       baseAmount: smaller,
       comparedAmount: larger,
-      ratio: Math.round(ratio * 100) / 100,
+      ratio: roundedRatio,
       answer: answerValue,
       text: scenario.ja(smaller, larger, isDifference ? diff : ratio),
       textEn: scenario.en(smaller, larger, isDifference ? diff : ratio),
       explanation: isDifference
         ? `「どちらが大きいか」を求める → ひき算：${larger} - ${smaller} = ${diff}`
-        : `「何倍か」を求める → わり算：${larger} ÷ ${smaller} = ${Math.round(ratio * 100) / 100}倍`,
+        : multipleExplanation,
       explanationEn: isDifference
         ? `Finding "how much bigger" → Subtraction: ${larger} - ${smaller} = ${diff}`
-        : `Finding "how many times" → Division: ${larger} ÷ ${smaller} = ${Math.round(ratio * 100) / 100} times`,
+        : multipleExplanationEn,
       correctOperation: isDifference ? 'difference' : 'multiple',
       differenceAnswer: diff,
-      multipleAnswer: Math.round(ratio * 100) / 100,
+      multipleAnswer: roundedRatio,
       hint,
       hintEn,
     });
