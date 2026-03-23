@@ -1588,7 +1588,7 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
               <span className="text-lg font-medium text-muted-foreground">{(currentQuestion as any).unit}</span>
             )}
           </div>
-        )}
+        ))}
 
         {/* Graded Feedback - Show Results and Explanations */}
         {isGraded && (
