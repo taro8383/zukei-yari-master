@@ -1573,8 +1573,11 @@ const TestMode = ({ questions, onExit, onComplete }: TestModeProps) => {
         {/* Investigating Changes Table (showing ○ and △ values) */}
         {isInvestigatingChangesQuestion(getQuestionType(currentQuestion)) && renderInvestigatingChangesTable()}
 
-        {/* Answer Input - only show for non-interactive and non-drawing-graph exercises */}
-        {!isInteractiveExercise(currentQuestion) && !isDrawingGraphQuestion(getQuestionType(currentQuestion)) && (
+        {/* Answer Input - only show for non-interactive exercises */}
+        {/* Drawing-graph questions with text questions also need input */}
+        {!isInteractiveExercise(currentQuestion) && (
+          // For drawing-graph questions, only show input if there's a text answer question (has 'answer' field)
+          (!isDrawingGraphQuestion(getQuestionType(currentQuestion)) || (currentQuestion as any).answer !== undefined) && (
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex flex-col">
               <span className="text-foreground font-medium">答え：</span>
